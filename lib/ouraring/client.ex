@@ -38,7 +38,19 @@ defmodule ExOuraring.Client do
   end
 
   defp get(client, path) do
-    OAuth2.Client.get(client, "#{@base_uri}#{path}")
+    client
+    |> OAuth2.Client.get("#{@base_uri}#{path}")
+    |> process_results()
+  end
+
+  defp process_results({:ok, %OAuth2.Response{body: body}}) do
+    {:ok, body}
+  end
+  defp process_results({:error, %OAuth2.Response{body: reason}}) do
+    {:error, reason}
+  end
+  defp process_results({:error, %OAuth2.Error{reason: reason}}) do
+    {:error, reason}
   end
 
   defp validate_opts(authorize, opts) do

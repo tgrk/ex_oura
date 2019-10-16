@@ -24,8 +24,12 @@ defmodule ExOuraring.MixProject do
       {:oauth2, "~> 2.0"},
       {:jason, "~> 1.1"},
       {:timex, "~> 3.6"},
-      {:dialyxir, "~> 1.0.0-rc.6", only: [:dev], runtime: false},
-      {:ex_doc, ">= 0.0.0", only: :dev}
+
+      # Build & test tools
+      {:credo, "~> 1.0", only: :dev},
+      {:dialyxir, "~> 0.5.0", only: [:dev], runtime: false},
+      {:ex_doc, "~> 0.19", only: :dev},
+      {:exvcr, "~> 0.10", only: :test},
     ]
   end
 

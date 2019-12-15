@@ -1,9 +1,9 @@
-defmodule ExOuraring.MixProject do
+defmodule OuraCloudAPI.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :ex_ouraring,
+      app: :oura,
       description: description(),
       package: package(),
       version: "0.1.0",
@@ -24,18 +24,19 @@ defmodule ExOuraring.MixProject do
       {:oauth2, "~> 2.0"},
       {:jason, "~> 1.1"},
       {:timex, "~> 3.6"},
+      {:typed_struct, "~> 0.1.4"},
 
       # Build & test tools
       {:credo, "~> 1.0", only: :dev},
       {:dialyxir, "~> 0.5.0", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.19", only: :dev},
-      {:exvcr, "~> 0.10", only: :test},
+      {:exvcr, "~> 0.10", only: :test}
     ]
   end
 
   defp description() do
     """
-    ExOuraring - Elixir client for Oura Ring API
+    Oura - Elixir client for Oura Cloud API
     """
   end
 
@@ -51,8 +52,8 @@ defmodule ExOuraring.MixProject do
       maintainers: ["Martin Wiso"],
       licenses: ["Apache 2.0"],
       links: %{
-        "GitHub" => "https://github.com/tgrk/exouraring",
-        "Issues" => "https://github.com/tgrk/exouraring/issues"
+        "GitHub" => "https://github.com/tgrk/oura",
+        "Issues" => "https://github.com/tgrk/oura/issues"
       }
     ]
   end

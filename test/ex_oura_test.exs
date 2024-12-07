@@ -1,8 +1,4 @@
 defmodule ExOuraTest do
-  use ExUnit.Case
+  use ExOura.Test.Support.Case
   doctest ExOura
-
-  test "greets the world" do
-    assert ExOura.hello() == :world
-  end
 end

@@ -21,4 +21,20 @@ defmodule ExOura do
   Single Daily Activity
   """
   defdelegate single_daily_activity(document_id, opts \\ []), to: DailyActivity
+
+  @doc """
+  Multiple Daily Cardiovascular Age
+  """
+  defdelegate multiple_daily_cardiovascular_age(
+                start_date,
+                end_date,
+                next_token \\ nil,
+                opts \\ []
+              ),
+              to: DailyCardiovascularAge
+
+  @doc """
+  Single Daily Cardiovascular Age
+  """
+  defdelegate single_daily_cardiovascular_age(document_id, opts \\ []), to: DailyCardiovascularAge
 end

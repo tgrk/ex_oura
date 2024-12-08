@@ -6,6 +6,8 @@ defmodule ExOura.Client do
 
   @base_url "https://api.ouraring.com"
 
+  @timeout Application.compile_env(:ex_oura, :timeout, 5_000)
+
   # Client API
 
   @doc """
@@ -35,9 +37,10 @@ defmodule ExOura.Client do
   end
 
   @doc """
+  HTTP request for generated OpenApi client
   """
   def request(operation) do
-    GenServer.call(__MODULE__, {:request, operation})
+    GenServer.call(__MODULE__, {:request, operation}, @timeout)
   end
 
   # Server Callbacks

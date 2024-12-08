@@ -7,6 +7,7 @@ defmodule ExOura do
   alias ExOura.DailyCardiovascularAge
   alias ExOura.DailyReadiness
   alias ExOura.DailyResilience
+  alias ExOura.DailySleep
 
   @doc """
   Multiple Daily Activity
@@ -71,4 +72,20 @@ defmodule ExOura do
   Single Daily Resilience
   """
   defdelegate single_daily_resilience(document_id, opts \\ []), to: DailyResilience
+
+  @doc """
+  Multiple Daily Sleep
+  """
+  defdelegate multiple_daily_sleep(
+                start_date,
+                end_date,
+                next_token \\ nil,
+                opts \\ []
+              ),
+              to: DailySleep
+
+  @doc """
+  Single Daily Sleep
+  """
+  defdelegate single_daily_sleep(document_id, opts \\ []), to: DailySleep
 end

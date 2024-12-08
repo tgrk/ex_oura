@@ -1,0 +1,39 @@
+[
+  {
+    "request": {
+      "options": [],
+      "body": "",
+      "url": "https://api.ouraring.com/v2/usercollection/daily_sleep/8d77bb80-f680-447b-9330-770c8a527d7c",
+      "headers": {
+        "accept-encoding": "gzip",
+        "authorization": "***",
+        "user-agent": "req/0.5.8"
+      },
+      "method": "get",
+      "request_body": ""
+    },
+    "response": {
+      "binary": false,
+      "type": "ok",
+      "body": "{\"id\":\"8d77bb80-f680-447b-9330-770c8a527d7c\",\"contributors\":{\"deep_sleep\":45,\"efficiency\":98,\"latency\":99,\"rem_sleep\":95,\"restfulness\":66,\"timing\":58,\"total_sleep\":74},\"day\":\"2018-10-10\",\"score\":75,\"timestamp\":\"2018-10-10T00:00:00+02:00\"}",
+      "headers": {
+        "content-type": "application/json",
+        "content-length": "238",
+        "connection": "keep-alive",
+        "date": "Sat, 14 Dec 2024 11:22:41 GMT",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-trace-id": "c6b98a38bc2b0e21a6945ec748884cd0",
+        "x-cache": "Miss from cloudfront",
+        "via": "1.1 446f4800ed8a030e10e4a6dd15349224.cloudfront.net (CloudFront)",
+        "x-amz-cf-pop": "TXL50-P5",
+        "x-amz-cf-id": "yfysW-wSSY62e6oW-_7rvLiHCGhH_huAhQqnqewwvb078hAJstvpbw=="
+      },
+      "status_code": 200
+    }
+  }
+]

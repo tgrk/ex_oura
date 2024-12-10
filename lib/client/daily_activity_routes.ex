@@ -15,9 +15,6 @@ defmodule ExOura.Client.DailyActivityRoutes do
     * `next_token`
 
   """
-  @spec multiple_daily_activity_documents_v2_usercollection_daily_activity_get(keyword) ::
-          {:ok, ExOura.Client.MultiDocumentResponseDailyActivityModel.t()}
-          | {:error, ExOura.Client.HTTPValidationError.t()}
   def multiple_daily_activity_documents_v2_usercollection_daily_activity_get(opts \\ []) do
     client = opts[:client] || @default_client
     query = Keyword.take(opts, [:end_date, :next_token, :start_date])
@@ -45,12 +42,6 @@ defmodule ExOura.Client.DailyActivityRoutes do
   @doc """
   Single Daily Activity Document
   """
-  @spec single_daily_activity_document_v2_usercollection_daily_activity_document_id_get(
-          String.t(),
-          keyword
-        ) ::
-          {:ok, ExOura.Client.DailyActivityModel.t()}
-          | {:error, ExOura.Client.HTTPValidationError.t()}
   def single_daily_activity_document_v2_usercollection_daily_activity_document_id_get(
         document_id,
         opts \\ []

@@ -13,7 +13,7 @@ defmodule ExOura.DailySleep do
       Client.DailySleepRoutes,
       :multiple_daily_sleep_documents_v2_usercollection_daily_sleep_get,
       [],
-      [start_date: start_date, end_date: end_date, next_token: next_token] ++ opts
+      Client.date_range_args(start_date, end_date, next_token) ++ opts
     )
   end
 

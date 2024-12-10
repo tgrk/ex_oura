@@ -12,7 +12,7 @@ defmodule ExOura.DailyCardiovascularAge do
       Client.DailyCardiovascularAgeRoutes,
       :multiple_daily_cardiovascular_age_documents_v2_usercollection_daily_cardiovascular_age_get,
       [],
-      [start_date: start_date, end_date: end_date, next_token: next_token] ++ opts
+      Client.date_range_args(start_date, end_date, next_token) ++ opts
     )
   end
 

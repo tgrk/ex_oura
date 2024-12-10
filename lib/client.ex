@@ -23,8 +23,8 @@ defmodule ExOura.Client do
 
   def date_range_args(start_date, end_date, next_token \\ nil) do
     [
-      start_date: Calendar.strftime(start_date, "%Y-%m-%d"),
-      end_date: Calendar.strftime(end_date, "%Y-%m-%d"),
+      start_date: start_date,
+      end_date: end_date,
       next_token: next_token
     ]
   end

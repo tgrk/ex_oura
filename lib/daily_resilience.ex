@@ -13,7 +13,7 @@ defmodule ExOura.DailyResilience do
       Client.DailyResilienceRoutes,
       :multiple_daily_resilience_documents_v2_usercollection_daily_resilience_get,
       [],
-      [start_date: start_date, end_date: end_date, next_token: next_token] ++ opts
+      Client.date_range_args(start_date, end_date, next_token) ++ opts
     )
   end
 

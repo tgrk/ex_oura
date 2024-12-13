@@ -1,0 +1,41 @@
+[
+  {
+    "request": {
+      "options": [],
+      "body": "",
+      "url": "https://api.ouraring.com/v2/usercollection/enhanced_tag?start_date=0024-11-11&end_date=2024-11-12&next_token=",
+      "headers": {
+        "accept-encoding": "gzip",
+        "authorization": "***",
+        "user-agent": "req/0.5.8"
+      },
+      "method": "get",
+      "request_body": ""
+    },
+    "response": {
+      "binary": true,
+      "type": "ok",
+      "body": "g20AAAQVH4sIAAAAAAAEA7yXza4bNwyF38XbhgAlURI1z+FdFwYlUcFF/RPcO1kEQd89lHOzCNoUnbGRpW1q7M+HPDz6euiyymH58+vhpR+Wg3Dn1KKDgoOAEnaoxTdIPbHLYdSm6fDhsMrH0/rlk57arasdm68/6lVfX9rpemsyhr5c1QrfVnldT+vLZVZ59AGQIeDR8RLSguEP9AuiFeq1v5ddP5/PPw52+fLTuffC+9vf69rtctHralX2Wfv8tt4up6vMr5uf//3hnavSEORCUGtiID+5iBIw16QjEkms9oBncMW8IP0uLqbKKNKhaEWg4hWkcIZcG2PnnmJ9Apc7ely8KeW2cbndepUYqAVOgJobEFIBScOUc2Hk6BtHHx7UqwC6o8tLiNv0mud2c5EPKXibAZZcgTgU4CQEDsfIyUfyfk7DI31ov88fXVmC26bXPLefy5F2dgjZt2RcnaFmKZAxh6Sem+cncIXJ5XmJeUMfGtdslWkw233Dt1Zr6R18TGHOVzEHKREyDym5Du+DPK4XTS5ic8JtXLSbqxVpiFHAU+hAITXg6ASitNJ0MInMhz/Yh3T3DZuv38ZVmzOCiYSUjcuasVDwoNyxSKgq7glc8d6HNl9+m15xt17mgtMiGGJB60PlCJUVIY5B3YvrtsAe1yvdfSNs1mtGgn3zVWt3DT3aVJGJxjWDjCKgpUfJLkvtT5ivPLkQN3Pl3VxUCubehk1Vsb2s3YEt4z73spcYnPTwhP3Fkyv6JZZtfci7uVqv0qUJ9DFML18rsKp1pARffShD43i8D8tOvcpurqTWaZq7xVPbxsSCUHxl6Fl7iU6bQT7M5e65N9p8bcm9xcLBbi4zPGqteRhBh/lhGSBsDhKkFguLWdoT9HKWoyxvbN5fbn+O6jmlEi0alsgKNKr5YWQHsVcOxLFiejxvuHuO2u4bbn+OcsNFzCXDwDlfUT2ULA4q5pS1jdDifPh/7eUur3+dqvbX2+1ipf+8gTkPmI7eLeSWYJvZ9tiPBvt+UfvFDex+bncnZuI2EBtURetEqmJk1YGjZoaSNJiZ/ILs7az66XSWVS8q539hIsAI3pj84sIS7Pb1/5jez+1mKoFCzjp31pwutLRRW3EQWGOwoB/o/s+aWt8AAAD//5yYTQrCMBSE7+LaQCZ/TXqObl20vlREqIIu7O2dgK4MGHuAF/iYZPJmvtJyC1OnjB607Z3rtW91eDKVuc1MATF5j0nBy0idMpi8kijh/QvJGmT9qwGYx/vjvJzqQkVqVdZCcC1sjpOEKnOboebj5AF+x85Gxkkbk0oBjq5oxIgVdCHy8JpQn1rjxiJjrSIBSqeBNkGd2t8TM1+Z+xvpsN8t+clO5XrJy7vleAEAAP//AwDRukw3xhEAAA==",
+      "headers": {
+        "content-type": "application/json",
+        "transfer-encoding": "chunked",
+        "connection": "keep-alive",
+        "date": "Sat, 14 Dec 2024 12:20:59 GMT",
+        "x-xss-protection": "1; mode=block",
+        "content-encoding": "gzip",
+        "vary": "Accept-Encoding",
+        "cache-control": "no-cache",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-trace-id": "1099e20ee7277657c4170089962904ca",
+        "x-cache": "Miss from cloudfront",
+        "via": "1.1 a9720b560aaea240abc824a2208068a2.cloudfront.net (CloudFront)",
+        "x-amz-cf-pop": "TXL50-P5",
+        "x-amz-cf-id": "PzQrq2Za-S1dcEmKxTlEx_pMWmwOP9Ion-lQtD_lvWlfL8cT3BLSZA=="
+      },
+      "status_code": 200
+    }
+  }
+]

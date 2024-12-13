@@ -11,6 +11,7 @@ defmodule ExOura do
   alias ExOura.DailySleep
   alias ExOura.DailySp02
   alias ExOura.DailyStress
+  alias ExOura.EnhancedTag
 
   @type start_date() :: Date.t()
   @type end_date() :: Date.t()
@@ -187,4 +188,28 @@ defmodule ExOura do
   @spec single_daily_stress(document_id(), opts()) ::
           {:ok, Client.DailyStressModel.t()} | error()
   defdelegate single_daily_stress(document_id, opts \\ []), to: DailyStress
+
+  @doc """
+  Multiple Enhanced Tag
+  """
+  @spec multiple_enhanced_tag(
+          start_date(),
+          end_date(),
+          next_token(),
+          opts()
+        ) :: {:ok, Client.MultiDocumentResponseEnhancedTagModel.t()} | error()
+  defdelegate multiple_enhanced_tag(
+                start_date,
+                end_date,
+                next_token \\ nil,
+                opts \\ []
+              ),
+              to: EnhancedTag
+
+  @doc """
+  Single Enhanced Tag
+  """
+  @spec single_enhanced_tag(document_id(), opts()) ::
+          {:ok, Client.EnhancedTagModel.t()} | error()
+  defdelegate single_enhanced_tag(document_id, opts \\ []), to: EnhancedTag
 end

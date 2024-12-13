@@ -14,6 +14,7 @@ defmodule ExOura do
   alias ExOura.EnhancedTag
   alias ExOura.HeartRate
   alias ExOura.PersonalInfo
+  alias ExOura.RestModePeriod
 
   @type start_date() :: Date.t()
   @type end_date() :: Date.t()
@@ -237,4 +238,28 @@ defmodule ExOura do
   """
   @spec single_personal_info(opts()) :: {:ok, Client.PersonalInfoResponse.t()} | error()
   defdelegate single_personal_info(opts \\ []), to: PersonalInfo
+
+  @doc """
+  Multiple Rest Mode Period
+  """
+  @spec multiple_rest_mode_period(
+          start_date(),
+          end_date(),
+          next_token(),
+          opts()
+        ) :: {:ok, Client.MultiDocumentResponseRestModePeriodModel.t()} | error()
+  defdelegate multiple_rest_mode_period(
+                start_date,
+                end_date,
+                next_token \\ nil,
+                opts \\ []
+              ),
+              to: RestModePeriod
+
+  @doc """
+  Single Rest Mode Period
+  """
+  @spec single_rest_mode_period(document_id(), opts()) ::
+          {:ok, Client.RestModePeriodModel.t()} | error()
+  defdelegate single_rest_mode_period(document_id, opts \\ []), to: RestModePeriod
 end

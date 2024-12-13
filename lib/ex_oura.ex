@@ -15,6 +15,7 @@ defmodule ExOura do
   alias ExOura.HeartRate
   alias ExOura.PersonalInfo
   alias ExOura.RestModePeriod
+  alias ExOura.RingConfiguration
 
   @type start_date() :: Date.t()
   @type end_date() :: Date.t()
@@ -262,4 +263,28 @@ defmodule ExOura do
   @spec single_rest_mode_period(document_id(), opts()) ::
           {:ok, Client.RestModePeriodModel.t()} | error()
   defdelegate single_rest_mode_period(document_id, opts \\ []), to: RestModePeriod
+
+  @doc """
+  Multiple Ring Configuration
+  """
+  @spec multiple_ring_configuration(
+          start_date(),
+          end_date(),
+          next_token(),
+          opts()
+        ) :: {:ok, Client.MultiDocumentResponseRingConfigurationModel.t()} | error()
+  defdelegate multiple_ring_configuration(
+                start_date,
+                end_date,
+                next_token \\ nil,
+                opts \\ []
+              ),
+              to: RingConfiguration
+
+  @doc """
+  Single Ring Configuration
+  """
+  @spec single_ring_configuration(document_id(), opts()) ::
+          {:ok, Client.RingConfigurationModel.t()} | error()
+  defdelegate single_ring_configuration(document_id, opts \\ []), to: RingConfiguration
 end

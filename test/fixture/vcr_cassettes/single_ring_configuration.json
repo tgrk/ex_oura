@@ -1,0 +1,39 @@
+[
+  {
+    "request": {
+      "options": [],
+      "body": "",
+      "url": "https://api.ouraring.com/v2/usercollection/ring_configuration/cb3317b2-3ec6-46f2-b62d-210e87c41268",
+      "headers": {
+        "accept-encoding": "gzip",
+        "authorization": "***",
+        "user-agent": "req/0.5.8"
+      },
+      "method": "get",
+      "request_body": ""
+    },
+    "response": {
+      "binary": false,
+      "type": "ok",
+      "body": "{\"id\":\"cb3317b2-3ec6-46f2-b62d-210e87c41268\",\"color\":\"stealth_black\",\"design\":\"heritage\",\"firmware_version\":\"2.9.32\",\"hardware_type\":\"gen3\",\"set_up_at\":\"1970-01-01T00:00:00+00:00\",\"size\":11}",
+      "headers": {
+        "content-type": "application/json",
+        "content-length": "190",
+        "connection": "keep-alive",
+        "date": "Sat, 14 Dec 2024 12:38:41 GMT",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-trace-id": "97bc59064528b677cc9e70dc2acb8fc3",
+        "x-cache": "Miss from cloudfront",
+        "via": "1.1 89c50b6a052f3d7c2c7b36108c6288f2.cloudfront.net (CloudFront)",
+        "x-amz-cf-pop": "TXL50-P5",
+        "x-amz-cf-id": "jz0WsohPYzkuNbfPls-Hd9Oqp8eCqbpbI-2qhg5v7zioudtvB7r-mw=="
+      },
+      "status_code": 200
+    }
+  }
+]

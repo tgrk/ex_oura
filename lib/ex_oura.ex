@@ -13,6 +13,7 @@ defmodule ExOura do
   alias ExOura.DailyStress
   alias ExOura.EnhancedTag
   alias ExOura.HeartRate
+  alias ExOura.PersonalInfo
 
   @type start_date() :: Date.t()
   @type end_date() :: Date.t()
@@ -230,4 +231,10 @@ defmodule ExOura do
                 opts \\ []
               ),
               to: HeartRate
+
+  @doc """
+  Single Personal Info
+  """
+  @spec single_personal_info(opts()) :: {:ok, Client.PersonalInfoResponse.t()} | error()
+  defdelegate single_personal_info(opts \\ []), to: PersonalInfo
 end

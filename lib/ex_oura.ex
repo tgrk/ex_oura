@@ -12,6 +12,7 @@ defmodule ExOura do
   alias ExOura.DailySp02
   alias ExOura.DailyStress
   alias ExOura.EnhancedTag
+  alias ExOura.HeartRate
 
   @type start_date() :: Date.t()
   @type end_date() :: Date.t()
@@ -212,4 +213,21 @@ defmodule ExOura do
   @spec single_enhanced_tag(document_id(), opts()) ::
           {:ok, Client.EnhancedTagModel.t()} | error()
   defdelegate single_enhanced_tag(document_id, opts \\ []), to: EnhancedTag
+
+  @doc """
+  Multiple Heart Rate
+  """
+  @spec multiple_heart_rate(
+          start_date(),
+          end_date(),
+          next_token(),
+          opts()
+        ) :: {:ok, Client.TimeSeriesResponseHeartRateModel.t()} | error()
+  defdelegate multiple_heart_rate(
+                start_date,
+                end_date,
+                next_token \\ nil,
+                opts \\ []
+              ),
+              to: HeartRate
 end

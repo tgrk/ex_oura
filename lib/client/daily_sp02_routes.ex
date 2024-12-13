@@ -1,4 +1,4 @@
-defmodule ExOura.Client.DailySpo2Routes do
+defmodule ExOura.Client.DailySp02Routes do
   @moduledoc """
   Provides API endpoints related to daily spo2 routes
   """
@@ -6,7 +6,7 @@ defmodule ExOura.Client.DailySpo2Routes do
   @default_client ExOura.Client
 
   @doc """
-  Multiple Daily Spo2 Documents
+  Multiple Daily Sp02 Documents
 
   ## Options
 
@@ -25,7 +25,7 @@ defmodule ExOura.Client.DailySpo2Routes do
     client.request(%{
       args: [],
       call:
-        {ExOura.Client.DailySpo2Routes,
+        {ExOura.Client.DailySp02Routes,
          :multiple_daily_spo2_documents_v2_usercollection_daily_spo2_get},
       url: "/v2/usercollection/daily_spo2",
       method: :get,
@@ -43,7 +43,7 @@ defmodule ExOura.Client.DailySpo2Routes do
   end
 
   @doc """
-  Single Daily Spo2 Document
+  Single Daily Sp02 Document
   """
   @spec single_daily_spo2_document_v2_usercollection_daily_spo2_document_id_get(
           String.t(),
@@ -60,7 +60,7 @@ defmodule ExOura.Client.DailySpo2Routes do
     client.request(%{
       args: [document_id: document_id],
       call:
-        {ExOura.Client.DailySpo2Routes,
+        {ExOura.Client.DailySp02Routes,
          :single_daily_spo2_document_v2_usercollection_daily_spo2_document_id_get},
       url: "/v2/usercollection/daily_spo2/#{document_id}",
       method: :get,

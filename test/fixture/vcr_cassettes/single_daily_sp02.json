@@ -1,0 +1,39 @@
+[
+  {
+    "request": {
+      "options": [],
+      "body": "",
+      "url": "https://api.ouraring.com/v2/usercollection/daily_spo2/aab63549-23de-437a-9ece-fee8e8ab2a7d",
+      "headers": {
+        "accept-encoding": "gzip",
+        "authorization": "***",
+        "user-agent": "req/0.5.8"
+      },
+      "method": "get",
+      "request_body": ""
+    },
+    "response": {
+      "binary": false,
+      "type": "ok",
+      "body": "{\"id\":\"aab63549-23de-437a-9ece-fee8e8ab2a7d\",\"day\":\"2022-07-29\",\"spo2_percentage\":{\"average\":97.497},\"breathing_disturbance_index\":9}",
+      "headers": {
+        "content-type": "application/json",
+        "content-length": "133",
+        "connection": "keep-alive",
+        "date": "Sat, 14 Dec 2024 12:13:18 GMT",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-trace-id": "3fbc510a4578491b6107cbc3065155c1",
+        "x-cache": "Miss from cloudfront",
+        "via": "1.1 63fbb6ca86d02da6071a8815a63418cc.cloudfront.net (CloudFront)",
+        "x-amz-cf-pop": "TXL50-P5",
+        "x-amz-cf-id": "Wh_j2cnYeswSJtHO8zyl9nCx44jitmjDDZesTVZftBCJNRl0ic1k1A=="
+      },
+      "status_code": 200
+    }
+  }
+]

@@ -9,6 +9,7 @@ defmodule ExOura do
   alias ExOura.DailyReadiness
   alias ExOura.DailyResilience
   alias ExOura.DailySleep
+  alias ExOura.DailySp02
 
   @type start_date() :: Date.t()
   @type end_date() :: Date.t()
@@ -137,4 +138,28 @@ defmodule ExOura do
   @spec single_daily_sleep(document_id(), opts()) ::
           {:ok, Client.DailySleepModel.t()} | error()
   defdelegate single_daily_sleep(document_id, opts \\ []), to: DailySleep
+
+  @doc """
+  Multiple Daily Sp02
+  """
+  @spec multiple_daily_sp02(
+          start_date(),
+          end_date(),
+          next_token(),
+          opts()
+        ) :: {:ok, Client.MultiDocumentResponseDailySpO2Model.t()} | error()
+  defdelegate multiple_daily_sp02(
+                start_date,
+                end_date,
+                next_token \\ nil,
+                opts \\ []
+              ),
+              to: DailySp02
+
+  @doc """
+  Single Daily Sp02
+  """
+  @spec single_daily_sp02(document_id(), opts()) ::
+          {:ok, Client.DailySpO2Model.t()} | error()
+  defdelegate single_daily_sp02(document_id, opts \\ []), to: DailySp02
 end

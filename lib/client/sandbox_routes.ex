@@ -207,7 +207,7 @@ defmodule ExOura.Client.SandboxRoutes do
   end
 
   @doc """
-  Sandbox - Multiple Daily Spo2 Documents
+  Sandbox - Multiple Daily Sp02 Documents
 
   ## Options
 
@@ -840,7 +840,7 @@ defmodule ExOura.Client.SandboxRoutes do
   end
 
   @doc """
-  Sandbox - Single Daily Spo2 Document
+  Sandbox - Single Daily Sp02 Document
   """
   @spec sandbox_single_daily_spo2_document_v2_sandbox_usercollection_daily_spo2_document_id_get(
           String.t(),

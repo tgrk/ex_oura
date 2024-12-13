@@ -10,6 +10,7 @@ defmodule ExOura do
   alias ExOura.DailyResilience
   alias ExOura.DailySleep
   alias ExOura.DailySp02
+  alias ExOura.DailyStress
 
   @type start_date() :: Date.t()
   @type end_date() :: Date.t()
@@ -162,4 +163,28 @@ defmodule ExOura do
   @spec single_daily_sp02(document_id(), opts()) ::
           {:ok, Client.DailySpO2Model.t()} | error()
   defdelegate single_daily_sp02(document_id, opts \\ []), to: DailySp02
+
+  @doc """
+  Multiple Daily Stress
+  """
+  @spec multiple_daily_stress(
+          start_date(),
+          end_date(),
+          next_token(),
+          opts()
+        ) :: {:ok, Client.MultiDocumentResponseDailyStressModel.t()} | error()
+  defdelegate multiple_daily_stress(
+                start_date,
+                end_date,
+                next_token \\ nil,
+                opts \\ []
+              ),
+              to: DailyStress
+
+  @doc """
+  Single Daily Stress
+  """
+  @spec single_daily_stress(document_id(), opts()) ::
+          {:ok, Client.DailyStressModel.t()} | error()
+  defdelegate single_daily_stress(document_id, opts \\ []), to: DailyStress
 end

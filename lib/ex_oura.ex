@@ -18,6 +18,7 @@ defmodule ExOura do
   alias ExOura.RingConfiguration
   alias ExOura.Session
   alias ExOura.Sleep
+  alias ExOura.SleepTime
 
   @type start_date() :: Date.t()
   @type end_date() :: Date.t()
@@ -337,4 +338,28 @@ defmodule ExOura do
   @spec single_sleep(document_id(), opts()) ::
           {:ok, Client.SleepModel.t()} | error()
   defdelegate single_sleep(document_id, opts \\ []), to: Sleep
+
+  @doc """
+  Multiple Sleep Time
+  """
+  @spec multiple_sleep_time(
+          start_date(),
+          end_date(),
+          next_token(),
+          opts()
+        ) :: {:ok, Client.MultiDocumentResponseSleepTimeModel.t()} | error()
+  defdelegate multiple_sleep_time(
+                start_date,
+                end_date,
+                next_token \\ nil,
+                opts \\ []
+              ),
+              to: SleepTime
+
+  @doc """
+  Single Sleep Time
+  """
+  @spec single_sleep_time(document_id(), opts()) ::
+          {:ok, Client.SleepTimeModel.t()} | error()
+  defdelegate single_sleep_time(document_id, opts \\ []), to: SleepTime
 end

@@ -16,6 +16,7 @@ defmodule ExOura do
   alias ExOura.PersonalInfo
   alias ExOura.RestModePeriod
   alias ExOura.RingConfiguration
+  alias ExOura.Session
 
   @type start_date() :: Date.t()
   @type end_date() :: Date.t()
@@ -287,4 +288,28 @@ defmodule ExOura do
   @spec single_ring_configuration(document_id(), opts()) ::
           {:ok, Client.RingConfigurationModel.t()} | error()
   defdelegate single_ring_configuration(document_id, opts \\ []), to: RingConfiguration
+
+  @doc """
+  Multiple Session
+  """
+  @spec multiple_session(
+          start_date(),
+          end_date(),
+          next_token(),
+          opts()
+        ) :: {:ok, Client.MultiDocumentResponseSessionModel.t()} | error()
+  defdelegate multiple_session(
+                start_date,
+                end_date,
+                next_token \\ nil,
+                opts \\ []
+              ),
+              to: Session
+
+  @doc """
+  Single Session
+  """
+  @spec single_session(document_id(), opts()) ::
+          {:ok, Client.SessionModel.t()} | error()
+  defdelegate single_session(document_id, opts \\ []), to: Session
 end

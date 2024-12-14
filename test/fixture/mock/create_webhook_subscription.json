@@ -1,0 +1,7 @@
+{
+  "callback_url": "http://example.com",
+  "data_type": "tag",
+  "event_type": "create",
+  "expiration_time": "2019-08-24T14:15:22Z",
+  "id": "5d3fe17b-f880-4d93-b9b6-afbfb76c1e78"
+}

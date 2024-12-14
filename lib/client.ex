@@ -61,32 +61,94 @@ defmodule ExOura.Client do
     {:reply, reply, state}
   end
 
+  @impl true
+  def handle_call({:request, %{method: :post} = operation}, _from, state) do
+    reply =
+      operation
+      |> Map.get(:url)
+      |> Req.post(req_opts(operation, state))
+      |> handle_response(operation)
+
+    {:reply, reply, state}
+  end
+
+  @impl true
+  def handle_call({:request, %{method: :put} = operation}, _from, state) do
+    reply =
+      operation
+      |> Map.get(:url)
+      |> Req.put(req_opts(operation, state))
+      |> handle_response(operation)
+
+    {:reply, reply, state}
+  end
+
+  @impl true
+  def handle_call({:request, %{method: :delete} = operation}, _from, state) do
+    reply =
+      operation
+      |> Map.get(:url)
+      |> Req.delete(req_opts(operation, state))
+      |> handle_response(operation)
+
+    {:reply, reply, state}
+  end
+
   defp handle_response({:ok, %Req.Response{status: status, body: body}}, operation) do
     case operation.response |> Enum.into(%{}) |> Map.get(status, nil) do
-      {response_module, _t} when status == 200 ->
-        {:ok, struct(response_module, body)}
+      {response_module, _t} when status in [200, 201] ->
+        {:ok, to_response(response_module, body)}
+
+      [{response_module, _t}] when status in [200, 2001] ->
+        {:ok, to_responses(response_module, body)}
+
+      :null when status == 204 ->
+        :ok
 
       {response_module, _t} ->
-        {:error, struct(response_module, body)}
+        {:error, to_response(response_module, body)}
 
       :null ->
         {:error, body}
+
+      nil ->
+        {:error, {:unexpected_status, status}}
     end
   end
 
   defp handle_response({:error, _exception} = error, _operation), do: error
+
+  defp to_responses(response_module, body) do
+    Enum.map(body, &to_response(response_module, &1))
+  end
+
+  defp to_response(response_module, body), do: struct(response_module, body)
 
   defp req_opts(operation, %{bearer_token: bearer_token} = _state) do
     [
       base_url: @base_url,
       params: Map.get(operation, :query, []),
       auth: {:bearer, bearer_token},
-      decode_json: [keys: :atoms]
+      decode_json: [keys: :atoms],
+      body: Map.get(operation, :body),
+      headers: maybe_include_client_credentials(operation)
     ]
   end
 
+  defp maybe_include_client_credentials(operation) do
+    if webhook?(operation) do
+      [
+        {"x-client-id", System.get_env("OURA_CLIENT_ID")},
+        {"x-client-secret", System.get_env("OURA_CLIENT_SECRET")}
+      ]
+    else
+      []
+    end
+  end
+
   defp apply(mod, fun, [] = _args, opts), do: apply(mod, fun, [opts])
-  defp apply(mod, fun, args, opts), do: apply(mod, fun, [args, opts])
+  defp apply(mod, fun, [_ | _] = args, opts), do: apply(mod, fun, args ++ opts)
+  defp apply(mod, fun, args, opts), do: apply(mod, fun, [args] ++ opts)
 
   defp client_ready?(opts) do
     if Keyword.has_key?(opts, :client) do
@@ -96,6 +158,13 @@ defmodule ExOura.Client do
         nil -> false
         client_pid -> Process.alive?(client_pid)
       end
+    end
+  end
+
+  defp webhook?(operation) do
+    case Map.get(operation, :call) do
+      {ExOura.Client.WebhookSubscriptionRoutes, _} -> true
+      _non_webhook_call -> false
     end
   end
 end

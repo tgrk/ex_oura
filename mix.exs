@@ -30,7 +30,8 @@ defmodule ExOura.MixProject do
       {:exvcr, "~> 0.15.2", only: :test},
       {:oapi_generator, "~> 0.2.0", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:mock, "~> 0.3.8", only: :test, runtime: false}
     ]
   end
 end

@@ -20,13 +20,18 @@ defmodule ExOura do
   alias ExOura.Sleep
   alias ExOura.SleepTime
   alias ExOura.Vo2Max
+  alias ExOura.WebhookSubscription
   alias ExOura.Workout
 
+  @type opts() :: Keyword.t()
   @type start_date() :: Date.t()
   @type end_date() :: Date.t()
   @type next_token() :: String.t() | nil
   @type document_id() :: String.t()
-  @type opts() :: Keyword.t()
+  @type webhook_id() :: String.t()
+  @type webhook() ::
+          Client.CreateWebhookSubscriptionRequest.t()
+          | Client.UpdateWebhookSubscriptionRequest.t()
 
   @type error() :: {:error, Client.HTTPValidationError.t()}
 
@@ -412,4 +417,46 @@ defmodule ExOura do
   @spec single_workout(document_id(), opts()) ::
           {:ok, Client.WorkoutModel.t()} | error()
   defdelegate single_workout(document_id, opts \\ []), to: Workout
+
+  @doc """
+  Create Webhook Subscription
+  """
+  @spec create_webhook_subscription(webhook(), opts()) ::
+          {:ok, Client.WebhookSubscriptionModel.t()} | error()
+  defdelegate create_webhook_subscription(webhook, opts \\ []), to: WebhookSubscription
+
+  @doc """
+  Get Webhook Subscription
+  """
+  @spec get_webhook_subscription(webhook_id(), opts()) ::
+          {:ok, Client.WebhookSubscriptionModel.t()} | error()
+  defdelegate get_webhook_subscription(webhook_id, opts \\ []), to: WebhookSubscription
+
+  @doc """
+  Delete Webhook Subscription
+  """
+  @spec delete_webhook_subscription(webhook_id(), opts()) :: :ok | error()
+  defdelegate delete_webhook_subscription(webhook_id, opts \\ []), to: WebhookSubscription
+
+  @doc """
+  List Webhook Subscription
+  """
+  @spec list_webhook_subscriptions(opts()) ::
+          {:ok, [Client.WebhookSubscriptionModel.t()]} | error()
+  defdelegate list_webhook_subscriptions(opts \\ []), to: WebhookSubscription
+
+  @doc """
+  Renew Webhook Subscription
+  """
+  @spec renew_webhook_subscription(webhook_id(), opts()) ::
+          {:ok, Client.WebhookSubscriptionModel.t()} | error()
+  defdelegate renew_webhook_subscription(webhook_id, opts \\ []), to: WebhookSubscription
+
+  @doc """
+  Update Webhook Subscription
+  """
+  @spec update_webhook_subscription(webhook_id(), webhook(), opts()) ::
+          {:ok, Client.WebhookSubscriptionModel.t()} | error()
+  defdelegate update_webhook_subscription(webhook_id, webhook, opts \\ []),
+    to: WebhookSubscription
 end

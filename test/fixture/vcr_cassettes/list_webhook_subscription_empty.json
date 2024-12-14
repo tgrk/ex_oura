@@ -1,0 +1,41 @@
+[
+  {
+    "request": {
+      "options": [],
+      "body": "",
+      "url": "https://api.ouraring.com/v2/webhook/subscription",
+      "headers": {
+        "accept-encoding": "gzip",
+        "authorization": "***",
+        "user-agent": "req/0.5.8",
+        "x-client-id": "***",
+        "x-client-secret": "***"
+      },
+      "method": "get",
+      "request_body": ""
+    },
+    "response": {
+      "binary": false,
+      "type": "ok",
+      "body": "[]",
+      "headers": {
+        "content-type": "application/json",
+        "content-length": "2",
+        "connection": "keep-alive",
+        "date": "Sat, 14 Dec 2024 15:57:23 GMT",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-trace-id": "2aa5cd552c9bdd9d733e33e6a7d77768",
+        "x-cache": "Miss from cloudfront",
+        "via": "1.1 15ecb680f8d71749752cdfbf2e720cac.cloudfront.net (CloudFront)",
+        "x-amz-cf-pop": "TXL50-P5",
+        "x-amz-cf-id": "7QzrhbzWsN75gqNntnJEsePAJHzUJDDJE7TwTA6_IiIXs292RuesPQ=="
+      },
+      "status_code": 200
+    }
+  }
+]

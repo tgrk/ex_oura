@@ -1,0 +1,39 @@
+[
+  {
+    "request": {
+      "options": [],
+      "body": "",
+      "url": "https://api.ouraring.com/v2/usercollection/workout?start_date=1&end_date=2&next_token=",
+      "headers": {
+        "accept-encoding": "gzip",
+        "authorization": "***",
+        "user-agent": "req/0.5.8"
+      },
+      "method": "get",
+      "request_body": ""
+    },
+    "response": {
+      "binary": false,
+      "type": "ok",
+      "body": "{\"data\":[],\"next_token\":null}",
+      "headers": {
+        "content-type": "application/json",
+        "content-length": "29",
+        "connection": "keep-alive",
+        "date": "Sat, 14 Dec 2024 13:10:36 GMT",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-trace-id": "796584f6c18212a77fe20d497874d252",
+        "x-cache": "Miss from cloudfront",
+        "via": "1.1 be10e6b765bbef9faac0617fa874014e.cloudfront.net (CloudFront)",
+        "x-amz-cf-pop": "TXL50-P5",
+        "x-amz-cf-id": "ZGrIY7WoOx1HR2Ak7M3OGEZlRDFICrvcBFMbNvtZzv_u8EXflQPABA=="
+      },
+      "status_code": 200
+    }
+  }
+]

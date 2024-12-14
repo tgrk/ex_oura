@@ -20,6 +20,7 @@ defmodule ExOura do
   alias ExOura.Sleep
   alias ExOura.SleepTime
   alias ExOura.Vo2Max
+  alias ExOura.Workout
 
   @type start_date() :: Date.t()
   @type end_date() :: Date.t()
@@ -387,4 +388,28 @@ defmodule ExOura do
   @spec single_vo2_max(document_id(), opts()) ::
           {:ok, Client.Vo2MaxModel.t()} | error()
   defdelegate single_vo2_max(document_id, opts \\ []), to: Vo2Max
+
+  @doc """
+  Multiple Workout
+  """
+  @spec multiple_workout(
+          start_date(),
+          end_date(),
+          next_token(),
+          opts()
+        ) :: {:ok, Client.MultiDocumentResponseWorkoutModel.t()} | error()
+  defdelegate multiple_workout(
+                start_date,
+                end_date,
+                next_token \\ nil,
+                opts \\ []
+              ),
+              to: Workout
+
+  @doc """
+  Single Workout
+  """
+  @spec single_workout(document_id(), opts()) ::
+          {:ok, Client.WorkoutModel.t()} | error()
+  defdelegate single_workout(document_id, opts \\ []), to: Workout
 end

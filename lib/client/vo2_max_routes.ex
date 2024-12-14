@@ -15,17 +15,17 @@ defmodule ExOura.Client.Vo2MaxRoutes do
     * `next_token`
 
   """
-  @spec multiple_v_o2_max_documents_v2_usercollection_v_o2_max_get(keyword) ::
+  @spec multiple_vo2_max_documents_v2_usercollection_vo2_max_get(keyword) ::
           {:ok, ExOura.Client.MultiDocumentResponseVo2MaxModel.t()}
           | {:error, ExOura.Client.HTTPValidationError.t()}
-  def multiple_v_o2_max_documents_v2_usercollection_v_o2_max_get(opts \\ []) do
+  def multiple_vo2_max_documents_v2_usercollection_vo2_max_get(opts \\ []) do
     client = opts[:client] || @default_client
     query = Keyword.take(opts, [:end_date, :next_token, :start_date])
 
     client.request(%{
       args: [],
       call:
-        {ExOura.Client.Vo2MaxRoutes, :multiple_v_o2_max_documents_v2_usercollection_v_o2_max_get},
+        {ExOura.Client.Vo2MaxRoutes, :multiple_vo2_max_documents_v2_usercollection_vo2_max_get},
       url: "/v2/usercollection/vO2_max",
       method: :get,
       query: query,
@@ -44,16 +44,16 @@ defmodule ExOura.Client.Vo2MaxRoutes do
   @doc """
   Single Vo2 Max Document
   """
-  @spec single_v_o2_max_document_v2_usercollection_v_o2_max_document_id_get(String.t(), keyword) ::
+  @spec single_vo2_max_document_v2_usercollection_vo2_max_document_id_get(String.t(), keyword) ::
           {:ok, ExOura.Client.Vo2MaxModel.t()} | {:error, ExOura.Client.HTTPValidationError.t()}
-  def single_v_o2_max_document_v2_usercollection_v_o2_max_document_id_get(document_id, opts \\ []) do
+  def single_vo2_max_document_v2_usercollection_vo2_max_document_id_get(document_id, opts \\ []) do
     client = opts[:client] || @default_client
 
     client.request(%{
       args: [document_id: document_id],
       call:
         {ExOura.Client.Vo2MaxRoutes,
-         :single_v_o2_max_document_v2_usercollection_v_o2_max_document_id_get},
+         :single_vo2_max_document_v2_usercollection_vo2_max_document_id_get},
       url: "/v2/usercollection/vO2_max/#{document_id}",
       method: :get,
       response: [

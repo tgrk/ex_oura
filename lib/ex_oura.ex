@@ -19,6 +19,7 @@ defmodule ExOura do
   alias ExOura.Session
   alias ExOura.Sleep
   alias ExOura.SleepTime
+  alias ExOura.Vo2Max
 
   @type start_date() :: Date.t()
   @type end_date() :: Date.t()
@@ -362,4 +363,28 @@ defmodule ExOura do
   @spec single_sleep_time(document_id(), opts()) ::
           {:ok, Client.SleepTimeModel.t()} | error()
   defdelegate single_sleep_time(document_id, opts \\ []), to: SleepTime
+
+  @doc """
+  Multiple Vo2 Max
+  """
+  @spec multiple_vo2_max(
+          start_date(),
+          end_date(),
+          next_token(),
+          opts()
+        ) :: {:ok, Client.MultiDocumentResponseVo2MaxModel.t()} | error()
+  defdelegate multiple_vo2_max(
+                start_date,
+                end_date,
+                next_token \\ nil,
+                opts \\ []
+              ),
+              to: Vo2Max
+
+  @doc """
+  Single Vo2 Max
+  """
+  @spec single_vo2_max(document_id(), opts()) ::
+          {:ok, Client.Vo2MaxModel.t()} | error()
+  defdelegate single_vo2_max(document_id, opts \\ []), to: Vo2Max
 end

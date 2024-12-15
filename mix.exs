@@ -9,7 +9,8 @@ defmodule ExOura.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      test_coverage: [tool: ExCoveralls]
+      test_coverage: [tool: ExCoveralls],
+      aliases: aliases()
     ]
   end
 
@@ -18,6 +19,16 @@ defmodule ExOura.MixProject do
     [
       extra_applications: [:logger]
     ]
+  end
+
+  defp aliases do
+    [
+      coverage: &coverage/1
+    ]
+  end
+
+  defp coverage(_) do
+    Mix.shell().cmd("MIX_ENV=test mix coveralls --color")
   end
 
   # Specifies which paths to compile per environment.
@@ -32,7 +43,7 @@ defmodule ExOura.MixProject do
       {:oapi_generator, "~> 0.2.0", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:mock, "~> 0.3.8", only: :test, runtime: false},
+      {:mock, "~> 0.3.8", only: :test},
       {:excoveralls, "~> 0.18.3", only: :test}
     ]
   end

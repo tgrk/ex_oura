@@ -8,10 +8,8 @@ defmodule ExOura.DailyActivityTest do
   describe "Daily Activity" do
     test "should return multiple daily activities" do
       use_cassette "multiple_daily_activity" do
-        assert {:ok, %MultiDocumentResponseDailyActivityModel{data: [%DailyActivityModel{} = p]}} =
+        assert {:ok, %MultiDocumentResponseDailyActivityModel{data: [_]}} =
                  ExOura.multiple_daily_activity(~D[2024-11-11], ~D[2024-11-12])
-
-        IO.inspect(p, label: :DBGg)
       end
     end
 

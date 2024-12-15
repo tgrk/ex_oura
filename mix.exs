@@ -8,7 +8,8 @@ defmodule ExOura.MixProject do
       elixir: "~> 1.16",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      test_coverage: [tool: ExCoveralls]
     ]
   end
 
@@ -31,7 +32,8 @@ defmodule ExOura.MixProject do
       {:oapi_generator, "~> 0.2.0", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:mock, "~> 0.3.8", only: :test, runtime: false}
+      {:mock, "~> 0.3.8", only: :test, runtime: false},
+      {:excoveralls, "~> 0.18.3", only: :test}
     ]
   end
 end

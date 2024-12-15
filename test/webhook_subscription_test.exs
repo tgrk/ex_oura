@@ -5,18 +5,17 @@ defmodule ExOura.WebhookSubscriptionTest do
 
   alias ExOura.Client.CreateWebhookSubscriptionRequest
   alias ExOura.Client.WebhookSubscriptionModel
-  alias ExOura.WebhookSubscription
 
   describe "Webhook Subscription - list_webhook_subscription/1" do
     test "should return webhook subscriptions" do
       with_mock Req, get: successful_response(:list_webhook_subscription, 200) do
         assert {:ok, [%WebhookSubscriptionModel{}]} =
-                 WebhookSubscription.list_webhook_subscriptions()
+                 ExOura.list_webhook_subscriptions()
       end
     end
 
     test "should return empty list when listing webhook subscriptions" do
-      assert {:ok, []} = WebhookSubscription.list_webhook_subscriptions()
+      assert {:ok, []} = ExOura.list_webhook_subscriptions()
     end
   end
 
@@ -31,7 +30,7 @@ defmodule ExOura.WebhookSubscriptionTest do
         }
 
         assert {:ok, %WebhookSubscriptionModel{}} =
-                 WebhookSubscription.create_webhook_subscription(webhook)
+                 ExOura.create_webhook_subscription(webhook)
       end
     end
 
@@ -59,7 +58,7 @@ defmodule ExOura.WebhookSubscriptionTest do
                     }
                   }
                 ]
-              }} = WebhookSubscription.create_webhook_subscription(webhook)
+              }} = ExOura.create_webhook_subscription(webhook)
     end
   end
 
@@ -67,17 +66,13 @@ defmodule ExOura.WebhookSubscriptionTest do
     test "should delete a webhook subscription" do
       with_mock Req, delete: successful_response(:delete_webhook_subscription, 204) do
         assert :ok =
-                 WebhookSubscription.delete_webhook_subscription(
-                   "c534043e-ba54-4131-9dce-e40537823bfd"
-                 )
+                 ExOura.delete_webhook_subscription("c534043e-ba54-4131-9dce-e40537823bfd")
       end
     end
 
     test "should fail when deleting a webhook subscription ID does not exists" do
       assert {:error, %{detail: "No webhook id c534043e-ba54-4131-9dce-e40537823bff found."}} =
-               WebhookSubscription.delete_webhook_subscription(
-                 "c534043e-ba54-4131-9dce-e40537823bff"
-               )
+               ExOura.delete_webhook_subscription("c534043e-ba54-4131-9dce-e40537823bff")
     end
   end
 
@@ -85,17 +80,13 @@ defmodule ExOura.WebhookSubscriptionTest do
     test "should return a webhook subscription" do
       with_mock Req, get: successful_response(:get_webhook_subscription, 200) do
         assert {:ok, %WebhookSubscriptionModel{}} =
-                 WebhookSubscription.get_webhook_subscription(
-                   "c534043e-ba54-4131-9dce-e40537823bfd"
-                 )
+                 ExOura.get_webhook_subscription("c534043e-ba54-4131-9dce-e40537823bfd")
       end
     end
 
     test "should fail when getting a webhook subscription ID does not exists" do
       assert {:error, %{detail: "Forbidden"}} =
-               WebhookSubscription.get_webhook_subscription(
-                 "c534043e-ba54-4131-9dce-e40537823bff"
-               )
+               ExOura.get_webhook_subscription("c534043e-ba54-4131-9dce-e40537823bff")
     end
   end
 
@@ -110,7 +101,7 @@ defmodule ExOura.WebhookSubscriptionTest do
         }
 
         assert {:ok, %WebhookSubscriptionModel{}} =
-                 WebhookSubscription.update_webhook_subscription(
+                 ExOura.update_webhook_subscription(
                    "c534043e-ba54-4131-9dce-e40537823bfd",
                    webhook
                  )
@@ -138,7 +129,7 @@ defmodule ExOura.WebhookSubscriptionTest do
                  ]
                }
              } =
-               WebhookSubscription.update_webhook_subscription(
+               ExOura.update_webhook_subscription(
                  "c534043e-ba54-4131-9dce-e40537823bff",
                  webhook
                )
@@ -154,7 +145,7 @@ defmodule ExOura.WebhookSubscriptionTest do
 
       assert {:error,
               %{detail: "Subscription with id c534043e-ba54-4131-9dce-e40537823bff not found."}} =
-               WebhookSubscription.update_webhook_subscription(
+               ExOura.update_webhook_subscription(
                  "c534043e-ba54-4131-9dce-e40537823bff",
                  webhook
                )
@@ -165,18 +156,14 @@ defmodule ExOura.WebhookSubscriptionTest do
     test "should return a renewed webhook subscription" do
       with_mock Req, put: successful_response(:renew_webhook_subscription, 200) do
         assert {:ok, %WebhookSubscriptionModel{}} =
-                 WebhookSubscription.renew_webhook_subscription(
-                   "c534043e-ba54-4131-9dce-e40537823bfd"
-                 )
+                 ExOura.renew_webhook_subscription("c534043e-ba54-4131-9dce-e40537823bfd")
       end
     end
 
     test "should fail when renewing a webhook subscription ID does not exists" do
       assert {:error,
               %{detail: "Subscription with id c534043e-ba54-4131-9dce-e40537823bff not found."}} =
-               WebhookSubscription.renew_webhook_subscription(
-                 "c534043e-ba54-4131-9dce-e40537823bff"
-               )
+               ExOura.renew_webhook_subscription("c534043e-ba54-4131-9dce-e40537823bff")
     end
   end
 

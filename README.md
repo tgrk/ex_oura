@@ -1,11 +1,10 @@
 # ExOura
 
-**TODO: Add description**
+An Elixir library for [Oura API](https://cloud.ouraring.com/v2/docs) with a base client generated using [OpenAPI Code Generator](https://github.com/aj-foster/open-api-generator) from [OpenApi specs v1.23](https://cloud.ouraring.com/v2/static/json/openapi-1.23.json).
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `ex_oura` to your list of dependencies in `mix.exs`:
+Then install the dependency using `mix deps.get`.
 
 ```elixir
 def deps do
@@ -15,7 +14,23 @@ def deps do
 end
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/ex_oura>.
 
+## Usage
+
+TBD
+
+## TODO
+- Docs
+  - Add description
+  - Add basic howto
+- Hex
+  - Add Hex package informaton
+- Github
+  - Add coverage
+  - Add release please (for changelog)
+  - Configure dependabot
+
+  ## Oura OpenApiissues
+
+  - no title for tag/timestamp
+  - daily cardiovascular age has no ID -> no way to query a single document 

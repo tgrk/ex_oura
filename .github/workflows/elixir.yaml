@@ -87,4 +87,6 @@ jobs:
     - name: Run Tests
       run: mix coveralls.github
       env:
-        OURA_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        OURA_ACCESS_TOKEN: ${{ secrets.OURA_ACCESS_TOKEN }}
+        OURA_CLIENT_ID: ${{ secrets.OURA_CLIENT_ID }}
+        OURA_CLIENT_SECRET: ${{ secrets.OURA_CLIENT_SECRET }}

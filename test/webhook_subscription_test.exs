@@ -46,16 +46,10 @@ defmodule ExOura.WebhookSubscriptionTest do
               %ExOura.Client.HTTPValidationError{
                 detail: [
                   %{
-                    input: "foo",
                     type: "enum",
                     msg:
                       "Input should be 'tag', 'enhanced_tag', 'workout', 'session', 'sleep', 'daily_sleep', 'daily_readiness', 'daily_activity', 'daily_spo2', 'sleep_time', 'rest_mode_period', 'ring_configuration', 'daily_stress', 'daily_cycle_phases' or 'activation_status'",
-                    loc: ["body", "data_type"],
-                    url: "https://errors.pydantic.dev/2.9/v/enum",
-                    ctx: %{
-                      expected:
-                        "'tag', 'enhanced_tag', 'workout', 'session', 'sleep', 'daily_sleep', 'daily_readiness', 'daily_activity', 'daily_spo2', 'sleep_time', 'rest_mode_period', 'ring_configuration', 'daily_stress', 'daily_cycle_phases' or 'activation_status'"
-                    }
+                    loc: ["body", "data_type"]
                   }
                 ]
               }} = ExOura.create_webhook_subscription(webhook)
@@ -120,11 +114,9 @@ defmodule ExOura.WebhookSubscriptionTest do
                %ExOura.Client.HTTPValidationError{
                  detail: [
                    %{
-                     input: nil,
                      type: "string_type",
                      msg: "Input should be a valid string",
-                     loc: ["body", "verification_token"],
-                     url: "https://errors.pydantic.dev/2.9/v/string_type"
+                     loc: ["body", "verification_token"]
                    }
                  ]
                }

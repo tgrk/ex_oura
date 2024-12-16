@@ -4,6 +4,8 @@ defmodule ExOura.Client do
   """
   use GenServer
 
+  alias ExOura.TypeDecoder
+
   @base_url "https://api.ouraring.com"
 
   @timeout Application.compile_env(:ex_oura, :timeout, 5_000)
@@ -94,35 +96,26 @@ defmodule ExOura.Client do
     {:reply, reply, state}
   end
 
+  defp handle_response({:ok, %Req.Response{status: status, body: body}}, operation)
+       when status in [200, 201] do
+    TypeDecoder.decode_response(status, body, operation)
+  end
+
+  defp handle_response({:ok, %Req.Response{status: 204, body: _body}}, _operation) do
+    :ok
+  end
+
   defp handle_response({:ok, %Req.Response{status: status, body: body}}, operation) do
-    case operation.response |> Enum.into(%{}) |> Map.get(status, nil) do
-      {response_module, _t} when status in [200, 201] ->
-        {:ok, to_response(response_module, body)}
+    case TypeDecoder.decode_response(status, body, operation) do
+      {:ok, error} ->
+        {:error, error}
 
-      [{response_module, _t}] when status in [200, 2001] ->
-        {:ok, to_responses(response_module, body)}
-
-      :null when status == 204 ->
-        :ok
-
-      {response_module, _t} ->
-        {:error, to_response(response_module, body)}
-
-      :null ->
+      {:error, :unable_to_decode} ->
         {:error, body}
-
-      nil ->
-        {:error, {:unexpected_status, status}}
     end
   end
 
   defp handle_response({:error, _exception} = error, _operation), do: error
-
-  defp to_responses(response_module, body) do
-    Enum.map(body, &to_response(response_module, &1))
-  end
-
-  defp to_response(response_module, body), do: struct(response_module, body)
 
   defp req_opts(operation, %{bearer_token: bearer_token} = _state) do
     [

@@ -8,8 +8,24 @@ defmodule ExOura.WorkoutTest do
   describe "Workout" do
     test "should return multiple workouts" do
       use_cassette "multiple_workout" do
-        assert {:ok, %MultiDocumentResponseWorkoutModel{data: [_ | _]}} =
-                 ExOura.multiple_workout(~D[2024-10-09], ~D[2024-11-03])
+        assert {:ok,
+                %MultiDocumentResponseWorkoutModel{
+                  data: [
+                    %ExOura.Client.WorkoutModel{
+                      activity: "walking",
+                      calories: 21.967,
+                      day: ~D[2024-10-09],
+                      distance: nil,
+                      end_datetime: "2024-10-09T09:18:00+02:00",
+                      id: "23264206-4a83-4619-abff-0e77bf6cd562",
+                      intensity: "easy",
+                      label: nil,
+                      source: "confirmed",
+                      start_datetime: "2024-10-09T09:07:00+02:00"
+                    }
+                    | _
+                  ]
+                }} = ExOura.multiple_workout(~D[2024-10-09], ~D[2024-11-03])
       end
     end
 

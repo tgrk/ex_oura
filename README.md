@@ -16,24 +16,38 @@ def deps do
 end
 ```
 
-
 ## Usage
 
-TBD
+Currently, the client support only a basic authorization and you should obtain an access token [here]().
+
+Using configuration:
+```elixir
+config :ex_oura,
+  access_token: "<YOUR_PERSONAL_ACCESS_TOKEN>"
+```
+
+Using code:
+```elixir
+acces_token = "<YOUR_PERSONAL_ACCESS_TOKEN>"
+ExOura.Client.start_link(access_token)
+```
 
 ## TODO
+
+- Improvements
+  - validate start/end date as they should not be the same
+  - validate that end is before a start
+- Test
+  - generic tests for client, e.g. auth etc
 - Docs
   - Add description
   - Add basic howto
-- Hex
-  - Add Hex package informaton
-  - Generate docs (use exdocs, maybe OpenApi, configure hex)
-- Github
-  - Add release please (for changelog)
+- Test and test
+- Generate docs (use exdocs, maybe OpenApi, configure hex)
+- Release
+- Publish to Hex
 
-- Improve type handling
-
-  ## Oura OpenApi issues
+ ## Oura OpenApi issues
 
   - no title for tag/timestamp
   - daily cardiovascular age has no ID -> no way to query a single document 

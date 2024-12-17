@@ -1,0 +1,41 @@
+[
+  {
+    "request": {
+      "options": [],
+      "body": "",
+      "url": "https://api.ouraring.com/v2/usercollection/daily_readiness?start_date=2024-11-11&end_date=2024-11-12&next_token=",
+      "headers": {
+        "accept-encoding": "gzip",
+        "authorization": "***",
+        "user-agent": "req/0.5.8"
+      },
+      "method": "get",
+      "request_body": ""
+    },
+    "response": {
+      "binary": true,
+      "type": "ok",
+      "body": "g20AAAFyH4sIAAAAAAAEAwAAAP//jJHdbsMgDIXfxbeDitA0JDzH7qYJkeCsaC2JCKkaVX33uVUn0Z9Jkywu8MHn+OMEziYL+uME3oGGZt1KW2PHu861vGzantdlv+FOVFapWq17uQEG3RBS9O2chjiBPoHtkj/4tJjW7mzoEHRTMmgHt5iE+xGjTXO83CoG23jIZBsGY8SDH+bJOLuY30mkLbJW8F/bBFrR+4jdcMC4GB8cHkFX5BRxSj58mS3amAy5Xbwkg2mHOGZu8sxo4YUWlUKWvCioaJ2pGy7p6opBFtc4ymWTHwJosaI0eS9FDO5BsSaJ31MUux/vLN6F0Nd6u55wZjfcrhG2KDYNr6oSCTeWvK2qmqsa216V1bqv7f9wk/cL3ET3HrfImN7jVnnrhruhqY+4FYF4iZu0j7jVM26Z4abPzJFmuLlYyea++wScNOIv4vKJ+CeDgMdk0vCN9J9h3u3OPwAAAP//AwBKi2vo/QIAAA==",
+      "headers": {
+        "content-type": "application/json",
+        "transfer-encoding": "chunked",
+        "connection": "keep-alive",
+        "date": "Sat, 14 Dec 2024 11:06:24 GMT",
+        "x-xss-protection": "1; mode=block",
+        "content-encoding": "gzip",
+        "vary": "Accept-Encoding",
+        "cache-control": "no-cache",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-trace-id": "4f17fe33e605f791a4e05d7a73aa0124",
+        "x-cache": "Miss from cloudfront",
+        "via": "1.1 ecac8e61be1e296c21a67e56243778f8.cloudfront.net (CloudFront)",
+        "x-amz-cf-pop": "TXL50-P5",
+        "x-amz-cf-id": "IDwYeRepWcr2tVOMCvlnwrPVDm_byWRACdf7oBZCsXhlbsnzSoFFFg=="
+      },
+      "status_code": 200
+    }
+  }
+]

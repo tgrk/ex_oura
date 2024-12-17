@@ -1,0 +1,39 @@
+[
+  {
+    "request": {
+      "options": [],
+      "body": "",
+      "url": "https://api.ouraring.com/v2/usercollection/sleep_time?start_date=1&end_date=2&next_token=",
+      "headers": {
+        "accept-encoding": "gzip",
+        "authorization": "***",
+        "user-agent": "req/0.5.8"
+      },
+      "method": "get",
+      "request_body": ""
+    },
+    "response": {
+      "binary": false,
+      "type": "ok",
+      "body": "{\"data\":[],\"next_token\":null}",
+      "headers": {
+        "content-type": "application/json",
+        "content-length": "29",
+        "connection": "keep-alive",
+        "date": "Sat, 14 Dec 2024 12:52:03 GMT",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-trace-id": "0e1bb298ecc94f7e142e9023cc975860",
+        "x-cache": "Miss from cloudfront",
+        "via": "1.1 ebe5c7b82bb332f597b412a5fb9a8910.cloudfront.net (CloudFront)",
+        "x-amz-cf-pop": "TXL50-P5",
+        "x-amz-cf-id": "ZpYfubvBz0bexeyshk5_umxjgENH__c31XLg9jpCBJD6JpqpRLdJmA=="
+      },
+      "status_code": 200
+    }
+  }
+]

@@ -1,0 +1,39 @@
+[
+  {
+    "request": {
+      "options": [],
+      "body": "",
+      "url": "https://api.ouraring.com/v2/usercollection/sleep_time/b3a48c58-3f61-4cef-b091-d03ec3503a56",
+      "headers": {
+        "accept-encoding": "gzip",
+        "authorization": "***",
+        "user-agent": "req/0.5.8"
+      },
+      "method": "get",
+      "request_body": ""
+    },
+    "response": {
+      "binary": false,
+      "type": "ok",
+      "body": "{\"id\":\"b3a48c58-3f61-4cef-b091-d03ec3503a56\",\"day\":\"2024-10-10\",\"optimal_bedtime\":null,\"recommendation\":\"earlier_bedtime\",\"status\":\"only_recommended_found\"}",
+      "headers": {
+        "content-type": "application/json",
+        "content-length": "156",
+        "connection": "keep-alive",
+        "date": "Sat, 14 Dec 2024 12:52:20 GMT",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-trace-id": "0f0c4427359de90cd53ab18348a83cbe",
+        "x-cache": "Miss from cloudfront",
+        "via": "1.1 63fbb6ca86d02da6071a8815a63418cc.cloudfront.net (CloudFront)",
+        "x-amz-cf-pop": "TXL50-P5",
+        "x-amz-cf-id": "uzSz_L6k2Cr5_SbpzuWmV0mEo9Um0S19jVUlDC-udDQTKL7MsdZv7w=="
+      },
+      "status_code": 200
+    }
+  }
+]

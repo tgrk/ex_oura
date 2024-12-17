@@ -1,0 +1,39 @@
+[
+  {
+    "request": {
+      "options": [],
+      "body": "",
+      "url": "https://api.ouraring.com/v2/usercollection/daily_readiness/not-existing",
+      "headers": {
+        "accept-encoding": "gzip",
+        "authorization": "***",
+        "user-agent": "req/0.5.8"
+      },
+      "method": "get",
+      "request_body": ""
+    },
+    "response": {
+      "binary": false,
+      "type": "ok",
+      "body": "{\"detail\":\"Document not found.\"}",
+      "headers": {
+        "content-type": "application/json",
+        "content-length": "32",
+        "connection": "keep-alive",
+        "date": "Sat, 14 Dec 2024 11:06:25 GMT",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-trace-id": "de571055115125333dd2546cd0458e4f",
+        "x-cache": "Error from cloudfront",
+        "via": "1.1 ecac8e61be1e296c21a67e56243778f8.cloudfront.net (CloudFront)",
+        "x-amz-cf-pop": "TXL50-P5",
+        "x-amz-cf-id": "doAPRfm7SovZzUXwgAssSFamse9e8q1BfoJjNMayeykyjheTFwv3bw=="
+      },
+      "status_code": 404
+    }
+  }
+]

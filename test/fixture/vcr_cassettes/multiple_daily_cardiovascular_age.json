@@ -1,0 +1,39 @@
+[
+  {
+    "request": {
+      "options": [],
+      "body": "",
+      "url": "https://api.ouraring.com/v2/usercollection/daily_cardiovascular_age?start_date=2024-11-11&end_date=2024-11-12&next_token=",
+      "headers": {
+        "accept-encoding": "gzip",
+        "authorization": "***",
+        "user-agent": "req/0.5.8"
+      },
+      "method": "get",
+      "request_body": ""
+    },
+    "response": {
+      "binary": false,
+      "type": "ok",
+      "body": "{\"data\":[{\"day\":\"2024-11-11\",\"vascular_age\":39},{\"day\":\"2024-11-12\",\"vascular_age\":35}],\"next_token\":null}",
+      "headers": {
+        "content-type": "application/json",
+        "content-length": "106",
+        "connection": "keep-alive",
+        "date": "Sat, 14 Dec 2024 10:55:08 GMT",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-trace-id": "4b4f8af8c8d6f8a5196ae09d736d8b2f",
+        "x-cache": "Miss from cloudfront",
+        "via": "1.1 2100d540f999998fa77c167c10cba074.cloudfront.net (CloudFront)",
+        "x-amz-cf-pop": "TXL50-P5",
+        "x-amz-cf-id": "dECcfCpzj5bg0Bejz6P0AZh8eJSFuTQbjFwB76wAjkDWo00yPTiK8g=="
+      },
+      "status_code": 200
+    }
+  }
+]

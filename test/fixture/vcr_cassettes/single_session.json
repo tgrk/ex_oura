@@ -1,0 +1,41 @@
+[
+  {
+    "request": {
+      "options": [],
+      "body": "",
+      "url": "https://api.ouraring.com/v2/usercollection/session/759082a5-76ef-4e48-b285-f84902428322",
+      "headers": {
+        "accept-encoding": "gzip",
+        "authorization": "***",
+        "user-agent": "req/0.5.8"
+      },
+      "method": "get",
+      "request_body": ""
+    },
+    "response": {
+      "binary": true,
+      "type": "ok",
+      "body": "g20AAAIKH4sIAAAAAAAEAwAAAP//7FXbbqMwEP0Xvy4g3zF8R99Wq4gsdBcpQJU4laKq/75zvLRuXIKCtPvWh5yM8Zkz4xkPvLC+ZTUrTcWdbExe2u4x1512+V46kz86XXGppVNSsoy1zYXIkosqFyKXmh6dfHP0u7bxne+H7mr3QYra2FqIb1zUnBO5G9tbVFlzVwv1TvWXJ6jtp/ayoxj+fCL/3x2CHSkYq19YP/ru+NwcWG0KnrHed8OJ1d/H8+GQJeB0obI30LDWwVxTwjIBC8oSJLwYKGQg4RZAwOKZU0UFcO9QwiJlVZCUQqYzkIDCORQEViDyohVVghWUA4RAAULcADGXkNpnCIl/gnCidYjH32Sti1IRYy5zOWNNYzljTePxoxULsVaNOVBIiKo7XyTy0OggLiIBnc2gUQYdNAVlYLBrsWsL8rWgWLTWgmLRbgue/cuj7EuQZyCPEm4l3N7gR8YwcjQcw9Py3BWc83mgXj8Oz+65OfbNvj/0nuZ50yAlc3VzKRylfw/ghB94yfJelXVeEE2U47M7rCX5RG+Jsv3ZUi6JSoWCJRApyca/XoZA66Ixl/9nLWVwHe3mxVzY2DpIwzThm/kLfxkbJt9P4+7ndB79yjBxaptRBCFPvCcEXiUaHdfYVNjAGwKLr99XDZTErbjjJmy7v69/AAAA//8DAGt2zpzzCQAA",
+      "headers": {
+        "content-type": "application/json",
+        "transfer-encoding": "chunked",
+        "connection": "keep-alive",
+        "date": "Sat, 14 Dec 2024 12:44:32 GMT",
+        "x-xss-protection": "1; mode=block",
+        "content-encoding": "gzip",
+        "vary": "Accept-Encoding",
+        "cache-control": "no-cache",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-trace-id": "353325a36e4b45d87924812e58ecfe42",
+        "x-cache": "Miss from cloudfront",
+        "via": "1.1 65449716e9697d14f63ac04796cf721c.cloudfront.net (CloudFront)",
+        "x-amz-cf-pop": "TXL50-P5",
+        "x-amz-cf-id": "kqV6Uomc_RqCXQx9hP9D8F6whtOSv3SERmv_O3zYLOJFaFOfvLElVw=="
+      },
+      "status_code": 200
+    }
+  }
+]

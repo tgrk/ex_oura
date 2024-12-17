@@ -1,0 +1,41 @@
+[
+  {
+    "request": {
+      "options": [],
+      "body": "",
+      "url": "https://api.ouraring.com/v2/usercollection/daily_spo2?start_date=2024-11-11&end_date=2024-11-12&next_token=",
+      "headers": {
+        "accept-encoding": "gzip",
+        "authorization": "***",
+        "user-agent": "req/0.5.8"
+      },
+      "method": "get",
+      "request_body": ""
+    },
+    "response": {
+      "binary": true,
+      "type": "ok",
+      "body": "g20AAADTH4sIAAAAAAAEAwAAAP//hM5LisMwEATQu/TaHdT6S1cZBqNPOzEJSnCUIYPx3ccM2WUR6EXRVMFboaaeIH6tMFeIkKlYKyaNxtCEuoQJvUgKybIXoRL56mHYR797WQqpkWi//XW/XeV446Vw6+nIEFdIP7z8x+APwsltgLxw6qe5Hcc63/tjyakVHudW+QmRzDa8GDqwKzo7LIoU6iodehMcCiVkIsfZS/HOkJ8Y9kBGfWLY7XuAxs8+9uuZG8T2uFy2PwAAAP//AwAvAVOWKQEAAA==",
+      "headers": {
+        "content-type": "application/json",
+        "transfer-encoding": "chunked",
+        "connection": "keep-alive",
+        "date": "Sat, 14 Dec 2024 12:08:26 GMT",
+        "x-xss-protection": "1; mode=block",
+        "content-encoding": "gzip",
+        "vary": "Accept-Encoding",
+        "cache-control": "no-cache",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-trace-id": "9a54e571663164040c4922daa0396365",
+        "x-cache": "Miss from cloudfront",
+        "via": "1.1 0daacc4ea9faa788f2eb67745b6bb46c.cloudfront.net (CloudFront)",
+        "x-amz-cf-pop": "TXL50-P5",
+        "x-amz-cf-id": "PXtRaj7tv0IkMpGeHGxpAOUPf9E8m_ivaOUkSkx50rS3nHHd6nd82Q=="
+      },
+      "status_code": 200
+    }
+  }
+]

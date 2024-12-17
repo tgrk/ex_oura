@@ -1,0 +1,41 @@
+[
+  {
+    "request": {
+      "options": [],
+      "body": "",
+      "url": "https://api.ouraring.com/v2/usercollection/sleep_time?start_date=2024-10-09&end_date=2024-11-03&next_token=",
+      "headers": {
+        "accept-encoding": "gzip",
+        "authorization": "***",
+        "user-agent": "req/0.5.8"
+      },
+      "method": "get",
+      "request_body": ""
+    },
+    "response": {
+      "binary": true,
+      "type": "ok",
+      "body": "g20AAAKtH4sIAAAAAAAEAwAAAP//vJbrihtJDIXfpX9bUBdVqTSvsiyDSlLBsB57mXhgQ5h3jxrCkKTzd9sYfOvGH9I5p863zeQh29Nf37YX2562WQWHtgF19QyovmAmzmCputaWqrS+XeKmr3FxSQUhp3jGV/d/Hy+vcn2ebvHGt6fb+/V62d5c76+vfou/ebnf4iaXt+uLv31ed9m+POTx/iV+ut+uX58/b3B7Xvf3m20flx9whKXqWA14YQK0tYAxFWiNSNuiUZMf4fI5cB4ETaUDkkzAag7MNiChVgu20nM7wpVz4HqpeXBtYFn3taoBl16haBJn6bVoPcLtvCesVdbUVusKzeUGOEeDKauCEBPlyU1xF9hvmttleAIcT7a0Soe+lgEuYZAuBpRjwyJYUMYRjs6BkzpVPSY3fRGgNANBStD78qLTh+s6wu28J0yu1ba89hGjigDBeMA0ZqgxsylYWegPUcLnwM2eaBlPCFOUMERL4VaNj6P3eE2Z7Ki5clKUCOVWvThICaNizgSySgFnT2o21f04uXJSlJAIG1MDx31yqS0Qr7HWFNtmm1XxmHNlT5cTNMdrErXIDrIhAWcZhghBhHNNFbks+wMcngNHY7gNyqBlYRhiLhhNPZKlLEqJ3X1X/685V06KElwxHIzDvMw4UVE8vCAzQ6IRnii5DpQj3FlRItpQY2h5WhywtSeYhAxNbNpAzZP0CHdSlEhq0zE7pF6ilWhKcULQAuJMirK60zGE60mVSebglqOGqHAYoochuEc/MbXSqlkyOhqinpRzRRr3HDWk2/ToTYWjz+UFucwRMuwtrz3UfjZECPIkOBsqJdQFuVMNt2q4lWLBqzNHXWKX/vvkAu5/DuG/L9vN/3s8P+7/eJTpvWJ/fAcAAP//AwCdEutlwwsAAA==",
+      "headers": {
+        "content-type": "application/json",
+        "transfer-encoding": "chunked",
+        "connection": "keep-alive",
+        "date": "Sat, 14 Dec 2024 12:52:03 GMT",
+        "x-xss-protection": "1; mode=block",
+        "content-encoding": "gzip",
+        "vary": "Accept-Encoding",
+        "cache-control": "no-cache",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-trace-id": "a2d16a5f02da236303765f6ae304b596",
+        "x-cache": "Miss from cloudfront",
+        "via": "1.1 ebe5c7b82bb332f597b412a5fb9a8910.cloudfront.net (CloudFront)",
+        "x-amz-cf-pop": "TXL50-P5",
+        "x-amz-cf-id": "Zs-SjhH7vIl3uYzLyIpq6o84XyCs_U2s0tsWQQEVLAvPnmGUGipBJg=="
+      },
+      "status_code": 200
+    }
+  }
+]

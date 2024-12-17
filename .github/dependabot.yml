@@ -1,0 +1,8 @@
+version: 2
+updates:
+  - package-ecosystem: "mix"
+  directory: "/"
+  reviewers:
+    - "tgrk"
+  schedule:
+    interval: "weekly"

@@ -1,0 +1,9 @@
+[
+	{
+		"id": "c534043e-ba54-4131-9dce-e40537823bfd",
+		"callback_url": "http://www.example.com",
+		"event_type": "create",
+		"data_type": "tag",
+		"expiration_time": "2024-08-24T14:15:22Z"
+	}
+]

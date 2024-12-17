@@ -1,0 +1,41 @@
+[
+  {
+    "request": {
+      "options": [],
+      "body": "",
+      "url": "https://api.ouraring.com/v2/usercollection/daily_cardiovascular_age?start_date=0024-11-11&end_date=2024-11-12&next_token=",
+      "headers": {
+        "accept-encoding": "gzip",
+        "authorization": "***",
+        "user-agent": "req/0.5.8"
+      },
+      "method": "get",
+      "request_body": ""
+    },
+    "response": {
+      "binary": true,
+      "type": "ok",
+      "body": "g20AAASoH4sIAAAAAAAEAwAAAP//jJY7TsRAEAXv4ngteT727voqBMgCRELET0Ir7s4jhKpgsg1KPTNd3c97mx6P92Pa72758TXtU11qn5c2l206TZ/H28PHy/F6fzw/TXvr3ydgZ2JXwS7EzoJdiW3E6kLsIlghZtUqMavWgPVFDu3EimArMasmFuwJYsGeIBYMowV7aaMFxcQCDs3IEevtf9+Cjcj6HWC0t2Esg4msKodSVoOFVBNZq1QTWYZRVre7UVbDZvW5UFYTC0UsYHpTTSzYoWMWilgQ9UUs2KFiQWQVsWDYmIVCC136ZsGFUO1zFQsIh2C0oIeKBelbpQWbkCoWpG+VFvRutMAMyUvFgjVELMggWXBhs1ZNJMPEgmG0wJfmULGA4AomFrDOwUYsBBMLmN5gYsEwWuAgrZpIiMFgI7sQTCzI3YpYEFmWSFaNFhjRuRst8GMUjBaY5MFoQavRgt3NEkkGaSiR1rFECiYWpL2SSPxLkGpjFiyREIOpRgtdxtISCUmeamMWLJGQb+vcRnZhs+BqeEKwkZUJRlkcy2ASXBikYLILsBCMFviPK5jsAj5GwUYsbJpIcjdJJGuIJRKc5lBpr8iSRGKopprsglWjBX6dU00s4GMUjBb4aQtGC9Y3SSSrJomk1TjktguWSPjnsM2WSOJUEokRnWq0YENuiYS0TDVa0Ib8tfADAAD//4zYQW4DMQwEwRcFSJAAtv//sYyu23XQfUCtOGST2vOul/UgUq/wImpSIZPBBcnQC2nnRStqOtomQy8kb5PBhXT9ZOiFdNZkdaEzazK4kD3kRSIhbyIS8gYitUJ2aF1ohUxWF1QhIBJldy5cEWnfVhd407ogmYiEQhKRYBZebe36l3akAn+yuqBeAJEK1UWDC7oC0ptZv2h36RVqEA3LTxPyviPSZCBSDp2svdAKmawu8NtKJEaDC0HNDi2R6ulkNavtPFnNkkz/kfBtIBKj1QVdAURS3kAkRqsLlNWFv2z4b+1IjHbnAnakjo/3F4hUhkzW90L/4U9WF1S92pGy/Cxae0HWi0iB6qLVBd60vdAps2h1gdHaC8qbwJUh/r57tX0Erlo/GczKrJ+s4OpcmKxmNSGTtWV+sx5PdmPWZDArDJkMZmUYfbQj6aYgUhmyaHfpvSLSojW9/LamlzKkNzNrhyK9AddkTS8PRS/ABREJnoJIheqHRNKhLXJ5KiKlT3doXehTcTK4oG+DCzALRCotP19CzfPQn28y5AnVI0ORP588R9b0ZrQdGYr8OReODOl9JuTILtJ7ZEivEtIiD7hOtBZ52DuZlh9cAaiJpydaXaCsLmQ6n2hw4VnkR/Zw4R8AAP//jJexDoAgDET/hdmFxMl/MU5Mkrpg4sK/2669N7A3lXrH4xrrf4ZDlIEKNCmoAEYC1JAKFH7ASIAasiWgRuDgk1L4gSsD4YdUINTQCKqCxJU4G7gXTE57FohFDAGxVvasWhE1ORJE2YrJvUxNLo9RdFOTqwpepr9XHeJlavI9R6n4qKqA3ZQhdDZgCHUDhqhDKjHE36xzK9a+cY3nblYOe3ufPwAAAP//AwDjo1i86SMAAA==",
+      "headers": {
+        "content-type": "application/json",
+        "transfer-encoding": "chunked",
+        "connection": "keep-alive",
+        "date": "Sat, 14 Dec 2024 10:55:07 GMT",
+        "x-xss-protection": "1; mode=block",
+        "content-encoding": "gzip",
+        "vary": "Accept-Encoding",
+        "cache-control": "no-cache",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-trace-id": "a15cfc43f62c04990d612b379c3d30c5",
+        "x-cache": "Miss from cloudfront",
+        "via": "1.1 2100d540f999998fa77c167c10cba074.cloudfront.net (CloudFront)",
+        "x-amz-cf-pop": "TXL50-P5",
+        "x-amz-cf-id": "TLQphbRNU2ysM430lubGQtsxw724sBWCShP70e4zoVXvwECU_DfvIA=="
+      },
+      "status_code": 200
+    }
+  }
+]

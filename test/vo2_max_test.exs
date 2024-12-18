@@ -14,10 +14,7 @@ defmodule ExOura.Vo2MaxTest do
     end
 
     test "should fail when arguments for multiple vo2 max are not valid" do
-      use_cassette "multiple_vo2_max_invalid_arguments" do
-        assert {:ok, %MultiDocumentResponseVo2MaxModel{data: []}} =
-                 ExOura.multiple_vo2_max(1, 2)
-      end
+      assert {:error, :invalid_start_date} = ExOura.multiple_vo2_max(1, 2)
     end
 
     test "should return a single vo2 max" do

@@ -14,10 +14,7 @@ defmodule ExOura.SleepTest do
     end
 
     test "should fail when arguments for multiple sleep are not valid" do
-      use_cassette "multiple_sleep_invalid_arguments" do
-        assert {:ok, %MultiDocumentResponseSleepModel{data: []}} =
-                 ExOura.multiple_sleep(1, 2)
-      end
+      assert {:error, :invalid_start_date} = ExOura.multiple_sleep(1, 2)
     end
 
     test "should return a single sleep" do

@@ -14,10 +14,7 @@ defmodule ExOura.SessionTest do
     end
 
     test "should fail when arguments for multiple sessions are not valid" do
-      use_cassette "multiple_session_invalid_arguments" do
-        assert {:ok, %MultiDocumentResponseSessionModel{data: []}} =
-                 ExOura.multiple_session(1, 2)
-      end
+      assert {:error, :invalid_start_date} = ExOura.multiple_session(1, 2)
     end
 
     test "should return a single session" do

@@ -16,10 +16,15 @@ defmodule ExOura.Client do
   Calls Oura Client modules
   """
   def call_api(mod, fun, args, opts) do
-    if client_ready?(opts) do
+    with true <- client_ready?(opts),
+         :ok <- validate_date_range_args(opts) do
       apply(mod, fun, args, opts)
     else
-      {:error, :client_not_ready}
+      false ->
+        {:error, :client_not_ready}
+
+      {:error, _reason} = error ->
+        error
     end
   end
 
@@ -34,8 +39,8 @@ defmodule ExOura.Client do
   @doc """
   Starts the GenServer with an initial bearer auth token.
   """
-  def start_link(auth_token) do
-    GenServer.start_link(__MODULE__, auth_token, name: __MODULE__)
+  def start_link(access_token \\ nil) do
+    GenServer.start_link(__MODULE__, access_token, name: __MODULE__)
   end
 
   @doc """
@@ -48,8 +53,8 @@ defmodule ExOura.Client do
   # Server Callbacks
 
   @impl true
-  def init(auth_token) do
-    {:ok, %{bearer_token: auth_token}}
+  def init(access_token) do
+    {:ok, %{bearer_token: get_access_token(access_token)}}
   end
 
   @impl true
@@ -160,4 +165,34 @@ defmodule ExOura.Client do
       _non_webhook_call -> false
     end
   end
+
+  defp get_access_token(access_token) do
+    Application.get_env(:ex_oura, :access_token, access_token)
+  end
+
+  defp validate_date_range_args(opts) do
+    start_date = Keyword.get(opts, :start_date)
+    end_date = Keyword.get(opts, :end_date)
+
+    if start_date != nil && end_date != nil do
+      case {valid_date?(start_date), valid_date?(end_date)} do
+        {false, _} -> {:error, :invalid_start_date}
+        {_, false} -> {:error, :invalid_end_date}
+        {true, true} -> start_date_before_end_date?(start_date, end_date)
+      end
+    else
+      :ok
+    end
+  end
+
+  defp start_date_before_end_date?(start_date, end_date) do
+    if Date.compare(end_date, start_date) == :lt do
+      {:error, :end_date_before_start_date}
+    else
+      :ok
+    end
+  end
+
+  defp valid_date?(%Date{} = _date), do: true
+  defp valid_date?(_date), do: false
 end

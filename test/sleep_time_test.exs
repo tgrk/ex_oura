@@ -14,10 +14,7 @@ defmodule ExOura.SleepTimeTest do
     end
 
     test "should fail when arguments for multiple sleep time are not valid" do
-      use_cassette "multiple_sleep_time_invalid_arguments" do
-        assert {:ok, %MultiDocumentResponseSleepTimeModel{data: []}} =
-                 ExOura.multiple_sleep_time(1, 2)
-      end
+      assert {:error, :invalid_start_date} = ExOura.multiple_sleep_time(1, 2)
     end
 
     test "should return a single sleep time" do

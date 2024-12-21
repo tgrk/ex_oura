@@ -8,15 +8,13 @@ defmodule ExOura.DailyCardiovascularAgeTest do
     test "should return multiple daily cardiovascular age" do
       use_cassette "multiple_daily_cardiovascular_age" do
         assert {:ok, %MultiDocumentResponseDailyCardiovascularAgeModel{data: [_ | _]}} =
-                 ExOura.multiple_daily_cardiovascular_age(~D[2024-11-11], ~S[2024-11-12])
+                 ExOura.multiple_daily_cardiovascular_age(~D[2024-11-11], ~D[2024-11-12])
       end
     end
 
     test "should fail when arguments for multiple daily cardiovascular age are not valid" do
-      use_cassette "multiple_daily_cardiovascular_age_invalid_arguments" do
-        assert {:ok, %MultiDocumentResponseDailyCardiovascularAgeModel{data: [_ | _]}} =
-                 ExOura.multiple_daily_cardiovascular_age(~D[0024-11-11], ~S[2024-11-12])
-      end
+      assert {:error, :invalid_end_date} =
+               ExOura.multiple_daily_cardiovascular_age(~D[0024-11-11], ~S[2024-11-12])
     end
   end
 end

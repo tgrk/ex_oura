@@ -30,10 +30,7 @@ defmodule ExOura.WorkoutTest do
     end
 
     test "should fail when arguments for multiple workouts are not valid" do
-      use_cassette "multiple_workout_invalid_arguments" do
-        assert {:ok, %MultiDocumentResponseWorkoutModel{data: []}} =
-                 ExOura.multiple_workout(1, 2)
-      end
+      assert {:error, :invalid_start_date} = ExOura.multiple_workout(1, 2)
     end
 
     test "should return a single workout" do

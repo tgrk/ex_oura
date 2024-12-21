@@ -1,16 +1,20 @@
 defmodule ExOura.MixProject do
   use Mix.Project
 
+  @version "0.9.0"
+  @github_url "https://github.com/tgrk/ex_oura"
+
   def project do
     [
       app: :ex_oura,
       description: description(),
       package: package(),
-      version: "0.1.0",
-      elixir: "~> 1.16",
+      version: @version,
+      elixir: "~> 1.17",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      docs: docs(),
       test_coverage: [tool: ExCoveralls],
       aliases: aliases()
     ]
@@ -46,7 +50,8 @@ defmodule ExOura.MixProject do
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:mock, "~> 0.3.8", only: :test},
-      {:excoveralls, "~> 0.18.3", only: :test}
+      {:excoveralls, "~> 0.18.3", only: :test},
+      {:ex_doc, "~> 0.35.1"}
     ]
   end
 
@@ -63,9 +68,20 @@ defmodule ExOura.MixProject do
       files: ~w(lib priv .formatter.exs mix.exs README* LICENSE* CHANGELOG*),
       licenses: ["MIT"],
       links: %{
-        "GitHub" => "https://github.com/tgrk/ex_oura",
+        "GitHub" => @github_url,
         "Issues" => "https://github.com/tgrk/ex_oura/issues"
       }
+    ]
+  end
+
+  defp docs() do
+    [
+      main: "readme",
+      name: "ex_oura",
+      source_ref: "v#{@version}",
+      canonical: "http://hexdocs.pm/ex_oura",
+      source_url: @github_url,
+      extras: ["README.md", "CHANGELOG.md", "LICENSE"]
     ]
   end
 end

@@ -65,7 +65,7 @@ defmodule ExOura.MixProject do
     [
       name: "ex_oura",
       maintainers: ["Martin Wiso"],
-      files: ~w(lib priv .formatter.exs mix.exs README* LICENSE* CHANGELOG*),
+      files: ~w(lib .formatter.exs mix.exs README* LICENSE* CHANGELOG*),
       licenses: ["MIT"],
       links: %{
         "GitHub" => @github_url,

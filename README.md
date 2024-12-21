@@ -22,7 +22,7 @@ Add `ex_oura` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:ex_oura, "~> 0.9.0"}
+    {:ex_oura, "~> 1.0.0"}
   ]
 end
 ```
@@ -53,7 +53,7 @@ Once configured, you can fetch data from Oura as follows:
 IO.inspect(activity_data)
 ```
 
- ## Oura OpenAPI issues
+## Oura OpenAPI issues
 
  A few issues in the Oura spec that I came across during the implementation:
 

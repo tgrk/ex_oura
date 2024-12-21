@@ -8,7 +8,7 @@ on:
       - reopened
   push:
     branches:    
-      - 'main'
+      - master
 
 env:
   MIX_ENV: test

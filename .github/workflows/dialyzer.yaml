@@ -7,7 +7,7 @@ on:
       - reopened
   push:
     branches:
-      - 'main'
+      - master
 jobs:
   dialyzer:
     name: Run Dialyzer on OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}

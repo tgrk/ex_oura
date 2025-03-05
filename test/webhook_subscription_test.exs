@@ -48,7 +48,7 @@ defmodule ExOura.WebhookSubscriptionTest do
                   %{
                     type: "enum",
                     msg:
-                      "Input should be 'tag', 'enhanced_tag', 'workout', 'session', 'sleep', 'daily_sleep', 'daily_readiness', 'daily_activity', 'daily_spo2', 'sleep_time', 'rest_mode_period', 'ring_configuration', 'daily_stress', 'daily_cycle_phases' or 'activation_status'",
+                      "Input should be 'tag', 'enhanced_tag', 'workout', 'session', 'sleep', 'daily_sleep', 'daily_readiness', 'daily_activity', 'daily_spo2', 'sleep_time', 'rest_mode_period', 'ring_configuration', 'daily_stress', 'daily_cycle_phases', 'activation_status', 'daily_cardiovascular_age', 'daily_resilience' or 'vo2_max'",
                     loc: ["body", "data_type"]
                   }
                 ]

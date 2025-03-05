@@ -51,7 +51,7 @@ defmodule ExOura.MixProject do
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:mock, "~> 0.3.8", only: :test},
       {:excoveralls, "~> 0.18.3", only: :test},
-      {:ex_doc, "~> 0.36.1"}
+      {:ex_doc, "~> 0.37.2"}
     ]
   end
 

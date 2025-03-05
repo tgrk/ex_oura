@@ -45,7 +45,7 @@ defmodule ExOura.MixProject do
   defp deps do
     [
       {:req, "~> 0.5.8"},
-      {:exvcr, "~> 0.15.2", only: :test},
+      {:exvcr, "~> 0.16.0", only: :test},
       {:oapi_generator, "~> 0.2.0", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},

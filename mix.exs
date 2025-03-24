@@ -44,24 +44,24 @@ defmodule ExOura.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:req, "~> 0.5.8"},
-      {:exvcr, "~> 0.16.0", only: :test},
-      {:oapi_generator, "~> 0.2.0", only: [:dev, :test], runtime: false},
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:req, "~> 0.5"},
       {:mock, "~> 0.3.8", only: :test},
-      {:excoveralls, "~> 0.18.3", only: :test},
-      {:ex_doc, "~> 0.37.2"}
+      {:exvcr, "~> 0.16", only: :test},
+      {:excoveralls, "~> 0.18", only: :test},
+      {:ex_doc, "~> 0.37", only: :dev, runtime: false},
+      {:oapi_generator, "~> 0.2", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
     ]
   end
 
-  defp description() do
+  defp description do
     """
     An Elixir library for Oura API
     """
   end
 
-  defp package() do
+  defp package do
     [
       name: "ex_oura",
       maintainers: ["Martin Wiso"],
@@ -74,7 +74,7 @@ defmodule ExOura.MixProject do
     ]
   end
 
-  defp docs() do
+  defp docs do
     [
       main: "readme",
       name: "ex_oura",

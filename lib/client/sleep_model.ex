@@ -3,18 +3,23 @@ defmodule ExOura.Client.SleepModel do
   Provides struct and type for a SleepModel
   """
 
+  alias ExOura.Client.ReadinessSummary
+  alias ExOura.Client.SampleModel
+  alias ExOura.Client.SleepModelBedtimeEnd
+  alias ExOura.Client.SleepModelBedtimeStart
+
   @type t :: %__MODULE__{
           average_breath: number | nil,
           average_heart_rate: number | nil,
           average_hrv: integer | nil,
           awake_time: integer | nil,
-          bedtime_end: ExOura.Client.SleepModelBedtimeEnd.t(),
-          bedtime_start: ExOura.Client.SleepModelBedtimeStart.t(),
+          bedtime_end: SleepModelBedtimeEnd.t(),
+          bedtime_start: SleepModelBedtimeStart.t(),
           day: Date.t(),
           deep_sleep_duration: integer | nil,
           efficiency: integer | nil,
-          heart_rate: ExOura.Client.SampleModel.t() | nil,
-          hrv: ExOura.Client.SampleModel.t() | nil,
+          heart_rate: SampleModel.t() | nil,
+          hrv: SampleModel.t() | nil,
           id: String.t(),
           latency: integer | nil,
           light_sleep_duration: integer | nil,
@@ -22,7 +27,7 @@ defmodule ExOura.Client.SleepModel do
           lowest_heart_rate: integer | nil,
           movement_30_sec: String.t() | nil,
           period: integer,
-          readiness: ExOura.Client.ReadinessSummary.t() | nil,
+          readiness: ReadinessSummary.t() | nil,
           readiness_score_delta: integer | nil,
           rem_sleep_duration: integer | nil,
           restless_periods: integer | nil,
@@ -75,13 +80,13 @@ defmodule ExOura.Client.SleepModel do
       average_heart_rate: {:union, [:number, :null]},
       average_hrv: {:union, [:integer, :null]},
       awake_time: {:union, [:integer, :null]},
-      bedtime_end: {ExOura.Client.SleepModelBedtimeEnd, :t},
-      bedtime_start: {ExOura.Client.SleepModelBedtimeStart, :t},
+      bedtime_end: {SleepModelBedtimeEnd, :t},
+      bedtime_start: {SleepModelBedtimeStart, :t},
       day: {:string, :date},
       deep_sleep_duration: {:union, [:integer, :null]},
       efficiency: {:union, [:integer, :null]},
-      heart_rate: {:union, [{ExOura.Client.SampleModel, :t}, :null]},
-      hrv: {:union, [{ExOura.Client.SampleModel, :t}, :null]},
+      heart_rate: {:union, [{SampleModel, :t}, :null]},
+      hrv: {:union, [{SampleModel, :t}, :null]},
       id: {:string, :generic},
       latency: {:union, [:integer, :null]},
       light_sleep_duration: {:union, [:integer, :null]},
@@ -89,7 +94,7 @@ defmodule ExOura.Client.SleepModel do
       lowest_heart_rate: {:union, [:integer, :null]},
       movement_30_sec: {:union, [{:string, :generic}, :null]},
       period: :integer,
-      readiness: {:union, [{ExOura.Client.ReadinessSummary, :t}, :null]},
+      readiness: {:union, [{ReadinessSummary, :t}, :null]},
       readiness_score_delta: {:union, [:integer, :null]},
       rem_sleep_duration: {:union, [:integer, :null]},
       restless_periods: {:union, [:integer, :null]},

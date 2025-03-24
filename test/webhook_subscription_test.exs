@@ -4,6 +4,7 @@ defmodule ExOura.WebhookSubscriptionTest do
   import Mock
 
   alias ExOura.Client.CreateWebhookSubscriptionRequest
+  alias ExOura.Client.HTTPValidationError
   alias ExOura.Client.WebhookSubscriptionModel
 
   describe "Webhook Subscription - list_webhook_subscription/1" do
@@ -43,7 +44,7 @@ defmodule ExOura.WebhookSubscriptionTest do
       }
 
       assert {:error,
-              %ExOura.Client.HTTPValidationError{
+              %HTTPValidationError{
                 detail: [
                   %{
                     type: "enum",
@@ -111,7 +112,7 @@ defmodule ExOura.WebhookSubscriptionTest do
 
       assert {
                :error,
-               %ExOura.Client.HTTPValidationError{
+               %HTTPValidationError{
                  detail: [
                    %{
                      type: "string_type",
@@ -135,8 +136,7 @@ defmodule ExOura.WebhookSubscriptionTest do
         verification_token: "foobar"
       }
 
-      assert {:error,
-              %{detail: "Subscription with id c534043e-ba54-4131-9dce-e40537823bff not found."}} =
+      assert {:error, %{detail: "Subscription with id c534043e-ba54-4131-9dce-e40537823bff not found."}} =
                ExOura.update_webhook_subscription(
                  "c534043e-ba54-4131-9dce-e40537823bff",
                  webhook
@@ -153,8 +153,7 @@ defmodule ExOura.WebhookSubscriptionTest do
     end
 
     test "should fail when renewing a webhook subscription ID does not exists" do
-      assert {:error,
-              %{detail: "Subscription with id c534043e-ba54-4131-9dce-e40537823bff not found."}} =
+      assert {:error, %{detail: "Subscription with id c534043e-ba54-4131-9dce-e40537823bff not found."}} =
                ExOura.renew_webhook_subscription("c534043e-ba54-4131-9dce-e40537823bff")
     end
   end
@@ -180,7 +179,7 @@ defmodule ExOura.WebhookSubscriptionTest do
   end
 
   defp valid_headers?(opts) do
-    headers = opts |> Keyword.get(:headers) |> Enum.into(%{})
+    headers = opts |> Keyword.get(:headers) |> Map.new()
     Map.has_key?(headers, "x-client-id") && Map.has_key?(headers, "x-client-secret")
   end
 

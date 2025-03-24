@@ -3,12 +3,15 @@ defmodule ExOura.Client.DailySleepModel do
   Provides struct and type for a DailySleepModel
   """
 
+  alias ExOura.Client.DailySleepModelContributors
+  alias ExOura.Client.DailySleepModelTimestamp
+
   @type t :: %__MODULE__{
-          contributors: ExOura.Client.DailySleepModelContributors.t(),
+          contributors: DailySleepModelContributors.t(),
           day: Date.t(),
           id: String.t(),
           score: integer | nil,
-          timestamp: ExOura.Client.DailySleepModelTimestamp.t()
+          timestamp: DailySleepModelTimestamp.t()
         }
 
   defstruct [:contributors, :day, :id, :score, :timestamp]
@@ -19,11 +22,11 @@ defmodule ExOura.Client.DailySleepModel do
 
   def __fields__(:t) do
     [
-      contributors: {ExOura.Client.DailySleepModelContributors, :t},
+      contributors: {DailySleepModelContributors, :t},
       day: {:string, :date},
       id: {:string, :generic},
       score: {:union, [:integer, :null]},
-      timestamp: {ExOura.Client.DailySleepModelTimestamp, :t}
+      timestamp: {DailySleepModelTimestamp, :t}
     ]
   end
 end

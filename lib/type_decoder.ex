@@ -18,7 +18,7 @@ defmodule ExOura.TypeDecoder do
   end
 
   defp get_type(%{response: response} = _operation, status) do
-    case response |> Enum.into(%{}) |> Map.get(status, nil) do
+    case response |> Map.new() |> Map.get(status, nil) do
       [{_response_type, :t}] = type ->
         {:ok, type}
 

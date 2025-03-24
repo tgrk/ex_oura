@@ -3,8 +3,10 @@ defmodule ExOura.Client.MultiDocumentResponseRingConfigurationModel do
   Provides struct and type for a MultiDocumentResponseRingConfigurationModel
   """
 
+  alias ExOura.Client.RingConfigurationModel
+
   @type t :: %__MODULE__{
-          data: [ExOura.Client.RingConfigurationModel.t()],
+          data: [RingConfigurationModel.t()],
           next_token: String.t() | nil
         }
 
@@ -16,7 +18,7 @@ defmodule ExOura.Client.MultiDocumentResponseRingConfigurationModel do
 
   def __fields__(:t) do
     [
-      data: [{ExOura.Client.RingConfigurationModel, :t}],
+      data: [{RingConfigurationModel, :t}],
       next_token: {:union, [{:string, :generic}, :null]}
     ]
   end

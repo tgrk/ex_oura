@@ -3,10 +3,12 @@ defmodule ExOura.Client.SampleModel do
   Provides struct and type for a SampleModel
   """
 
+  alias ExOura.Client.SampleModelTimestamp
+
   @type t :: %__MODULE__{
           interval: number,
           items: [number | nil],
-          timestamp: ExOura.Client.SampleModelTimestamp.t()
+          timestamp: SampleModelTimestamp.t()
         }
 
   defstruct [:interval, :items, :timestamp]
@@ -19,7 +21,7 @@ defmodule ExOura.Client.SampleModel do
     [
       interval: :number,
       items: [union: [:number, :null]],
-      timestamp: {ExOura.Client.SampleModelTimestamp, :t}
+      timestamp: {SampleModelTimestamp, :t}
     ]
   end
 end

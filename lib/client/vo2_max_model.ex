@@ -3,10 +3,12 @@ defmodule ExOura.Client.Vo2MaxModel do
   Provides struct and type for a Vo2MaxModel
   """
 
+  alias ExOura.Client.Vo2MaxModelTimestamp
+
   @type t :: %__MODULE__{
           day: Date.t(),
           id: String.t(),
-          timestamp: ExOura.Client.Vo2MaxModelTimestamp.t(),
+          timestamp: Vo2MaxModelTimestamp.t(),
           vo2_max: number | nil
         }
 
@@ -20,7 +22,7 @@ defmodule ExOura.Client.Vo2MaxModel do
     [
       day: {:string, :date},
       id: {:string, :generic},
-      timestamp: {ExOura.Client.Vo2MaxModelTimestamp, :t},
+      timestamp: {Vo2MaxModelTimestamp, :t},
       vo2_max: {:union, [:number, :null]}
     ]
   end

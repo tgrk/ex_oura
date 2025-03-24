@@ -3,11 +3,14 @@ defmodule ExOura.Client.DailyResilienceModel do
   Provides struct and type for a DailyResilienceModel
   """
 
+  alias ExOura.Client.DailyResilienceModelContributors
+  alias ExOura.Client.DailyResilienceModelLevel
+
   @type t :: %__MODULE__{
-          contributors: ExOura.Client.DailyResilienceModelContributors.t(),
+          contributors: DailyResilienceModelContributors.t(),
           day: Date.t(),
           id: String.t(),
-          level: ExOura.Client.DailyResilienceModelLevel.t()
+          level: DailyResilienceModelLevel.t()
         }
 
   defstruct [:contributors, :day, :id, :level]
@@ -18,10 +21,10 @@ defmodule ExOura.Client.DailyResilienceModel do
 
   def __fields__(:t) do
     [
-      contributors: {ExOura.Client.DailyResilienceModelContributors, :t},
+      contributors: {DailyResilienceModelContributors, :t},
       day: {:string, :date},
       id: {:string, :generic},
-      level: {ExOura.Client.DailyResilienceModelLevel, :t}
+      level: {DailyResilienceModelLevel, :t}
     ]
   end
 end

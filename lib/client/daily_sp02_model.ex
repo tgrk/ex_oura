@@ -3,11 +3,13 @@ defmodule ExOura.Client.DailySpO2Model do
   Provides struct and type for a DailySpO2Model
   """
 
+  alias ExOura.Client.DailySpO2AggregatedValuesModel
+
   @type t :: %__MODULE__{
           breathing_disturbance_index: integer | nil,
           day: Date.t(),
           id: String.t(),
-          spo2_percentage: ExOura.Client.DailySpO2AggregatedValuesModel.t() | nil
+          spo2_percentage: DailySpO2AggregatedValuesModel.t() | nil
         }
 
   defstruct [:breathing_disturbance_index, :day, :id, :spo2_percentage]
@@ -21,7 +23,7 @@ defmodule ExOura.Client.DailySpO2Model do
       breathing_disturbance_index: {:union, [:integer, :null]},
       day: {:string, :date},
       id: {:string, :generic},
-      spo2_percentage: {:union, [{ExOura.Client.DailySpO2AggregatedValuesModel, :t}, :null]}
+      spo2_percentage: {:union, [{DailySpO2AggregatedValuesModel, :t}, :null]}
     ]
   end
 end

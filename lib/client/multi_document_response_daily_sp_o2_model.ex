@@ -3,7 +3,9 @@ defmodule ExOura.Client.MultiDocumentResponseDailySpO2Model do
   Provides struct and type for a MultiDocumentResponseDailySpO2Model
   """
 
-  @type t :: %__MODULE__{data: [ExOura.Client.DailySpO2Model.t()], next_token: String.t() | nil}
+  alias ExOura.Client.DailySpO2Model
+
+  @type t :: %__MODULE__{data: [DailySpO2Model.t()], next_token: String.t() | nil}
 
   defstruct [:data, :next_token]
 
@@ -13,7 +15,7 @@ defmodule ExOura.Client.MultiDocumentResponseDailySpO2Model do
 
   def __fields__(:t) do
     [
-      data: [{ExOura.Client.DailySpO2Model, :t}],
+      data: [{DailySpO2Model, :t}],
       next_token: {:union, [{:string, :generic}, :null]}
     ]
   end

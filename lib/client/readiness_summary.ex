@@ -3,8 +3,10 @@ defmodule ExOura.Client.ReadinessSummary do
   Provides struct and type for a ReadinessSummary
   """
 
+  alias ExOura.Client.ReadinessContributors
+
   @type t :: %__MODULE__{
-          contributors: ExOura.Client.ReadinessContributors.t(),
+          contributors: ReadinessContributors.t(),
           score: integer | nil,
           temperature_deviation: number | nil,
           temperature_trend_deviation: number | nil
@@ -18,7 +20,7 @@ defmodule ExOura.Client.ReadinessSummary do
 
   def __fields__(:t) do
     [
-      contributors: {ExOura.Client.ReadinessContributors, :t},
+      contributors: {ReadinessContributors, :t},
       score: {:union, [:integer, :null]},
       temperature_deviation: {:union, [:number, :null]},
       temperature_trend_deviation: {:union, [:number, :null]}

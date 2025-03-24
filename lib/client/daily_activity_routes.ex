@@ -3,6 +3,9 @@ defmodule ExOura.Client.DailyActivityRoutes do
   Provides API endpoints related to daily activity routes
   """
 
+  alias ExOura.Client.DailyActivityRoutes
+  alias ExOura.Client.HTTPValidationError
+
   @default_client ExOura.Client
 
   @doc """
@@ -21,9 +24,7 @@ defmodule ExOura.Client.DailyActivityRoutes do
 
     client.request(%{
       args: [],
-      call:
-        {ExOura.Client.DailyActivityRoutes,
-         :multiple_daily_activity_documents_v2_usercollection_daily_activity_get},
+      call: {DailyActivityRoutes, :multiple_daily_activity_documents_v2_usercollection_daily_activity_get},
       url: "/v2/usercollection/daily_activity",
       method: :get,
       query: query,
@@ -32,7 +33,7 @@ defmodule ExOura.Client.DailyActivityRoutes do
         {400, :null},
         {401, :null},
         {403, :null},
-        {422, {ExOura.Client.HTTPValidationError, :t}},
+        {422, {HTTPValidationError, :t}},
         {429, :null}
       ],
       opts: opts
@@ -42,17 +43,12 @@ defmodule ExOura.Client.DailyActivityRoutes do
   @doc """
   Single Daily Activity Document
   """
-  def single_daily_activity_document_v2_usercollection_daily_activity_document_id_get(
-        document_id,
-        opts \\ []
-      ) do
+  def single_daily_activity_document_v2_usercollection_daily_activity_document_id_get(document_id, opts \\ []) do
     client = opts[:client] || @default_client
 
     client.request(%{
       args: [document_id: document_id],
-      call:
-        {ExOura.Client.DailyActivityRoutes,
-         :single_daily_activity_document_v2_usercollection_daily_activity_document_id_get},
+      call: {DailyActivityRoutes, :single_daily_activity_document_v2_usercollection_daily_activity_document_id_get},
       url: "/v2/usercollection/daily_activity/#{document_id}",
       method: :get,
       response: [
@@ -61,7 +57,7 @@ defmodule ExOura.Client.DailyActivityRoutes do
         {401, :null},
         {403, :null},
         {404, :null},
-        {422, {ExOura.Client.HTTPValidationError, :t}},
+        {422, {HTTPValidationError, :t}},
         {429, :null}
       ],
       opts: opts

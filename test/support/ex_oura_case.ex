@@ -1,4 +1,5 @@
 defmodule ExOura.Test.Support.Case do
+  @moduledoc false
   use ExUnit.CaseTemplate
 
   setup_all do

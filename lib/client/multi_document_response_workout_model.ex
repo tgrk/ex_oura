@@ -3,7 +3,9 @@ defmodule ExOura.Client.MultiDocumentResponseWorkoutModel do
   Provides struct and type for a MultiDocumentResponseWorkoutModel
   """
 
-  @type t :: %__MODULE__{data: [ExOura.Client.WorkoutModel.t()], next_token: String.t() | nil}
+  alias ExOura.Client.WorkoutModel
+
+  @type t :: %__MODULE__{data: [WorkoutModel.t()], next_token: String.t() | nil}
 
   defstruct [:data, :next_token]
 
@@ -12,6 +14,6 @@ defmodule ExOura.Client.MultiDocumentResponseWorkoutModel do
   def __fields__(type \\ :t)
 
   def __fields__(:t) do
-    [data: [{ExOura.Client.WorkoutModel, :t}], next_token: {:union, [{:string, :generic}, :null]}]
+    [data: [{WorkoutModel, :t}], next_token: {:union, [{:string, :generic}, :null]}]
   end
 end

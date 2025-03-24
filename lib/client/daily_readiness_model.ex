@@ -3,14 +3,17 @@ defmodule ExOura.Client.DailyReadinessModel do
   Provides struct and type for a DailyReadinessModel
   """
 
+  alias ExOura.Client.DailyReadinessModelContributors
+  alias ExOura.Client.DailyReadinessModelTimestamp
+
   @type t :: %__MODULE__{
-          contributors: ExOura.Client.DailyReadinessModelContributors.t(),
+          contributors: DailyReadinessModelContributors.t(),
           day: Date.t(),
           id: String.t(),
           score: integer | nil,
           temperature_deviation: number | nil,
           temperature_trend_deviation: number | nil,
-          timestamp: ExOura.Client.DailyReadinessModelTimestamp.t()
+          timestamp: DailyReadinessModelTimestamp.t()
         }
 
   defstruct [
@@ -29,13 +32,13 @@ defmodule ExOura.Client.DailyReadinessModel do
 
   def __fields__(:t) do
     [
-      contributors: {ExOura.Client.DailyReadinessModelContributors, :t},
+      contributors: {DailyReadinessModelContributors, :t},
       day: {:string, :date},
       id: {:string, :generic},
       score: {:union, [:integer, :null]},
       temperature_deviation: {:union, [:number, :null]},
       temperature_trend_deviation: {:union, [:number, :null]},
-      timestamp: {ExOura.Client.DailyReadinessModelTimestamp, :t}
+      timestamp: {DailyReadinessModelTimestamp, :t}
     ]
   end
 end

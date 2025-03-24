@@ -3,6 +3,11 @@ defmodule ExOura.Client.DailyResilienceRoutes do
   Provides API endpoints related to daily resilience routes
   """
 
+  alias ExOura.Client.DailyResilienceModel
+  alias ExOura.Client.DailyResilienceRoutes
+  alias ExOura.Client.HTTPValidationError
+  alias ExOura.Client.MultiDocumentResponseDailyResilienceModel
+
   @default_client ExOura.Client
 
   @doc """
@@ -16,26 +21,24 @@ defmodule ExOura.Client.DailyResilienceRoutes do
 
   """
   @spec multiple_daily_resilience_documents_v2_usercollection_daily_resilience_get(keyword) ::
-          {:ok, ExOura.Client.MultiDocumentResponseDailyResilienceModel.t()}
-          | {:error, ExOura.Client.HTTPValidationError.t()}
+          {:ok, MultiDocumentResponseDailyResilienceModel.t()}
+          | {:error, HTTPValidationError.t()}
   def multiple_daily_resilience_documents_v2_usercollection_daily_resilience_get(opts \\ []) do
     client = opts[:client] || @default_client
     query = Keyword.take(opts, [:end_date, :next_token, :start_date])
 
     client.request(%{
       args: [],
-      call:
-        {ExOura.Client.DailyResilienceRoutes,
-         :multiple_daily_resilience_documents_v2_usercollection_daily_resilience_get},
+      call: {DailyResilienceRoutes, :multiple_daily_resilience_documents_v2_usercollection_daily_resilience_get},
       url: "/v2/usercollection/daily_resilience",
       method: :get,
       query: query,
       response: [
-        {200, {ExOura.Client.MultiDocumentResponseDailyResilienceModel, :t}},
+        {200, {MultiDocumentResponseDailyResilienceModel, :t}},
         {400, :null},
         {401, :null},
         {403, :null},
-        {422, {ExOura.Client.HTTPValidationError, :t}},
+        {422, {HTTPValidationError, :t}},
         {429, :null}
       ],
       opts: opts
@@ -49,28 +52,23 @@ defmodule ExOura.Client.DailyResilienceRoutes do
           String.t(),
           keyword
         ) ::
-          {:ok, ExOura.Client.DailyResilienceModel.t()}
-          | {:error, ExOura.Client.HTTPValidationError.t()}
-  def single_daily_resilience_document_v2_usercollection_daily_resilience_document_id_get(
-        document_id,
-        opts \\ []
-      ) do
+          {:ok, DailyResilienceModel.t()}
+          | {:error, HTTPValidationError.t()}
+  def single_daily_resilience_document_v2_usercollection_daily_resilience_document_id_get(document_id, opts \\ []) do
     client = opts[:client] || @default_client
 
     client.request(%{
       args: [document_id: document_id],
-      call:
-        {ExOura.Client.DailyResilienceRoutes,
-         :single_daily_resilience_document_v2_usercollection_daily_resilience_document_id_get},
+      call: {DailyResilienceRoutes, :single_daily_resilience_document_v2_usercollection_daily_resilience_document_id_get},
       url: "/v2/usercollection/daily_resilience/#{document_id}",
       method: :get,
       response: [
-        {200, {ExOura.Client.DailyResilienceModel, :t}},
+        {200, {DailyResilienceModel, :t}},
         {400, :null},
         {401, :null},
         {403, :null},
         {404, :null},
-        {422, {ExOura.Client.HTTPValidationError, :t}},
+        {422, {HTTPValidationError, :t}},
         {429, :null}
       ],
       opts: opts

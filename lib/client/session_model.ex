@@ -3,15 +3,19 @@ defmodule ExOura.Client.SessionModel do
   Provides struct and type for a SessionModel
   """
 
+  alias ExOura.Client.SampleModel
+  alias ExOura.Client.SessionModelEndDatetime
+  alias ExOura.Client.SessionModelStartDatetime
+
   @type t :: %__MODULE__{
           day: Date.t(),
-          end_datetime: ExOura.Client.SessionModelEndDatetime.t(),
-          heart_rate: ExOura.Client.SampleModel.t() | nil,
-          heart_rate_variability: ExOura.Client.SampleModel.t() | nil,
+          end_datetime: SessionModelEndDatetime.t(),
+          heart_rate: SampleModel.t() | nil,
+          heart_rate_variability: SampleModel.t() | nil,
           id: String.t(),
           mood: String.t() | nil,
-          motion_count: ExOura.Client.SampleModel.t() | nil,
-          start_datetime: ExOura.Client.SessionModelStartDatetime.t(),
+          motion_count: SampleModel.t() | nil,
+          start_datetime: SessionModelStartDatetime.t(),
           type: String.t()
         }
 
@@ -34,13 +38,13 @@ defmodule ExOura.Client.SessionModel do
   def __fields__(:t) do
     [
       day: {:string, :date},
-      end_datetime: {ExOura.Client.SessionModelEndDatetime, :t},
-      heart_rate: {:union, [{ExOura.Client.SampleModel, :t}, :null]},
-      heart_rate_variability: {:union, [{ExOura.Client.SampleModel, :t}, :null]},
+      end_datetime: {SessionModelEndDatetime, :t},
+      heart_rate: {:union, [{SampleModel, :t}, :null]},
+      heart_rate_variability: {:union, [{SampleModel, :t}, :null]},
       id: {:string, :generic},
       mood: {:union, [{:enum, ["bad", "worse", "same", "good", "great"]}, :null]},
-      motion_count: {:union, [{ExOura.Client.SampleModel, :t}, :null]},
-      start_datetime: {ExOura.Client.SessionModelStartDatetime, :t},
+      motion_count: {:union, [{SampleModel, :t}, :null]},
+      start_datetime: {SessionModelStartDatetime, :t},
       type: {:enum, ["breathing", "meditation", "nap", "relaxation", "rest", "body_status"]}
     ]
   end

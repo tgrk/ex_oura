@@ -3,8 +3,10 @@ defmodule ExOura.Client.MultiDocumentResponseRestModePeriodModel do
   Provides struct and type for a MultiDocumentResponseRestModePeriodModel
   """
 
+  alias ExOura.Client.RestModePeriodModel
+
   @type t :: %__MODULE__{
-          data: [ExOura.Client.RestModePeriodModel.t()],
+          data: [RestModePeriodModel.t()],
           next_token: String.t() | nil
         }
 
@@ -16,7 +18,7 @@ defmodule ExOura.Client.MultiDocumentResponseRestModePeriodModel do
 
   def __fields__(:t) do
     [
-      data: [{ExOura.Client.RestModePeriodModel, :t}],
+      data: [{RestModePeriodModel, :t}],
       next_token: {:union, [{:string, :generic}, :null]}
     ]
   end

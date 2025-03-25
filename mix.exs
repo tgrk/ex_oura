@@ -51,7 +51,8 @@ defmodule ExOura.MixProject do
       {:ex_doc, "~> 0.37", only: :dev, runtime: false},
       {:oapi_generator, "~> 0.2", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:styler, "~> 1.4", only: [:dev, :test], runtime: false}
     ]
   end
 

@@ -3,7 +3,9 @@ defmodule ExOura.Client.MultiDocumentResponseSessionModel do
   Provides struct and type for a MultiDocumentResponseSessionModel
   """
 
-  @type t :: %__MODULE__{data: [ExOura.Client.SessionModel.t()], next_token: String.t() | nil}
+  alias ExOura.Client.SessionModel
+
+  @type t :: %__MODULE__{data: [SessionModel.t()], next_token: String.t() | nil}
 
   defstruct [:data, :next_token]
 
@@ -12,6 +14,6 @@ defmodule ExOura.Client.MultiDocumentResponseSessionModel do
   def __fields__(type \\ :t)
 
   def __fields__(:t) do
-    [data: [{ExOura.Client.SessionModel, :t}], next_token: {:union, [{:string, :generic}, :null]}]
+    [data: [{SessionModel, :t}], next_token: {:union, [{:string, :generic}, :null]}]
   end
 end

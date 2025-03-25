@@ -3,11 +3,15 @@ defmodule ExOura.Client.DailyActivityModel do
   Provides struct and type for a DailyActivityModel
   """
 
+  alias ExOura.Client.ActivityContributors
+  alias ExOura.Client.DailyActivityModelTimestamp
+  alias ExOura.Client.SampleModel
+
   @type t :: %__MODULE__{
           active_calories: integer,
           average_met_minutes: number,
           class_5_min: String.t() | nil,
-          contributors: ExOura.Client.ActivityContributors.t(),
+          contributors: ActivityContributors.t(),
           day: Date.t(),
           equivalent_walking_distance: integer,
           high_activity_met_minutes: integer,
@@ -18,7 +22,7 @@ defmodule ExOura.Client.DailyActivityModel do
           low_activity_time: integer,
           medium_activity_met_minutes: integer,
           medium_activity_time: integer,
-          met: ExOura.Client.SampleModel.t(),
+          met: SampleModel.t(),
           meters_to_target: integer,
           non_wear_time: integer,
           resting_time: integer,
@@ -28,7 +32,7 @@ defmodule ExOura.Client.DailyActivityModel do
           steps: integer,
           target_calories: integer,
           target_meters: integer,
-          timestamp: ExOura.Client.DailyActivityModelTimestamp.t(),
+          timestamp: DailyActivityModelTimestamp.t(),
           total_calories: integer
         }
 
@@ -70,7 +74,7 @@ defmodule ExOura.Client.DailyActivityModel do
       active_calories: :integer,
       average_met_minutes: :number,
       class_5_min: {:union, [{:string, :generic}, :null]},
-      contributors: {ExOura.Client.ActivityContributors, :t},
+      contributors: {ActivityContributors, :t},
       day: {:string, :date},
       equivalent_walking_distance: :integer,
       high_activity_met_minutes: :integer,
@@ -81,7 +85,7 @@ defmodule ExOura.Client.DailyActivityModel do
       low_activity_time: :integer,
       medium_activity_met_minutes: :integer,
       medium_activity_time: :integer,
-      met: {ExOura.Client.SampleModel, :t},
+      met: {SampleModel, :t},
       meters_to_target: :integer,
       non_wear_time: :integer,
       resting_time: :integer,
@@ -91,7 +95,7 @@ defmodule ExOura.Client.DailyActivityModel do
       steps: :integer,
       target_calories: :integer,
       target_meters: :integer,
-      timestamp: {ExOura.Client.DailyActivityModelTimestamp, :t},
+      timestamp: {DailyActivityModelTimestamp, :t},
       total_calories: :integer
     ]
   end

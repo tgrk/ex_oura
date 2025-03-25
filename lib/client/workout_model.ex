@@ -3,17 +3,21 @@ defmodule ExOura.Client.WorkoutModel do
   Provides struct and type for a WorkoutModel
   """
 
+  alias ExOura.Client.WorkoutModelEndDatetime
+  alias ExOura.Client.WorkoutModelSource
+  alias ExOura.Client.WorkoutModelStartDatetime
+
   @type t :: %__MODULE__{
           activity: String.t(),
           calories: number | nil,
           day: Date.t(),
           distance: number | nil,
-          end_datetime: ExOura.Client.WorkoutModelEndDatetime.t(),
+          end_datetime: WorkoutModelEndDatetime.t(),
           id: String.t(),
           intensity: String.t(),
           label: String.t() | nil,
-          source: ExOura.Client.WorkoutModelSource.t(),
-          start_datetime: ExOura.Client.WorkoutModelStartDatetime.t()
+          source: WorkoutModelSource.t(),
+          start_datetime: WorkoutModelStartDatetime.t()
         }
 
   defstruct [
@@ -39,12 +43,12 @@ defmodule ExOura.Client.WorkoutModel do
       calories: {:union, [:number, :null]},
       day: {:string, :date},
       distance: {:union, [:number, :null]},
-      end_datetime: {ExOura.Client.WorkoutModelEndDatetime, :t},
+      end_datetime: {WorkoutModelEndDatetime, :t},
       id: {:string, :generic},
       intensity: {:enum, ["easy", "moderate", "hard"]},
       label: {:union, [{:string, :generic}, :null]},
-      source: {ExOura.Client.WorkoutModelSource, :t},
-      start_datetime: {ExOura.Client.WorkoutModelStartDatetime, :t}
+      source: {WorkoutModelSource, :t},
+      start_datetime: {WorkoutModelStartDatetime, :t}
     ]
   end
 end

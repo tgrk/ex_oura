@@ -3,10 +3,12 @@ defmodule ExOura.Client.SleepTimeModel do
   Provides struct and type for a SleepTimeModel
   """
 
+  alias ExOura.Client.SleepTimeWindow
+
   @type t :: %__MODULE__{
           day: Date.t(),
           id: String.t(),
-          optimal_bedtime: ExOura.Client.SleepTimeWindow.t() | nil,
+          optimal_bedtime: SleepTimeWindow.t() | nil,
           recommendation: String.t() | nil,
           status: String.t() | nil
         }
@@ -21,7 +23,7 @@ defmodule ExOura.Client.SleepTimeModel do
     [
       day: {:string, :date},
       id: {:string, :generic},
-      optimal_bedtime: {:union, [{ExOura.Client.SleepTimeWindow, :t}, :null]},
+      optimal_bedtime: {:union, [{SleepTimeWindow, :t}, :null]},
       recommendation:
         {:union,
          [

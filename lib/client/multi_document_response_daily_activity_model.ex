@@ -3,8 +3,10 @@ defmodule ExOura.Client.MultiDocumentResponseDailyActivityModel do
   Provides struct and type for a MultiDocumentResponseDailyActivityModel
   """
 
+  alias ExOura.Client.DailyActivityModel
+
   @type t :: %__MODULE__{
-          data: [ExOura.Client.DailyActivityModel.t()],
+          data: [DailyActivityModel.t()],
           next_token: String.t() | nil
         }
 
@@ -16,7 +18,7 @@ defmodule ExOura.Client.MultiDocumentResponseDailyActivityModel do
 
   def __fields__(:t) do
     [
-      data: [{ExOura.Client.DailyActivityModel, :t}],
+      data: [{DailyActivityModel, :t}],
       next_token: {:union, [{:string, :generic}, :null]}
     ]
   end

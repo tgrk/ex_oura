@@ -3,6 +3,11 @@ defmodule ExOura.Client.EnhancedTagRoutes do
   Provides API endpoints related to enhanced tag routes
   """
 
+  alias ExOura.Client.EnhancedTagModel
+  alias ExOura.Client.EnhancedTagRoutes
+  alias ExOura.Client.HTTPValidationError
+  alias ExOura.Client.MultiDocumentResponseEnhancedTagModel
+
   @default_client ExOura.Client
 
   @doc """
@@ -16,26 +21,24 @@ defmodule ExOura.Client.EnhancedTagRoutes do
 
   """
   @spec multiple_enhanced_tag_documents_v2_usercollection_enhanced_tag_get(keyword) ::
-          {:ok, ExOura.Client.MultiDocumentResponseEnhancedTagModel.t()}
-          | {:error, ExOura.Client.HTTPValidationError.t()}
+          {:ok, MultiDocumentResponseEnhancedTagModel.t()}
+          | {:error, HTTPValidationError.t()}
   def multiple_enhanced_tag_documents_v2_usercollection_enhanced_tag_get(opts \\ []) do
     client = opts[:client] || @default_client
     query = Keyword.take(opts, [:end_date, :next_token, :start_date])
 
     client.request(%{
       args: [],
-      call:
-        {ExOura.Client.EnhancedTagRoutes,
-         :multiple_enhanced_tag_documents_v2_usercollection_enhanced_tag_get},
+      call: {EnhancedTagRoutes, :multiple_enhanced_tag_documents_v2_usercollection_enhanced_tag_get},
       url: "/v2/usercollection/enhanced_tag",
       method: :get,
       query: query,
       response: [
-        {200, {ExOura.Client.MultiDocumentResponseEnhancedTagModel, :t}},
+        {200, {MultiDocumentResponseEnhancedTagModel, :t}},
         {400, :null},
         {401, :null},
         {403, :null},
-        {422, {ExOura.Client.HTTPValidationError, :t}},
+        {422, {HTTPValidationError, :t}},
         {429, :null}
       ],
       opts: opts
@@ -49,28 +52,23 @@ defmodule ExOura.Client.EnhancedTagRoutes do
           String.t(),
           keyword
         ) ::
-          {:ok, ExOura.Client.EnhancedTagModel.t()}
-          | {:error, ExOura.Client.HTTPValidationError.t()}
-  def single_enhanced_tag_document_v2_usercollection_enhanced_tag_document_id_get(
-        document_id,
-        opts \\ []
-      ) do
+          {:ok, EnhancedTagModel.t()}
+          | {:error, HTTPValidationError.t()}
+  def single_enhanced_tag_document_v2_usercollection_enhanced_tag_document_id_get(document_id, opts \\ []) do
     client = opts[:client] || @default_client
 
     client.request(%{
       args: [document_id: document_id],
-      call:
-        {ExOura.Client.EnhancedTagRoutes,
-         :single_enhanced_tag_document_v2_usercollection_enhanced_tag_document_id_get},
+      call: {EnhancedTagRoutes, :single_enhanced_tag_document_v2_usercollection_enhanced_tag_document_id_get},
       url: "/v2/usercollection/enhanced_tag/#{document_id}",
       method: :get,
       response: [
-        {200, {ExOura.Client.EnhancedTagModel, :t}},
+        {200, {EnhancedTagModel, :t}},
         {400, :null},
         {401, :null},
         {403, :null},
         {404, :null},
-        {422, {ExOura.Client.HTTPValidationError, :t}},
+        {422, {HTTPValidationError, :t}},
         {429, :null}
       ],
       opts: opts

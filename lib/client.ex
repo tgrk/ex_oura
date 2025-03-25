@@ -101,8 +101,7 @@ defmodule ExOura.Client do
     {:reply, reply, state}
   end
 
-  defp handle_response({:ok, %Req.Response{status: status, body: body}}, operation)
-       when status in [200, 201] do
+  defp handle_response({:ok, %Req.Response{status: status, body: body}}, operation) when status in [200, 201] do
     TypeDecoder.decode_response(status, body, operation)
   end
 
@@ -186,7 +185,7 @@ defmodule ExOura.Client do
   end
 
   defp start_date_before_end_date?(start_date, end_date) do
-    if Date.compare(end_date, start_date) == :lt do
+    if Date.before?(end_date, start_date) do
       {:error, :end_date_before_start_date}
     else
       :ok

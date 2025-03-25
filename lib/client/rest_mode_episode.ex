@@ -3,7 +3,9 @@ defmodule ExOura.Client.RestModeEpisode do
   Provides struct and type for a RestModeEpisode
   """
 
-  @type t :: %__MODULE__{tags: [String.t()], timestamp: ExOura.Client.Timestamp.t()}
+  alias ExOura.Client.Timestamp
+
+  @type t :: %__MODULE__{tags: [String.t()], timestamp: Timestamp.t()}
 
   defstruct [:tags, :timestamp]
 
@@ -12,6 +14,6 @@ defmodule ExOura.Client.RestModeEpisode do
   def __fields__(type \\ :t)
 
   def __fields__(:t) do
-    [tags: [string: :generic], timestamp: {ExOura.Client.Timestamp, :t}]
+    [tags: [string: :generic], timestamp: {Timestamp, :t}]
   end
 end

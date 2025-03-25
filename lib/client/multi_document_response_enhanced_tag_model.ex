@@ -3,7 +3,9 @@ defmodule ExOura.Client.MultiDocumentResponseEnhancedTagModel do
   Provides struct and type for a MultiDocumentResponseEnhancedTagModel
   """
 
-  @type t :: %__MODULE__{data: [ExOura.Client.EnhancedTagModel.t()], next_token: String.t() | nil}
+  alias ExOura.Client.EnhancedTagModel
+
+  @type t :: %__MODULE__{data: [EnhancedTagModel.t()], next_token: String.t() | nil}
 
   defstruct [:data, :next_token]
 
@@ -13,7 +15,7 @@ defmodule ExOura.Client.MultiDocumentResponseEnhancedTagModel do
 
   def __fields__(:t) do
     [
-      data: [{ExOura.Client.EnhancedTagModel, :t}],
+      data: [{EnhancedTagModel, :t}],
       next_token: {:union, [{:string, :generic}, :null]}
     ]
   end

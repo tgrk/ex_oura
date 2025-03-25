@@ -3,8 +3,10 @@ defmodule ExOura.Client.MultiDocumentResponseDailyCardiovascularAgeModel do
   Provides struct and type for a MultiDocumentResponseDailyCardiovascularAgeModel
   """
 
+  alias ExOura.Client.DailyCardiovascularAgeModel
+
   @type t :: %__MODULE__{
-          data: [ExOura.Client.DailyCardiovascularAgeModel.t()],
+          data: [DailyCardiovascularAgeModel.t()],
           next_token: String.t() | nil
         }
 
@@ -16,7 +18,7 @@ defmodule ExOura.Client.MultiDocumentResponseDailyCardiovascularAgeModel do
 
   def __fields__(:t) do
     [
-      data: [{ExOura.Client.DailyCardiovascularAgeModel, :t}],
+      data: [{DailyCardiovascularAgeModel, :t}],
       next_token: {:union, [{:string, :generic}, :null]}
     ]
   end

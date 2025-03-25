@@ -3,7 +3,9 @@ defmodule ExOura.Client.MultiDocumentResponseVo2MaxModel do
   Provides struct and type for a MultiDocumentResponseVo2MaxModel
   """
 
-  @type t :: %__MODULE__{data: [ExOura.Client.Vo2MaxModel.t()], next_token: String.t() | nil}
+  alias ExOura.Client.Vo2MaxModel
+
+  @type t :: %__MODULE__{data: [Vo2MaxModel.t()], next_token: String.t() | nil}
 
   defstruct [:data, :next_token]
 
@@ -12,6 +14,6 @@ defmodule ExOura.Client.MultiDocumentResponseVo2MaxModel do
   def __fields__(type \\ :t)
 
   def __fields__(:t) do
-    [data: [{ExOura.Client.Vo2MaxModel, :t}], next_token: {:union, [{:string, :generic}, :null]}]
+    [data: [{Vo2MaxModel, :t}], next_token: {:union, [{:string, :generic}, :null]}]
   end
 end

@@ -3,7 +3,9 @@ defmodule ExOura.Client.HTTPValidationError do
   Provides struct and type for a HTTPValidationError
   """
 
-  @type t :: %__MODULE__{detail: [ExOura.Client.ValidationError.t()] | nil}
+  alias ExOura.Client.ValidationError
+
+  @type t :: %__MODULE__{detail: [ValidationError.t()] | nil}
 
   defstruct [:detail]
 
@@ -12,6 +14,6 @@ defmodule ExOura.Client.HTTPValidationError do
   def __fields__(type \\ :t)
 
   def __fields__(:t) do
-    [detail: [{ExOura.Client.ValidationError, :t}]]
+    [detail: [{ValidationError, :t}]]
   end
 end

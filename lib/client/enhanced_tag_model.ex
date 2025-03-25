@@ -3,6 +3,8 @@ defmodule ExOura.Client.EnhancedTagModel do
   Provides struct and type for a EnhancedTagModel
   """
 
+  alias ExOura.Client.EnhancedTagModelStartTime
+
   @type t :: %__MODULE__{
           comment: String.t() | nil,
           custom_name: String.t() | nil,
@@ -10,7 +12,7 @@ defmodule ExOura.Client.EnhancedTagModel do
           end_time: String.t() | nil,
           id: String.t(),
           start_day: Date.t(),
-          start_time: ExOura.Client.EnhancedTagModelStartTime.t(),
+          start_time: EnhancedTagModelStartTime.t(),
           tag_type_code: String.t() | nil
         }
 
@@ -37,7 +39,7 @@ defmodule ExOura.Client.EnhancedTagModel do
       end_time: {:union, [{:string, :generic}, :null]},
       id: {:string, :generic},
       start_day: {:string, :date},
-      start_time: {ExOura.Client.EnhancedTagModelStartTime, :t},
+      start_time: {EnhancedTagModelStartTime, :t},
       tag_type_code: {:union, [{:string, :generic}, :null]}
     ]
   end

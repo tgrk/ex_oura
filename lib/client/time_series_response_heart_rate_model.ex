@@ -3,7 +3,9 @@ defmodule ExOura.Client.TimeSeriesResponseHeartRateModel do
   Provides struct and type for a TimeSeriesResponseHeartRateModel
   """
 
-  @type t :: %__MODULE__{data: [ExOura.Client.HeartRateModel.t()], next_token: String.t() | nil}
+  alias ExOura.Client.HeartRateModel
+
+  @type t :: %__MODULE__{data: [HeartRateModel.t()], next_token: String.t() | nil}
 
   defstruct [:data, :next_token]
 
@@ -13,7 +15,7 @@ defmodule ExOura.Client.TimeSeriesResponseHeartRateModel do
 
   def __fields__(:t) do
     [
-      data: [{ExOura.Client.HeartRateModel, :t}],
+      data: [{HeartRateModel, :t}],
       next_token: {:union, [{:string, :generic}, :null]}
     ]
   end

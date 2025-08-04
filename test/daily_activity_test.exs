@@ -11,7 +11,7 @@ defmodule ExOura.DailyActivityTest do
         assert {:ok,
                 %MultiDocumentResponseDailyActivityModel{
                   data: [
-                    %ExOura.Client.DailyActivityModel{
+                    %DailyActivityModel{
                       active_calories: 1_153,
                       average_met_minutes: 1.875,
                       class_5_min: _class_5_min,

@@ -11,7 +11,7 @@ defmodule ExOura.WorkoutTest do
         assert {:ok,
                 %MultiDocumentResponseWorkoutModel{
                   data: [
-                    %ExOura.Client.WorkoutModel{
+                    %WorkoutModel{
                       activity: "walking",
                       calories: 21.967,
                       day: ~D[2024-10-09],

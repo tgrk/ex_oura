@@ -1,8 +1,5 @@
 defmodule ExOura.Client.DailySpO2Model do
-  @moduledoc """
-  Provides struct and type for a DailySpO2Model
-  """
-
+  @moduledoc false
   alias ExOura.Client.DailySpO2AggregatedValuesModel
 
   @type t :: %__MODULE__{

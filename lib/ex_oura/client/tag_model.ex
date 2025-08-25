@@ -1,8 +1,5 @@
 defmodule ExOura.Client.TagModel do
-  @moduledoc """
-  Provides struct and type for a TagModel
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{
           day: Date.t(),
           id: String.t(),

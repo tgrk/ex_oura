@@ -1,8 +1,5 @@
 defmodule ExOura.Client.SleepTimeWindow do
-  @moduledoc """
-  Provides struct and type for a SleepTimeWindow
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{day_tz: integer, end_offset: integer, start_offset: integer}
 
   defstruct [:day_tz, :end_offset, :start_offset]

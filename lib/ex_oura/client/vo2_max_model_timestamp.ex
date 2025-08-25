@@ -1,8 +1,5 @@
 defmodule ExOura.Client.Vo2MaxModelTimestamp do
-  @moduledoc """
-  Provides struct and type for a Vo2MaxModelTimestamp
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{}
 
   defstruct []

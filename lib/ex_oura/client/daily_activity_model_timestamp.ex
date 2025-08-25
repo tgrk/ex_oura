@@ -1,8 +1,5 @@
 defmodule ExOura.Client.DailyActivityModelTimestamp do
-  @moduledoc """
-  Provides struct and type for a DailyActivityModelTimestamp
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{}
 
   defstruct []

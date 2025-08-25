@@ -1,8 +1,5 @@
 defmodule ExOura.Client.ActivityContributors do
-  @moduledoc """
-  Provides struct and type for a ActivityContributors
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{
           meet_daily_targets: integer | nil,
           move_every_hour: integer | nil,

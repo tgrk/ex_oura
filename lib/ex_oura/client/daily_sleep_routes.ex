@@ -1,8 +1,5 @@
 defmodule ExOura.Client.DailySleepRoutes do
-  @moduledoc """
-  Provides API endpoints related to daily sleep routes
-  """
-
+  @moduledoc false
   alias ExOura.Client.DailySleepModel
   alias ExOura.Client.DailySleepRoutes
   alias ExOura.Client.HTTPValidationError

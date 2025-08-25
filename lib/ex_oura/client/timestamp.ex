@@ -1,8 +1,5 @@
 defmodule ExOura.Client.Timestamp do
-  @moduledoc """
-  Provides struct and type for a Timestamp
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{}
 
   defstruct []

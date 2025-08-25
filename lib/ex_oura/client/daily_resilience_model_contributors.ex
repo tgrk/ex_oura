@@ -1,8 +1,5 @@
 defmodule ExOura.Client.DailyResilienceModelContributors do
-  @moduledoc """
-  Provides struct and type for a DailyResilienceModelContributors
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{
           daytime_recovery: number | nil,
           sleep_recovery: number | nil,

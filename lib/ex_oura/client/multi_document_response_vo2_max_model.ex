@@ -1,8 +1,5 @@
 defmodule ExOura.Client.MultiDocumentResponseVo2MaxModel do
-  @moduledoc """
-  Provides struct and type for a MultiDocumentResponseVo2MaxModel
-  """
-
+  @moduledoc false
   alias ExOura.Client.Vo2MaxModel
 
   @type t :: %__MODULE__{data: [Vo2MaxModel.t()], next_token: String.t() | nil}

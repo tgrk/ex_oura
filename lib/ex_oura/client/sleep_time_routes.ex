@@ -1,8 +1,5 @@
 defmodule ExOura.Client.SleepTimeRoutes do
-  @moduledoc """
-  Provides API endpoints related to sleep time routes
-  """
-
+  @moduledoc false
   alias ExOura.Client.HTTPValidationError
   alias ExOura.Client.MultiDocumentResponseSleepTimeModel
   alias ExOura.Client.SleepTimeModel

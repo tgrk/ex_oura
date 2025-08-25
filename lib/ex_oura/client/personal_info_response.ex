@@ -1,8 +1,5 @@
 defmodule ExOura.Client.PersonalInfoResponse do
-  @moduledoc """
-  Provides struct and type for a PersonalInfoResponse
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{
           age: integer | nil,
           biological_sex: String.t() | nil,

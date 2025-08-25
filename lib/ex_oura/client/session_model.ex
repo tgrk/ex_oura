@@ -1,8 +1,5 @@
 defmodule ExOura.Client.SessionModel do
-  @moduledoc """
-  Provides struct and type for a SessionModel
-  """
-
+  @moduledoc false
   alias ExOura.Client.SampleModel
 
   @type t :: %__MODULE__{

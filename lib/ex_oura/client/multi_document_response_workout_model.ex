@@ -1,8 +1,5 @@
 defmodule ExOura.Client.MultiDocumentResponseWorkoutModel do
-  @moduledoc """
-  Provides struct and type for a MultiDocumentResponseWorkoutModel
-  """
-
+  @moduledoc false
   alias ExOura.Client.WorkoutModel
 
   @type t :: %__MODULE__{data: [WorkoutModel.t()], next_token: String.t() | nil}

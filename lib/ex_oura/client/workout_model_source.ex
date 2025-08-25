@@ -1,8 +1,5 @@
 defmodule ExOura.Client.WorkoutModelSource do
-  @moduledoc """
-  Provides struct and type for a WorkoutModelSource
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{}
 
   defstruct []

@@ -1,8 +1,5 @@
 defmodule ExOura.Client.Vo2MaxModel do
-  @moduledoc """
-  Provides struct and type for a Vo2MaxModel
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{
           day: Date.t(),
           id: String.t(),

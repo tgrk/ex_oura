@@ -1,8 +1,5 @@
 defmodule ExOura.Client.MultiDocumentResponseDailySpO2Model do
-  @moduledoc """
-  Provides struct and type for a MultiDocumentResponseDailySpO2Model
-  """
-
+  @moduledoc false
   alias ExOura.Client.DailySpO2Model
 
   @type t :: %__MODULE__{data: [DailySpO2Model.t()], next_token: String.t() | nil}

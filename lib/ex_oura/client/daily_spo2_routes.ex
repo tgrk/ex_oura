@@ -1,8 +1,5 @@
 defmodule ExOura.Client.DailySpo2Routes do
-  @moduledoc """
-  Provides API endpoints related to daily spo2 routes
-  """
-
+  @moduledoc false
   alias ExOura.Client.DailySpO2Model
   alias ExOura.Client.DailySpo2Routes
   alias ExOura.Client.HTTPValidationError

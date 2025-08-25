@@ -1,8 +1,5 @@
 defmodule ExOura.Client.HeartRateRoutes do
-  @moduledoc """
-  Provides API endpoint related to heart rate routes
-  """
-
+  @moduledoc false
   alias ExOura.Client.HTTPValidationError
   alias ExOura.Client.TimeSeriesResponseHeartRateModel
 

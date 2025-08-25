@@ -1,8 +1,5 @@
 defmodule ExOura.Client.RingConfigurationModel do
-  @moduledoc """
-  Provides struct and type for a RingConfigurationModel
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{
           color: String.t() | nil,
           design: String.t() | nil,

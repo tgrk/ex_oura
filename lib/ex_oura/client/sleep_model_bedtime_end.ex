@@ -1,8 +1,5 @@
 defmodule ExOura.Client.SleepModelBedtimeEnd do
-  @moduledoc """
-  Provides struct and type for a SleepModelBedtimeEnd
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{}
 
   defstruct []

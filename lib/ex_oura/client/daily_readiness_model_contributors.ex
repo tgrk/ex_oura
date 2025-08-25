@@ -1,8 +1,5 @@
 defmodule ExOura.Client.DailyReadinessModelContributors do
-  @moduledoc """
-  Provides struct and type for a DailyReadinessModelContributors
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{
           activity_balance: integer | nil,
           body_temperature: integer | nil,

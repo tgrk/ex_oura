@@ -1,8 +1,5 @@
 defmodule ExOura.Client.WebhookSubscriptionRoutes do
-  @moduledoc """
-  Provides API endpoints related to webhook subscription routes
-  """
-
+  @moduledoc false
   alias ExOura.Client.CreateWebhookSubscriptionRequest
   alias ExOura.Client.HTTPValidationError
   alias ExOura.Client.UpdateWebhookSubscriptionRequest

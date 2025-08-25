@@ -1,8 +1,5 @@
 defmodule ExOura.Client.TagRoutes do
-  @moduledoc """
-  Provides API endpoints related to tag routes
-  """
-
+  @moduledoc false
   alias ExOura.Client.HTTPValidationError
   alias ExOura.Client.MultiDocumentResponseTagModel
   alias ExOura.Client.TagModel

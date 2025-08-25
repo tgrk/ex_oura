@@ -1,8 +1,5 @@
 defmodule ExOura.Client.TimeSeriesResponseHeartRateModel do
-  @moduledoc """
-  Provides struct and type for a TimeSeriesResponseHeartRateModel
-  """
-
+  @moduledoc false
   alias ExOura.Client.HeartRateModel
 
   @type t :: %__MODULE__{data: [HeartRateModel.t()], next_token: String.t() | nil}

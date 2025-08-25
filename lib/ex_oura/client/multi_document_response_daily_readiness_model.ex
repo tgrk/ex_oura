@@ -1,8 +1,5 @@
 defmodule ExOura.Client.MultiDocumentResponseDailyReadinessModel do
-  @moduledoc """
-  Provides struct and type for a MultiDocumentResponseDailyReadinessModel
-  """
-
+  @moduledoc false
   alias ExOura.Client.DailyReadinessModel
 
   @type t :: %__MODULE__{

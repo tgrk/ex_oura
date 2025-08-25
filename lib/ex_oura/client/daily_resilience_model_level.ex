@@ -1,8 +1,5 @@
 defmodule ExOura.Client.DailyResilienceModelLevel do
-  @moduledoc """
-  Provides struct and type for a DailyResilienceModelLevel
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{}
 
   defstruct []

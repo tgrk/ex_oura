@@ -1,8 +1,5 @@
 defmodule ExOura.Client.WorkoutModel do
-  @moduledoc """
-  Provides struct and type for a WorkoutModel
-  """
-
+  @moduledoc false
   alias ExOura.Client.WorkoutModelEndDatetime
   alias ExOura.Client.WorkoutModelSource
   alias ExOura.Client.WorkoutModelStartDatetime

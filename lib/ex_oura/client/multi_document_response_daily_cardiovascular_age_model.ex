@@ -1,8 +1,5 @@
 defmodule ExOura.Client.MultiDocumentResponseDailyCardiovascularAgeModel do
-  @moduledoc """
-  Provides struct and type for a MultiDocumentResponseDailyCardiovascularAgeModel
-  """
-
+  @moduledoc false
   alias ExOura.Client.DailyCardiovascularAgeModel
 
   @type t :: %__MODULE__{

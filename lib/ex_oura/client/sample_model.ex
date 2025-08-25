@@ -1,8 +1,5 @@
 defmodule ExOura.Client.SampleModel do
-  @moduledoc """
-  Provides struct and type for a SampleModel
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{interval: number, items: [number | nil], timestamp: String.t()}
 
   defstruct [:interval, :items, :timestamp]

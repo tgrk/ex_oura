@@ -1,8 +1,5 @@
 defmodule ExOura.Client.MultiDocumentResponseDailySleepModel do
-  @moduledoc """
-  Provides struct and type for a MultiDocumentResponseDailySleepModel
-  """
-
+  @moduledoc false
   alias ExOura.Client.DailySleepModel
 
   @type t :: %__MODULE__{data: [DailySleepModel.t()], next_token: String.t() | nil}

@@ -1,8 +1,5 @@
 defmodule ExOura.Client.DailySleepModelContributors do
-  @moduledoc """
-  Provides struct and type for a DailySleepModelContributors
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{
           deep_sleep: integer | nil,
           efficiency: integer | nil,

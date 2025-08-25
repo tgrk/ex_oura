@@ -1,8 +1,5 @@
 defmodule ExOura.Client.ValidationError do
-  @moduledoc """
-  Provides struct and type for a ValidationError
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{loc: [integer | String.t()], msg: String.t(), type: String.t()}
 
   defstruct [:loc, :msg, :type]

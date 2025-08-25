@@ -1,8 +1,5 @@
 defmodule ExOura.Client.DailyStressRoutes do
-  @moduledoc """
-  Provides API endpoints related to daily stress routes
-  """
-
+  @moduledoc false
   alias ExOura.Client.DailyStressModel
   alias ExOura.Client.DailyStressRoutes
   alias ExOura.Client.HTTPValidationError

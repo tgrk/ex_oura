@@ -1,8 +1,5 @@
 defmodule ExOura.Client.SessionRoutes do
-  @moduledoc """
-  Provides API endpoints related to session routes
-  """
-
+  @moduledoc false
   alias ExOura.Client.HTTPValidationError
   alias ExOura.Client.MultiDocumentResponseSessionModel
   alias ExOura.Client.SessionModel

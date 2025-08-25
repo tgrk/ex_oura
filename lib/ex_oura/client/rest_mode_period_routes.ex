@@ -1,8 +1,5 @@
 defmodule ExOura.Client.RestModePeriodRoutes do
-  @moduledoc """
-  Provides API endpoints related to rest mode period routes
-  """
-
+  @moduledoc false
   alias ExOura.Client.HTTPValidationError
   alias ExOura.Client.MultiDocumentResponseRestModePeriodModel
   alias ExOura.Client.RestModePeriodModel

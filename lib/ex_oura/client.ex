@@ -1,29 +1,5 @@
 defmodule ExOura.Client do
-  @moduledoc """
-  Default Oura client with support for both Personal Access Tokens and OAuth2.
-
-  ## Authentication Methods
-
-  ### Personal Access Tokens (Deprecated)
-  Personal Access Tokens will be deprecated by the end of 2025. Use OAuth2 for new integrations.
-
-      {:ok, client} = ExOura.Client.start_link("your_personal_access_token")
-
-  ### OAuth2 (Recommended)
-  Use OAuth2 tokens for authentication:
-
-      # After completing OAuth2 flow
-      {:ok, tokens} = ExOura.OAuth2.get_token("authorization_code")
-      {:ok, client} = ExOura.Client.start_link(tokens.access_token)
-
-  Or start with OAuth2 tokens including refresh capability:
-
-      {:ok, client} = ExOura.Client.start_link(
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token
-      )
-
-  """
+  @moduledoc false
   use GenServer
 
   alias ExOura.OAuth2

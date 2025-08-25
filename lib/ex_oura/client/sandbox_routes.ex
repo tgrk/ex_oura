@@ -1,8 +1,5 @@
 defmodule ExOura.Client.SandboxRoutes do
-  @moduledoc """
-  Provides API endpoints related to sandbox routes
-  """
-
+  @moduledoc false
   alias ExOura.Client.DailyActivityModel
   alias ExOura.Client.DailyCardiovascularAgeModel
   alias ExOura.Client.DailyReadinessModel

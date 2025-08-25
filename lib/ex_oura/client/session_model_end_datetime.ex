@@ -1,8 +1,5 @@
 defmodule ExOura.Client.SessionModelEndDatetime do
-  @moduledoc """
-  Provides struct and type for a SessionModelEndDatetime
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{}
 
   defstruct []

@@ -1,8 +1,5 @@
 defmodule ExOura.Client.DailyActivityModel do
-  @moduledoc """
-  Provides struct and type for a DailyActivityModel
-  """
-
+  @moduledoc false
   alias ExOura.Client.ActivityContributors
   alias ExOura.Client.SampleModel
 

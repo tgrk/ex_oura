@@ -1,8 +1,5 @@
 defmodule ExOura.Client.ReadinessSummary do
-  @moduledoc """
-  Provides struct and type for a ReadinessSummary
-  """
-
+  @moduledoc false
   alias ExOura.Client.ReadinessContributors
 
   @type t :: %__MODULE__{

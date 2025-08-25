@@ -1,8 +1,5 @@
 defmodule ExOura.Client.EnhancedTagModel do
-  @moduledoc """
-  Provides struct and type for a EnhancedTagModel
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{
           comment: String.t() | nil,
           custom_name: String.t() | nil,

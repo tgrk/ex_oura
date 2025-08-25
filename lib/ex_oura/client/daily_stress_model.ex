@@ -1,8 +1,5 @@
 defmodule ExOura.Client.DailyStressModel do
-  @moduledoc """
-  Provides struct and type for a DailyStressModel
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{
           day: Date.t(),
           day_summary: String.t() | nil,

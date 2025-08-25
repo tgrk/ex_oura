@@ -1,8 +1,5 @@
 defmodule ExOura.Client.DailyReadinessRoutes do
-  @moduledoc """
-  Provides API endpoints related to daily readiness routes
-  """
-
+  @moduledoc false
   alias ExOura.Client.DailyReadinessModel
   alias ExOura.Client.DailyReadinessRoutes
   alias ExOura.Client.HTTPValidationError

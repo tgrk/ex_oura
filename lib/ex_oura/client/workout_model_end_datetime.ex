@@ -1,8 +1,5 @@
 defmodule ExOura.Client.WorkoutModelEndDatetime do
-  @moduledoc """
-  Provides struct and type for a WorkoutModelEndDatetime
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{}
 
   defstruct []

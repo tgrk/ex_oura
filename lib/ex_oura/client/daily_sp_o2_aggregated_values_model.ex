@@ -1,8 +1,5 @@
 defmodule ExOura.Client.DailySpO2AggregatedValuesModel do
-  @moduledoc """
-  Provides struct and type for a DailySpO2AggregatedValuesModel
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{average: number}
 
   defstruct [:average]

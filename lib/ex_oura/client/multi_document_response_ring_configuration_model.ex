@@ -1,8 +1,5 @@
 defmodule ExOura.Client.MultiDocumentResponseRingConfigurationModel do
-  @moduledoc """
-  Provides struct and type for a MultiDocumentResponseRingConfigurationModel
-  """
-
+  @moduledoc false
   alias ExOura.Client.RingConfigurationModel
 
   @type t :: %__MODULE__{

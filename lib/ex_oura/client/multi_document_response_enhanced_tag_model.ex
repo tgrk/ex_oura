@@ -1,8 +1,5 @@
 defmodule ExOura.Client.MultiDocumentResponseEnhancedTagModel do
-  @moduledoc """
-  Provides struct and type for a MultiDocumentResponseEnhancedTagModel
-  """
-
+  @moduledoc false
   alias ExOura.Client.EnhancedTagModel
 
   @type t :: %__MODULE__{data: [EnhancedTagModel.t()], next_token: String.t() | nil}

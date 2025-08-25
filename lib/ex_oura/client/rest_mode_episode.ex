@@ -1,8 +1,5 @@
 defmodule ExOura.Client.RestModeEpisode do
-  @moduledoc """
-  Provides struct and type for a RestModeEpisode
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{tags: [String.t()], timestamp: String.t()}
 
   defstruct [:tags, :timestamp]

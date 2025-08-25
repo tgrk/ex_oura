@@ -1,8 +1,5 @@
 defmodule ExOura.Client.RingConfigurationRoutes do
-  @moduledoc """
-  Provides API endpoints related to ring configuration routes
-  """
-
+  @moduledoc false
   alias ExOura.Client.HTTPValidationError
   alias ExOura.Client.MultiDocumentResponseRingConfigurationModel
   alias ExOura.Client.RingConfigurationModel

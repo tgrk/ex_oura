@@ -1,8 +1,5 @@
 defmodule ExOura.Client.UpdateWebhookSubscriptionRequest do
-  @moduledoc """
-  Provides struct and type for a UpdateWebhookSubscriptionRequest
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{
           callback_url: String.t() | nil,
           data_type: String.t() | nil,

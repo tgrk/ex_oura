@@ -1,8 +1,5 @@
 defmodule ExOura.Client.Vo2MaxRoutes do
-  @moduledoc """
-  Provides API endpoints related to vo2 max routes
-  """
-
+  @moduledoc false
   alias ExOura.Client.HTTPValidationError
   alias ExOura.Client.MultiDocumentResponseVo2MaxModel
   alias ExOura.Client.Vo2MaxModel

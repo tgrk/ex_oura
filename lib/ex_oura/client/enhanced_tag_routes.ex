@@ -1,8 +1,5 @@
 defmodule ExOura.Client.EnhancedTagRoutes do
-  @moduledoc """
-  Provides API endpoints related to enhanced tag routes
-  """
-
+  @moduledoc false
   alias ExOura.Client.EnhancedTagModel
   alias ExOura.Client.EnhancedTagRoutes
   alias ExOura.Client.HTTPValidationError

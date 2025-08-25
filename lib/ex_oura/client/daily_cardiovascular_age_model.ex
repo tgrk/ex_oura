@@ -1,8 +1,5 @@
 defmodule ExOura.Client.DailyCardiovascularAgeModel do
-  @moduledoc """
-  Provides struct and type for a DailyCardiovascularAgeModel
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{day: Date.t(), vascular_age: integer | nil}
 
   defstruct [:day, :vascular_age]

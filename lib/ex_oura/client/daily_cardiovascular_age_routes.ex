@@ -1,8 +1,5 @@
 defmodule ExOura.Client.DailyCardiovascularAgeRoutes do
-  @moduledoc """
-  Provides API endpoints related to daily cardiovascular age routes
-  """
-
+  @moduledoc false
   alias ExOura.Client.DailyCardiovascularAgeModel
   alias ExOura.Client.DailyCardiovascularAgeRoutes
   alias ExOura.Client.HTTPValidationError

@@ -1,8 +1,5 @@
 defmodule ExOura.Client.DailySleepModel do
-  @moduledoc """
-  Provides struct and type for a DailySleepModel
-  """
-
+  @moduledoc false
   alias ExOura.Client.SleepContributors
 
   @type t :: %__MODULE__{

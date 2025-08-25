@@ -1,8 +1,5 @@
 defmodule ExOura.Client.DailyResilienceModel do
-  @moduledoc """
-  Provides struct and type for a DailyResilienceModel
-  """
-
+  @moduledoc false
   alias ExOura.Client.ResilienceContributors
 
   @type t :: %__MODULE__{

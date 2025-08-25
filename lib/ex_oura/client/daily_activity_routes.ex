@@ -1,8 +1,5 @@
 defmodule ExOura.Client.DailyActivityRoutes do
-  @moduledoc """
-  Provides API endpoints related to daily activity routes
-  """
-
+  @moduledoc false
   alias ExOura.Client.DailyActivityModel
   alias ExOura.Client.DailyActivityRoutes
   alias ExOura.Client.HTTPValidationError

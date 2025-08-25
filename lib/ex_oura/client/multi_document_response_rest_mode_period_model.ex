@@ -1,8 +1,5 @@
 defmodule ExOura.Client.MultiDocumentResponseRestModePeriodModel do
-  @moduledoc """
-  Provides struct and type for a MultiDocumentResponseRestModePeriodModel
-  """
-
+  @moduledoc false
   alias ExOura.Client.RestModePeriodModel
 
   @type t :: %__MODULE__{

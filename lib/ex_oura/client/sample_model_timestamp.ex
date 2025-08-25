@@ -1,8 +1,5 @@
 defmodule ExOura.Client.SampleModelTimestamp do
-  @moduledoc """
-  Provides struct and type for a SampleModelTimestamp
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{}
 
   defstruct []

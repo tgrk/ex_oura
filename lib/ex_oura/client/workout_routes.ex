@@ -1,8 +1,5 @@
 defmodule ExOura.Client.WorkoutRoutes do
-  @moduledoc """
-  Provides API endpoints related to workout routes
-  """
-
+  @moduledoc false
   alias ExOura.Client.HTTPValidationError
   alias ExOura.Client.MultiDocumentResponsePublicWorkout
   alias ExOura.Client.PublicWorkout

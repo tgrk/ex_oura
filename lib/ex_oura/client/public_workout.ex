@@ -1,8 +1,5 @@
 defmodule ExOura.Client.PublicWorkout do
-  @moduledoc """
-  Provides struct and type for a PublicWorkout
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{
           activity: String.t(),
           calories: number | nil,

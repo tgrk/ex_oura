@@ -1,8 +1,5 @@
 defmodule ExOura.Client.SleepTimeModel do
-  @moduledoc """
-  Provides struct and type for a SleepTimeModel
-  """
-
+  @moduledoc false
   alias ExOura.Client.SleepTimeWindow
 
   @type t :: %__MODULE__{

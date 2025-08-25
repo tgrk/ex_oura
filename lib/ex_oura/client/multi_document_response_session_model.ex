@@ -1,8 +1,5 @@
 defmodule ExOura.Client.MultiDocumentResponseSessionModel do
-  @moduledoc """
-  Provides struct and type for a MultiDocumentResponseSessionModel
-  """
-
+  @moduledoc false
   alias ExOura.Client.SessionModel
 
   @type t :: %__MODULE__{data: [SessionModel.t()], next_token: String.t() | nil}

@@ -1,8 +1,5 @@
 defmodule ExOura.Client.RestModePeriodModel do
-  @moduledoc """
-  Provides struct and type for a RestModePeriodModel
-  """
-
+  @moduledoc false
   alias ExOura.Client.RestModeEpisode
 
   @type t :: %__MODULE__{

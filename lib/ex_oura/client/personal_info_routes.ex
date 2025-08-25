@@ -1,8 +1,5 @@
 defmodule ExOura.Client.PersonalInfoRoutes do
-  @moduledoc """
-  Provides API endpoint related to personal info routes
-  """
-
+  @moduledoc false
   alias ExOura.Client.PersonalInfoResponse
 
   @default_client ExOura.Client

@@ -1,8 +1,5 @@
 defmodule ExOura.Client.SleepModel do
-  @moduledoc """
-  Provides struct and type for a SleepModel
-  """
-
+  @moduledoc false
   alias ExOura.Client.ReadinessSummary
   alias ExOura.Client.SampleModel
 

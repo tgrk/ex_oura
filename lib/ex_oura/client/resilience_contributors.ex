@@ -1,8 +1,5 @@
 defmodule ExOura.Client.ResilienceContributors do
-  @moduledoc """
-  Provides struct and type for a ResilienceContributors
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{daytime_recovery: number, sleep_recovery: number, stress: number}
 
   defstruct [:daytime_recovery, :sleep_recovery, :stress]

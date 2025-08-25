@@ -1,8 +1,5 @@
 defmodule ExOura.Client.HeartRateModel do
-  @moduledoc """
-  Provides struct and type for a HeartRateModel
-  """
-
+  @moduledoc false
   @type t :: %__MODULE__{bpm: integer, source: String.t(), timestamp: String.t()}
 
   defstruct [:bpm, :source, :timestamp]

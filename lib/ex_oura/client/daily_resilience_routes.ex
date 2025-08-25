@@ -1,8 +1,5 @@
 defmodule ExOura.Client.DailyResilienceRoutes do
-  @moduledoc """
-  Provides API endpoints related to daily resilience routes
-  """
-
+  @moduledoc false
   alias ExOura.Client.DailyResilienceModel
   alias ExOura.Client.DailyResilienceRoutes
   alias ExOura.Client.HTTPValidationError

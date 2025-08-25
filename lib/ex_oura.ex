@@ -115,7 +115,23 @@ defmodule ExOura do
   @type error() :: {:error, Client.HTTPValidationError.t()}
 
   @doc """
-  Multiple Daily Activity
+  Retrieves multiple daily activity records for a specified date range.
+
+  Returns paginated daily activity data including steps, calories, activity score, and more.
+  This is one of the most commonly used endpoints for tracking daily movement and activity patterns.
+
+  ## Parameters
+
+  - `start_date` - Start date for the data range (Date struct, inclusive)
+  - `end_date` - End date for the data range (Date struct, inclusive)
+  - `next_token` - Optional pagination token from previous response
+  - `opts` - Additional options (e.g., timeout)
+
+  ## Examples
+
+      {:ok, activities} = ExOura.multiple_daily_activity(~D[2025-01-01], ~D[2025-01-31])
+      activities.data |> Enum.each(&IO.inspect/1)
+
   """
   @spec multiple_daily_activity(
           start_date(),
@@ -132,7 +148,20 @@ defmodule ExOura do
               to: DailyActivity
 
   @doc """
-  Single Daily Activity
+  Retrieves a single daily activity record by its document ID.
+
+  Use this for fetching detailed activity information for a specific day when you have the document ID.
+
+  ## Parameters
+
+  - `document_id` - Unique identifier for the daily activity document
+  - `opts` - Additional options (e.g., timeout)
+
+  ## Examples
+
+      {:ok, activity} = ExOura.single_daily_activity("daily_activity_2025-01-15")
+      IO.puts("Steps: \#{activity.steps}")
+
   """
   @spec single_daily_activity(document_id(), opts()) ::
           {:ok, Client.DailyActivityModel.t()} | error()
@@ -211,7 +240,25 @@ defmodule ExOura do
   defdelegate single_daily_resilience(document_id, opts \\ []), to: DailyResilience
 
   @doc """
-  Multiple Daily Sleep
+  Retrieves multiple daily sleep records for a specified date range.
+
+  Returns comprehensive sleep data including sleep score, duration, sleep stages, and sleep quality metrics.
+  Essential for sleep tracking and analysis applications.
+
+  ## Parameters
+
+  - `start_date` - Start date for the data range (Date struct, inclusive)
+  - `end_date` - End date for the data range (Date struct, inclusive)
+  - `next_token` - Optional pagination token from previous response
+  - `opts` - Additional options (e.g., timeout)
+
+  ## Examples
+
+      {:ok, sleep_data} = ExOura.multiple_daily_sleep(~D[2025-01-01], ~D[2025-01-31])
+      sleep_data.data |> Enum.each(fn sleep ->
+        IO.puts("Sleep score: \#{sleep.score}, Duration: \#{sleep.total_sleep_duration}min")
+      end)
+
   """
   @spec multiple_daily_sleep(
           start_date(),
@@ -228,7 +275,20 @@ defmodule ExOura do
               to: DailySleep
 
   @doc """
-  Single Daily Sleep
+  Retrieves a single daily sleep record by its document ID.
+
+  Use this for detailed sleep analysis of a specific night's sleep session.
+
+  ## Parameters
+
+  - `document_id` - Unique identifier for the daily sleep document
+  - `opts` - Additional options (e.g., timeout)
+
+  ## Examples
+
+      {:ok, sleep} = ExOura.single_daily_sleep("daily_sleep_2025-01-15")
+      IO.puts("Deep sleep: \#{sleep.deep_sleep_duration} minutes")
+
   """
   @spec single_daily_sleep(document_id(), opts()) ::
           {:ok, Client.DailySleepModel.t()} | error()
@@ -324,7 +384,20 @@ defmodule ExOura do
               to: HeartRate
 
   @doc """
-  Single Personal Info
+  Retrieves personal information for the authenticated user.
+
+  Returns demographic and physical information such as age, weight, height, and biological sex.
+  Requires appropriate OAuth2 scopes ('personal' for demographics, 'email' for email).
+
+  ## Parameters
+
+  - `opts` - Additional options (e.g., timeout)
+
+  ## Examples
+
+      {:ok, info} = ExOura.single_personal_info()
+      IO.puts("Age: \#{info.age}, Weight: \#{info.weight}kg")
+
   """
   @spec single_personal_info(opts()) :: {:ok, Client.PersonalInfoResponse.t()} | error()
   defdelegate single_personal_info(opts \\ []), to: PersonalInfo
@@ -474,7 +547,25 @@ defmodule ExOura do
   defdelegate single_vo2_max(document_id, opts \\ []), to: Vo2Max
 
   @doc """
-  Multiple Workout
+  Retrieves multiple workout records for a specified date range.
+
+  Returns both auto-detected and manually logged workout sessions with detailed metrics
+  including duration, intensity, calories, and heart rate data.
+
+  ## Parameters
+
+  - `start_date` - Start date for the data range (Date struct, inclusive)
+  - `end_date` - End date for the data range (Date struct, inclusive)
+  - `next_token` - Optional pagination token from previous response
+  - `opts` - Additional options (e.g., timeout)
+
+  ## Examples
+
+      {:ok, workouts} = ExOura.multiple_workout(~D[2025-01-01], ~D[2025-01-31])
+      workouts.data |> Enum.each(fn workout ->
+        IO.puts("\#{workout.activity}: \#{workout.duration}s, \#{workout.calories} cal")
+      end)
+
   """
   @spec multiple_workout(
           start_date(),
@@ -491,7 +582,21 @@ defmodule ExOura do
               to: Workout
 
   @doc """
-  Single Workout
+  Retrieves a single workout record by its document ID.
+
+  Use this for detailed analysis of a specific workout session including heart rate zones
+  and comprehensive exercise metrics.
+
+  ## Parameters
+
+  - `document_id` - Unique identifier for the workout document
+  - `opts` - Additional options (e.g., timeout)
+
+  ## Examples
+
+      {:ok, workout} = ExOura.single_workout("workout_2025-01-15T14-30-00")
+      IO.puts("Average HR: \#{workout.average_heart_rate} bpm")
+
   """
   @spec single_workout(document_id(), opts()) ::
           {:ok, Client.WorkoutModel.t()} | error()

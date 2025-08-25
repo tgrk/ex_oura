@@ -1,9 +1,32 @@
 defmodule ExOura.Client do
   @moduledoc """
-  Default Oura client
+  Default Oura client with support for both Personal Access Tokens and OAuth2.
+
+  ## Authentication Methods
+
+  ### Personal Access Tokens (Deprecated)
+  Personal Access Tokens will be deprecated by the end of 2025. Use OAuth2 for new integrations.
+
+      {:ok, client} = ExOura.Client.start_link("your_personal_access_token")
+
+  ### OAuth2 (Recommended)
+  Use OAuth2 tokens for authentication:
+
+      # After completing OAuth2 flow
+      {:ok, tokens} = ExOura.OAuth2.get_token("authorization_code")
+      {:ok, client} = ExOura.Client.start_link(tokens.access_token)
+
+  Or start with OAuth2 tokens including refresh capability:
+
+      {:ok, client} = ExOura.Client.start_link(
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token
+      )
+
   """
   use GenServer
 
+  alias ExOura.OAuth2
   alias ExOura.RateLimiter
   alias ExOura.TypeDecoder
 
@@ -48,10 +71,28 @@ defmodule ExOura.Client do
   end
 
   @doc """
-  Starts the GenServer with an initial bearer auth token.
+  Starts the GenServer with authentication credentials.
+
+  Supports both Personal Access Tokens (deprecated) and OAuth2 tokens (recommended).
+
+  ## Personal Access Token (Deprecated)
+
+      {:ok, client} = ExOura.Client.start_link("your_personal_access_token")
+
+  ## OAuth2 Access Token Only
+
+      {:ok, client} = ExOura.Client.start_link("oauth2_access_token")
+
+  ## OAuth2 with Refresh Token
+
+      {:ok, client} = ExOura.Client.start_link([
+        access_token: "oauth2_access_token",
+        refresh_token: "oauth2_refresh_token"
+      ])
+
   """
-  def start_link(access_token \\ nil) do
-    GenServer.start_link(__MODULE__, access_token, name: __MODULE__)
+  def start_link(auth_config \\ nil) do
+    GenServer.start_link(__MODULE__, auth_config, name: __MODULE__)
   end
 
   @doc """
@@ -64,68 +105,160 @@ defmodule ExOura.Client do
   # Server Callbacks
 
   @impl true
-  def init(access_token) do
-    {:ok, %{bearer_token: get_access_token(access_token)}}
+  def init(auth_config) do
+    state =
+      case auth_config do
+        # OAuth2 configuration with refresh token
+        [access_token: access_token, refresh_token: refresh_token]
+        when is_binary(access_token) and is_binary(refresh_token) ->
+          %{
+            bearer_token: access_token,
+            refresh_token: refresh_token,
+            auth_type: :oauth2
+          }
+
+        # OAuth2 configuration with keyword list but only access token
+        [access_token: access_token] when is_binary(access_token) ->
+          %{
+            bearer_token: access_token,
+            refresh_token: nil,
+            auth_type: :oauth2
+          }
+
+        # Simple string token (Personal Access Token or OAuth2 access token)
+        access_token when is_binary(access_token) ->
+          %{
+            bearer_token: access_token,
+            refresh_token: nil,
+            auth_type: :bearer
+          }
+
+        # No token provided, try to get from config
+        _ ->
+          token = get_access_token(nil)
+
+          %{
+            bearer_token: token,
+            refresh_token: nil,
+            auth_type: :bearer
+          }
+      end
+
+    {:ok, state}
   end
 
   @impl true
   def handle_call({:request, %{method: :get} = operation}, _from, state) do
+    {:ok, new_state} = maybe_refresh_token(state)
+
     reply =
       make_request_with_retry(
         fn ->
           operation
           |> Map.get(:url)
-          |> Req.get(req_opts(operation, state))
+          |> Req.get(req_opts(operation, new_state))
         end,
         operation
       )
 
-    {:reply, reply, state}
+    {:reply, reply, new_state}
   end
 
   @impl true
   def handle_call({:request, %{method: :post} = operation}, _from, state) do
+    {:ok, new_state} = maybe_refresh_token(state)
+
     reply =
       make_request_with_retry(
         fn ->
           operation
           |> Map.get(:url)
-          |> Req.post(req_opts(operation, state))
+          |> Req.post(req_opts(operation, new_state))
         end,
         operation
       )
 
-    {:reply, reply, state}
+    {:reply, reply, new_state}
   end
 
   @impl true
   def handle_call({:request, %{method: :put} = operation}, _from, state) do
+    {:ok, new_state} = maybe_refresh_token(state)
+
     reply =
       make_request_with_retry(
         fn ->
           operation
           |> Map.get(:url)
-          |> Req.put(req_opts(operation, state))
+          |> Req.put(req_opts(operation, new_state))
         end,
         operation
       )
 
-    {:reply, reply, state}
+    {:reply, reply, new_state}
   end
 
   @impl true
   def handle_call({:request, %{method: :delete} = operation}, _from, state) do
+    {:ok, new_state} = maybe_refresh_token(state)
+
     reply =
       make_request_with_retry(
         fn ->
           operation
           |> Map.get(:url)
-          |> Req.delete(req_opts(operation, state))
+          |> Req.delete(req_opts(operation, new_state))
         end,
         operation
       )
 
-    {:reply, reply, state}
+    {:reply, reply, new_state}
+  end
+
+  @impl true
+  def handle_call(:get_token_info, _from, state) do
+    token_info = %{
+      access_token: state.bearer_token,
+      refresh_token: state.refresh_token,
+      auth_type: state.auth_type
+    }
+
+    {:reply, {:ok, token_info}, state}
+  end
+
+  @impl true
+  def handle_call(:refresh_oauth2_token, _from, %{auth_type: :oauth2, refresh_token: refresh_token} = state)
+      when is_binary(refresh_token) do
+    case OAuth2.refresh_token(refresh_token) do
+      {:ok, new_tokens} ->
+        updated_refresh_token =
+          case new_tokens.refresh_token do
+            nil -> refresh_token
+            token -> token
+          end
+
+        new_state = %{
+          state
+          | bearer_token: new_tokens.access_token,
+            refresh_token: updated_refresh_token
+        }
+
+        token_info = %{
+          access_token: new_tokens.access_token,
+          refresh_token: updated_refresh_token,
+          auth_type: :oauth2
+        }
+
+        {:reply, {:ok, token_info}, new_state}
+
+      {:error, reason} ->
+        {:reply, {:error, reason}, state}
+    end
+  end
+
+  @impl true
+  def handle_call(:refresh_oauth2_token, _from, state) do
+    {:reply, {:error, :no_refresh_token}, state}
   end
 
   # Private helper for making requests with rate limiting and using Req's built-in retry
@@ -313,4 +446,50 @@ defmodule ExOura.Client do
 
   defp valid_date?(%Date{} = _date), do: true
   defp valid_date?(_date), do: false
+
+  # OAuth2 Token Management
+
+  defp maybe_refresh_token(%{auth_type: :oauth2, refresh_token: refresh_token} = state) when is_binary(refresh_token) do
+    # For OAuth2 tokens, we could check expiry here and refresh if needed
+    # For now, we'll just return the current state and handle 401s in error handling
+    {:ok, state}
+  end
+
+  defp maybe_refresh_token(state) do
+    # For bearer tokens or OAuth2 without refresh token, no refresh needed
+    {:ok, state}
+  end
+
+  @doc """
+  Gets current token information from the client.
+
+  Returns token details including access token, refresh token (if available),
+  and authentication type.
+
+  ## Examples
+
+      {:ok, token_info} = ExOura.Client.get_token_info()
+      # => {:ok, %{access_token: "...", refresh_token: "...", auth_type: :oauth2}}
+
+  """
+  @spec get_token_info() :: {:ok, map()} | {:error, term()}
+  def get_token_info do
+    GenServer.call(__MODULE__, :get_token_info, @timeout)
+  end
+
+  @doc """
+  Refreshes the OAuth2 token if a refresh token is available.
+
+  This function attempts to refresh the access token using the stored refresh token.
+  Only works if the client was initialized with OAuth2 tokens including a refresh token.
+
+  ## Examples
+
+      {:ok, new_token_info} = ExOura.Client.refresh_oauth2_token()
+
+  """
+  @spec refresh_oauth2_token() :: {:ok, map()} | {:error, term()}
+  def refresh_oauth2_token do
+    GenServer.call(__MODULE__, :refresh_oauth2_token, @timeout)
+  end
 end

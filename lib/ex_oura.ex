@@ -15,7 +15,49 @@ defmodule ExOura do
         ],
         retry: [
           max_retries: 3          # Maximum retry attempts (default: 3)
+        ],
+        oauth2: [
+          client_id: "your_client_id",
+          client_secret: "your_client_secret",
+          redirect_uri: "your_redirect_uri"
         ]
+
+  ## OAuth2 Authentication (Recommended)
+
+  ExOura supports OAuth2 authentication, which is the recommended approach since
+  Personal Access Tokens are being deprecated by Oura by the end of 2025.
+
+  ### OAuth2 Setup
+
+  1. Register your application at https://cloud.ouraring.com/oauth/applications
+  2. Configure your OAuth2 credentials (see Configuration above)
+  3. Implement the OAuth2 flow in your application
+
+  ### OAuth2 Flow Example
+
+      # Step 1: Generate authorization URL
+      authorization_url = ExOura.OAuth2.authorization_url([
+        scopes: ["daily", "heartrate", "personal"],
+        state: "your_state_parameter"
+      ])
+
+      # Step 2: After user authorizes, exchange code for tokens
+      {:ok, tokens} = ExOura.OAuth2.get_token("authorization_code_from_callback")
+
+      # Step 3: Use tokens with the client
+      {:ok, client} = ExOura.Client.start_link([
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token
+      ])
+
+      # Step 4: Make API calls
+      {:ok, activity_data} = ExOura.multiple_daily_activity(~D[2025-01-01], ~D[2025-01-31])
+
+      # Step 5: Refresh tokens when needed
+      if ExOura.OAuth2.token_expired?(tokens) do
+        {:ok, new_tokens} = ExOura.OAuth2.refresh_token(tokens.refresh_token)
+        # Update your stored tokens...
+      end
 
   ### Rate Limiting
 
@@ -47,6 +89,7 @@ defmodule ExOura do
   alias ExOura.DailyStress
   alias ExOura.EnhancedTag
   alias ExOura.HeartRate
+  alias ExOura.OAuth2
   alias ExOura.Pagination
   alias ExOura.PersonalInfo
   alias ExOura.RestModePeriod
@@ -610,4 +653,70 @@ defmodule ExOura do
     fetch_fn = &multiple_workout/4
     Pagination.stream_all_pages(fetch_fn, start_date, end_date, opts)
   end
+
+  # OAuth2 Delegation Functions
+
+  @doc """
+  Generates the OAuth2 authorization URL to redirect users to.
+
+  ## Examples
+
+      authorization_url = ExOura.authorization_url()
+      authorization_url = ExOura.authorization_url(scopes: ["daily", "heartrate"], state: "random_state")
+
+  """
+  defdelegate authorization_url(opts \\ []), to: OAuth2
+
+  @doc """
+  Exchanges an authorization code for access and refresh tokens.
+
+  ## Examples
+
+      {:ok, tokens} = ExOura.get_token("authorization_code_from_callback")
+
+  """
+  defdelegate get_token(code, opts \\ []), to: OAuth2
+
+  @doc """
+  Refreshes an access token using a refresh token.
+
+  ## Examples
+
+      {:ok, new_tokens} = ExOura.refresh_token(old_tokens.refresh_token)
+
+  """
+  defdelegate refresh_token(refresh_token, opts \\ []), to: OAuth2
+
+  @doc """
+  Checks if an access token is expired or will expire soon.
+
+  ## Examples
+
+      ExOura.token_expired?(tokens)
+      ExOura.token_expired?(tokens, 3600)  # 1 hour buffer
+
+  """
+  defdelegate token_expired?(tokens, buffer_seconds \\ 300), to: OAuth2
+
+  @doc """
+  Returns all available OAuth2 scopes.
+
+  ## Examples
+
+      ExOura.available_scopes()
+      # => ["email", "personal", "daily", "heartrate", "workout", "tag", "session", "spo2Daily"]
+
+  """
+  defdelegate available_scopes(), to: OAuth2
+
+  @doc """
+  Returns the default OAuth2 scopes used when none are specified.
+
+  ## Examples
+
+      ExOura.default_scopes()
+      # => ["personal", "daily"]
+
+  """
+  defdelegate default_scopes(), to: OAuth2
 end

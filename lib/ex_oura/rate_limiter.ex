@@ -181,11 +181,11 @@ defmodule ExOura.RateLimiter do
   defp can_make_request?(state, now) do
     cond do
       # Check daily limit
-      state.remaining <= 0 and state.reset_time && state.reset_time > now ->
+      (state.remaining <= 0 and state.reset_time) && state.reset_time > now ->
         {:error, {:rate_limited, state.reset_time - now}}
 
       # Check per-minute limit
-      state.per_minute_remaining <= 0 and state.per_minute_reset && state.per_minute_reset > now ->
+      (state.per_minute_remaining <= 0 and state.per_minute_reset) && state.per_minute_reset > now ->
         {:error, {:rate_limited, state.per_minute_reset - now}}
 
       # Apply basic throttling to avoid bursts

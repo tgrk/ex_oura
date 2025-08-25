@@ -14,7 +14,8 @@ An Elixir library for interacting with the [Oura API](https://cloud.ouraring.com
 
 ## Features
 
-- **Basic authorization** support (OAuth2 support is on the roadmap)
+- **OAuth2 authentication** support (recommended approach)
+- **Personal Access Token** support (deprecated - to be removed by end of 2025)
 - Fetch data such as activity, readiness, and sleep metrics 
 - Built on the robust Elixir ecosystem 
 - Compatible with OpenAPI v1.27
@@ -33,7 +34,84 @@ end
 
 ## Usage
 
-Currently, the client support only a basic authorization and you should obtain an access token [here](https://cloud.ouraring.com/docs/authentication).
+### OAuth2 Authentication (Recommended)
+
+⚠️ **Important**: Personal Access Tokens are being deprecated by Oura by the end of 2025. OAuth2 is the recommended authentication method for all new integrations.
+
+#### OAuth2 Setup
+
+1. **Register your application** at [Oura OAuth Applications](https://cloud.ouraring.com/oauth/applications)
+2. **Configure your OAuth2 credentials** in your config:
+
+```elixir
+config :ex_oura,
+  oauth2: [
+    client_id: "your_client_id",
+    client_secret: "your_client_secret", 
+    redirect_uri: "your_redirect_uri"
+  ]
+```
+
+Or set them as environment variables:
+- `OURA_CLIENT_ID`
+- `OURA_CLIENT_SECRET`
+- `OURA_REDIRECT_URI`
+
+#### OAuth2 Flow Implementation
+
+```elixir
+# Step 1: Generate authorization URL
+authorization_url = ExOura.authorization_url([
+  scopes: ["daily", "heartrate", "personal"],
+  state: "your_state_parameter"  # Recommended for CSRF protection
+])
+
+# Redirect user to authorization_url...
+
+# Step 2: After user authorizes, exchange code for tokens
+{:ok, tokens} = ExOura.get_token("authorization_code_from_callback")
+
+# Step 3: Start client with OAuth2 tokens
+{:ok, client} = ExOura.Client.start_link([
+  access_token: tokens.access_token,
+  refresh_token: tokens.refresh_token
+])
+
+# Step 4: Make API calls
+{:ok, activity_response} = ExOura.multiple_daily_activity(~D[2025-01-01], ~D[2025-01-31])
+IO.inspect(activity_response.data)
+
+# Step 5: Handle token refresh automatically or manually
+if ExOura.token_expired?(tokens) do
+  {:ok, new_tokens} = ExOura.refresh_token(tokens.refresh_token)
+  # Update your stored tokens and restart client if needed
+end
+```
+
+#### Available OAuth2 Scopes
+
+```elixir
+ExOura.available_scopes()
+# => ["email", "personal", "daily", "heartrate", "workout", "tag", "session", "spo2Daily"]
+
+ExOura.default_scopes()
+# => ["personal", "daily"]
+```
+
+- `email` - Email address of the user
+- `personal` - Personal information (gender, age, height, weight)
+- `daily` - Daily summaries of sleep, activity and readiness
+- `heartrate` - Time series heart rate for Gen 3 users
+- `workout` - Summaries for auto-detected and user entered workouts
+- `tag` - User entered tags
+- `session` - Guided and unguided sessions in the Oura app
+- `spo2Daily` - SpO2 Average recorded during sleep
+
+### Personal Access Token (Deprecated)
+
+⚠️ **Deprecation Notice**: Personal Access Tokens will be deprecated by the end of 2025. Please migrate to OAuth2.
+
+You can still obtain a Personal Access Token [here](https://cloud.ouraring.com/docs/authentication) for existing applications.
 
 Using configuration via `config.exs`:
 ```elixir
@@ -52,14 +130,16 @@ config :ex_oura,
 
 Inline configuration:
 ```elixir
-acces_token = "<YOUR_PERSONAL_ACCESS_TOKEN>"
+access_token = "<YOUR_PERSONAL_ACCESS_TOKEN>"
 ExOura.Client.start_link(access_token)
 ```
 
-Once configured, you can fetch data from Oura as follows:
+### Making API Calls
+
+Once configured (either OAuth2 or Personal Access Token), you can fetch data from Oura as follows:
 
 ```elixir
-# Start the client
+# Start the client (examples using Personal Access Token)
 {:ok, client} = ExOura.Client.start_link("<YOUR_PERSONAL_ACCESS_TOKEN>")
 
 # Fetch single page of daily activity data

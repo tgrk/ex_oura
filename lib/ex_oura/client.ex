@@ -4,11 +4,22 @@ defmodule ExOura.Client do
   """
   use GenServer
 
+  alias ExOura.RateLimiter
   alias ExOura.TypeDecoder
 
   @base_url "https://api.ouraring.com"
 
   @timeout Application.compile_env(:ex_oura, :timeout, 5_000)
+
+  @rate_limiting_config Application.compile_env(:ex_oura, :rate_limiting, [])
+
+  # Default retry configuration for Req
+  @retry_config Application.compile_env(:ex_oura, :retry, [])
+  @default_retry_opts [
+    retry: &__MODULE__.should_retry?/2,
+    retry_delay: &__MODULE__.retry_delay/1,
+    max_retries: Keyword.get(@retry_config, :max_retries, 3)
+  ]
 
   # Client API
 
@@ -60,10 +71,14 @@ defmodule ExOura.Client do
   @impl true
   def handle_call({:request, %{method: :get} = operation}, _from, state) do
     reply =
-      operation
-      |> Map.get(:url)
-      |> Req.get(req_opts(operation, state))
-      |> handle_response(operation)
+      make_request_with_retry(
+        fn ->
+          operation
+          |> Map.get(:url)
+          |> Req.get(req_opts(operation, state))
+        end,
+        operation
+      )
 
     {:reply, reply, state}
   end
@@ -71,10 +86,14 @@ defmodule ExOura.Client do
   @impl true
   def handle_call({:request, %{method: :post} = operation}, _from, state) do
     reply =
-      operation
-      |> Map.get(:url)
-      |> Req.post(req_opts(operation, state))
-      |> handle_response(operation)
+      make_request_with_retry(
+        fn ->
+          operation
+          |> Map.get(:url)
+          |> Req.post(req_opts(operation, state))
+        end,
+        operation
+      )
 
     {:reply, reply, state}
   end
@@ -82,10 +101,14 @@ defmodule ExOura.Client do
   @impl true
   def handle_call({:request, %{method: :put} = operation}, _from, state) do
     reply =
-      operation
-      |> Map.get(:url)
-      |> Req.put(req_opts(operation, state))
-      |> handle_response(operation)
+      make_request_with_retry(
+        fn ->
+          operation
+          |> Map.get(:url)
+          |> Req.put(req_opts(operation, state))
+        end,
+        operation
+      )
 
     {:reply, reply, state}
   end
@@ -93,12 +116,80 @@ defmodule ExOura.Client do
   @impl true
   def handle_call({:request, %{method: :delete} = operation}, _from, state) do
     reply =
-      operation
-      |> Map.get(:url)
-      |> Req.delete(req_opts(operation, state))
-      |> handle_response(operation)
+      make_request_with_retry(
+        fn ->
+          operation
+          |> Map.get(:url)
+          |> Req.delete(req_opts(operation, state))
+        end,
+        operation
+      )
 
     {:reply, reply, state}
+  end
+
+  # Private helper for making requests with rate limiting and using Req's built-in retry
+  defp make_request_with_retry(request_fn, operation) do
+    check_rate_limits_before_request()
+    make_request_and_handle_response(request_fn, operation)
+  end
+
+  defp check_rate_limits_before_request do
+    if enabled?() do
+      try do
+        case RateLimiter.check_rate_limit() do
+          {:ok, delay} when delay > 0 ->
+            :timer.sleep(delay)
+
+          {:error, {:rate_limited, retry_after}} ->
+            :timer.sleep(retry_after * 1000)
+
+          {:ok, 0} ->
+            :ok
+        end
+      catch
+        :exit, _ -> :ok
+      end
+    else
+      :ok
+    end
+  end
+
+  defp make_request_and_handle_response(request_fn, operation) do
+    case request_fn.() do
+      {:ok, %Req.Response{headers: headers} = response} ->
+        update_rate_limits_from_headers(headers)
+        record_request_for_rate_limiting()
+        handle_response({:ok, response}, operation)
+
+      error ->
+        handle_response(error, operation)
+    end
+  end
+
+  defp record_request_for_rate_limiting do
+    if enabled?() do
+      try do
+        RateLimiter.record_request()
+      catch
+        :exit, _ -> :ok
+      end
+    else
+      :ok
+    end
+  end
+
+  defp update_rate_limits_from_headers(headers) do
+    if enabled?() do
+      try do
+        RateLimiter.update_rate_limit_headers(headers)
+      catch
+        # Rate limiter not running
+        :exit, _ -> :ok
+      end
+    else
+      :ok
+    end
   end
 
   defp handle_response({:ok, %Req.Response{status: status, body: body}}, operation) when status in [200, 201] do
@@ -122,7 +213,7 @@ defmodule ExOura.Client do
   defp handle_response({:error, _exception} = error, _operation), do: error
 
   defp req_opts(operation, %{bearer_token: bearer_token} = _state) do
-    [
+    base_opts = [
       base_url: @base_url,
       params: Map.get(operation, :query, []),
       auth: {:bearer, bearer_token},
@@ -130,6 +221,32 @@ defmodule ExOura.Client do
       body: Map.get(operation, :body),
       headers: maybe_include_client_credentials(operation)
     ]
+
+    # Add retry configuration to base options
+    base_opts ++ @default_retry_opts
+  end
+
+  @doc false
+  def should_retry?({:error, %Req.Response{status: status}}, _) when status in [408, 429] or status >= 500 do
+    true
+  end
+
+  def should_retry?({:error, %Req.TransportError{}}, _), do: true
+  def should_retry?(_, _), do: false
+
+  @doc false
+  def retry_delay(attempt) do
+    # Exponential backoff: 1s, 2s, 4s, etc., with max of 30s
+    base_delay = 1000
+    max_delay = 30_000
+    delay = base_delay * :math.pow(2, attempt - 1)
+
+    # Add jitter (±10%)
+    jitter = delay * 0.1 * (:rand.uniform() - 0.5)
+
+    (delay + jitter)
+    |> min(max_delay)
+    |> round()
   end
 
   defp maybe_include_client_credentials(operation) do
@@ -191,6 +308,8 @@ defmodule ExOura.Client do
       :ok
     end
   end
+
+  defp enabled?, do: Keyword.get(@rate_limiting_config, :enabled, true)
 
   defp valid_date?(%Date{} = _date), do: true
   defp valid_date?(_date), do: false

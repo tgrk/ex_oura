@@ -1,6 +1,40 @@
 defmodule ExOura do
   @moduledoc """
   Documentation for Oura API
+
+  ## Configuration
+
+  ExOura can be configured in your config files:
+
+      config :ex_oura,
+        timeout: 10_000,
+        rate_limiting: [
+          enabled: true,          # Enable/disable rate limiting (default: true)
+          daily_limit: 5000,      # Daily request limit (default: 5000)
+          per_minute_limit: 300   # Per-minute request limit (default: 300)
+        ],
+        retry: [
+          max_retries: 3          # Maximum retry attempts (default: 3)
+        ]
+
+  ### Rate Limiting
+
+  Rate limiting is enabled by default and follows the Oura API limits:
+  - 5000 requests per day
+  - 300 requests per minute
+
+  You can disable rate limiting entirely by setting `enabled: false` in the configuration,
+  or adjust the limits if needed. When disabled, the client will not track or enforce
+  any rate limits, but will still handle rate limit responses from the API server
+  in the retry logic.
+
+  ### Retry Logic
+
+  ExOura uses Req's built-in retry mechanism with intelligent error handling:
+  - Automatically retries on server errors (5xx), timeouts (408), and rate limits (429)
+  - Exponential backoff with jitter to avoid thundering herd problems
+  - Configurable maximum retry attempts
+  - Does not retry on client errors (4xx except 408 and 429)
   """
 
   alias ExOura.Client

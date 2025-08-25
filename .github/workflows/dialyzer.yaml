@@ -39,7 +39,7 @@ jobs:
           restore-keys: |
                 ${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-plt
           path: |
-                priv/plts
+                priv/
 
       # Create PLTs if no cache was found
       - name: Create PLTs
@@ -54,7 +54,7 @@ jobs:
          key: |
            ${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-plt
          path: |
-          priv/plts
+          priv/
 
       - name: Run dialyzer
         run: mix dialyzer --format github

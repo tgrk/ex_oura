@@ -33,7 +33,7 @@ end
 
 ## Usage
 
-Currently, the client support only a basic authorization and you should obtain an access token [here]().
+Currently, the client support only a basic authorization and you should obtain an access token [here](https://cloud.ouraring.com/docs/authentication).
 
 Using configuration via `config.exs`:
 ```elixir

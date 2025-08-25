@@ -50,11 +50,61 @@ ExOura.Client.start_link(access_token)
 Once configured, you can fetch data from Oura as follows:
 
 ```elixir
+# Start the client
 {:ok, client} = ExOura.Client.start_link("<YOUR_PERSONAL_ACCESS_TOKEN>")
 
-# Example: Fetch daily activity data
-{:ok, activity_data} = client.fetch_activity_data()
-IO.inspect(activity_data)
+# Fetch single page of daily activity data
+{:ok, activity_response} = ExOura.multiple_daily_activity(~D[2025-01-01], ~D[2025-01-31])
+IO.inspect(activity_response.data)
+
+# Fetch single document by ID
+{:ok, single_activity} = ExOura.single_daily_activity("activity_id")
+IO.inspect(single_activity)
+```
+
+### Pagination Support
+
+For large date ranges, the API returns paginated results. ExOura provides convenient functions to automatically handle pagination:
+
+```elixir
+# Fetch ALL daily activity data across multiple pages
+{:ok, all_activities} = ExOura.all_daily_activity(~D[2024-01-01], ~D[2024-12-31])
+IO.inspect(length(all_activities))  # All activities for the year
+
+# Fetch ALL workouts across multiple pages  
+{:ok, all_workouts} = ExOura.all_workouts(~D[2024-01-01], ~D[2024-12-31])
+
+# Stream data for memory-efficient processing of large datasets
+ExOura.stream_daily_activity(~D[2024-01-01], ~D[2024-12-31])
+|> Stream.filter(& &1.score > 80)
+|> Stream.take(10)
+|> Enum.to_list()
+
+# Available pagination helpers
+ExOura.all_daily_activity/3     # All daily activity data
+ExOura.all_daily_readiness/3    # All daily readiness data  
+ExOura.all_daily_sleep/3        # All daily sleep data
+ExOura.all_workouts/3           # All workout data
+ExOura.all_sleep/3              # All sleep data
+ExOura.stream_daily_activity/3  # Stream daily activity data
+ExOura.stream_workouts/3        # Stream workout data
+```
+
+### Pagination Options
+
+You can control pagination behavior with options:
+
+```elixir
+# Limit maximum pages to prevent runaway requests
+{:ok, activities} = ExOura.all_daily_activity(
+  ~D[2024-01-01], 
+  ~D[2024-12-31], 
+  [max_pages: 10]
+)
+
+# Manual pagination if you need more control
+{:ok, page1} = ExOura.multiple_daily_activity(~D[2024-01-01], ~D[2024-01-31])
+{:ok, page2} = ExOura.multiple_daily_activity(~D[2024-01-01], ~D[2024-01-31], page1.next_token)
 ```
 
 ## Oura OpenAPI issues

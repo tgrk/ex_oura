@@ -13,6 +13,7 @@ defmodule ExOura do
   alias ExOura.DailyStress
   alias ExOura.EnhancedTag
   alias ExOura.HeartRate
+  alias ExOura.Pagination
   alias ExOura.PersonalInfo
   alias ExOura.RestModePeriod
   alias ExOura.RingConfiguration
@@ -488,4 +489,91 @@ defmodule ExOura do
           {:ok, Client.WebhookSubscriptionModel.t()} | error()
   defdelegate update_webhook_subscription(webhook_id, webhook, opts \\ []),
     to: WebhookSubscription
+
+  # Pagination Helper Functions
+
+  @doc """
+  Fetches all daily activity data across all pages for the given date range.
+
+  This is a convenience function that automatically handles pagination
+  using the Pagination module.
+
+  ## Examples
+
+      iex> ExOura.all_daily_activity(~D[2025-01-01], ~D[2025-01-31])
+      {:ok, [%{id: "activity_1", ...}, %{id: "activity_2", ...}]}
+  """
+  @spec all_daily_activity(start_date(), end_date(), opts()) ::
+          {:ok, list()} | error()
+  def all_daily_activity(start_date, end_date, opts \\ []) do
+    fetch_fn = &multiple_daily_activity/4
+    Pagination.fetch_all_pages(fetch_fn, start_date, end_date, opts)
+  end
+
+  @doc """
+  Fetches all daily readiness data across all pages for the given date range.
+  """
+  @spec all_daily_readiness(start_date(), end_date(), opts()) ::
+          {:ok, list()} | error()
+  def all_daily_readiness(start_date, end_date, opts \\ []) do
+    fetch_fn = &multiple_daily_readiness/4
+    Pagination.fetch_all_pages(fetch_fn, start_date, end_date, opts)
+  end
+
+  @doc """
+  Fetches all daily sleep data across all pages for the given date range.
+  """
+  @spec all_daily_sleep(start_date(), end_date(), opts()) ::
+          {:ok, list()} | error()
+  def all_daily_sleep(start_date, end_date, opts \\ []) do
+    fetch_fn = &multiple_daily_sleep/4
+    Pagination.fetch_all_pages(fetch_fn, start_date, end_date, opts)
+  end
+
+  @doc """
+  Fetches all workout data across all pages for the given date range.
+  """
+  @spec all_workouts(start_date(), end_date(), opts()) ::
+          {:ok, list()} | error()
+  def all_workouts(start_date, end_date, opts \\ []) do
+    fetch_fn = &multiple_workout/4
+    Pagination.fetch_all_pages(fetch_fn, start_date, end_date, opts)
+  end
+
+  @doc """
+  Fetches all sleep data across all pages for the given date range.
+  """
+  @spec all_sleep(start_date(), end_date(), opts()) ::
+          {:ok, list()} | error()
+  def all_sleep(start_date, end_date, opts \\ []) do
+    fetch_fn = &multiple_sleep/4
+    Pagination.fetch_all_pages(fetch_fn, start_date, end_date, opts)
+  end
+
+  @doc """
+  Returns a stream of all daily activity data for the given date range.
+
+  This is memory-efficient for processing large datasets as it streams
+  data page by page rather than loading everything into memory at once.
+
+  ## Examples
+
+      iex> ExOura.stream_daily_activity(~D[2025-01-01], ~D[2025-01-31])
+      ...> |> Stream.filter(& &1.score > 80)
+      ...> |> Enum.take(10)
+  """
+  @spec stream_daily_activity(start_date(), end_date(), opts()) :: Enumerable.t()
+  def stream_daily_activity(start_date, end_date, opts \\ []) do
+    fetch_fn = &multiple_daily_activity/4
+    Pagination.stream_all_pages(fetch_fn, start_date, end_date, opts)
+  end
+
+  @doc """
+  Returns a stream of all workout data for the given date range.
+  """
+  @spec stream_workouts(start_date(), end_date(), opts()) :: Enumerable.t()
+  def stream_workouts(start_date, end_date, opts \\ []) do
+    fetch_fn = &multiple_workout/4
+    Pagination.stream_all_pages(fetch_fn, start_date, end_date, opts)
+  end
 end

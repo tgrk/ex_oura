@@ -6,14 +6,22 @@ defmodule ExOura.RingConfigurationTest do
   alias ExOura.Client.RingConfigurationModel
 
   describe "Ring Configuration" do
-    test "should return multiple ring configurations" do
+    test "should return multiple ring configurations (ignores date parameters)" do
       use_cassette "multiple_ring_configuration" do
+        # Ring Configuration endpoint doesn't actually use date parameters but the wrapper requires them
         assert {:ok, %MultiDocumentResponseRingConfigurationModel{data: [_ | _]}} =
                  ExOura.multiple_ring_configuration(~D[2024-11-11], ~D[2024-11-12])
       end
     end
 
-    test "should fail when arguments for multiple ring configurations are not valid" do
+    test "should return multiple ring configurations with next_token" do
+      use_cassette "multiple_ring_configuration_with_token" do
+        assert {:ok, %MultiDocumentResponseRingConfigurationModel{data: [_ | _]}} =
+                 ExOura.multiple_ring_configuration(~D[2024-11-11], ~D[2024-11-12], "token123")
+      end
+    end
+
+    test "should handle invalid date arguments (dates are ignored anyway)" do
       use_cassette "multiple_ring_configuration_invalid_arguments" do
         assert {:ok, %MultiDocumentResponseRingConfigurationModel{data: [_ | _]}} =
                  ExOura.multiple_ring_configuration(~D[0024-11-11], ~D[2024-11-12])
@@ -27,10 +35,17 @@ defmodule ExOura.RingConfigurationTest do
       end
     end
 
-    test "should fail when document ID for single ring configuration does not exists" do
+    test "should fail when document ID for single ring configuration does not exist" do
       use_cassette "single_ring_configuration_non_existing" do
         assert {:error, %{detail: "Document not found."}} =
                  ExOura.single_ring_configuration("not-existing")
+      end
+    end
+
+    test "should handle malformed document ID" do
+      use_cassette "single_ring_configuration_malformed" do
+        assert {:error, %{detail: _message}} =
+                 ExOura.single_ring_configuration("malformed-id-format")
       end
     end
   end

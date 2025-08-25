@@ -13,6 +13,6 @@ config :oapi_generator,
   default: [
     output: [
       base_module: ExOura,
-      location: "lib/client"
+      location: "lib/ex_oura/client"
     ]
   ]

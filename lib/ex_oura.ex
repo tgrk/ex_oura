@@ -19,6 +19,7 @@ defmodule ExOura do
   alias ExOura.Session
   alias ExOura.Sleep
   alias ExOura.SleepTime
+  alias ExOura.Tag
   alias ExOura.Vo2Max
   alias ExOura.WebhookSubscription
   alias ExOura.Workout
@@ -451,6 +452,34 @@ defmodule ExOura do
   @spec renew_webhook_subscription(webhook_id(), opts()) ::
           {:ok, Client.WebhookSubscriptionModel.t()} | error()
   defdelegate renew_webhook_subscription(webhook_id, opts \\ []), to: WebhookSubscription
+
+  @doc """
+  Multiple Tag (Deprecated)
+
+  Note: This endpoint is deprecated. Use Enhanced Tags instead.
+  """
+  @spec multiple_tag(
+          start_date(),
+          end_date(),
+          next_token(),
+          opts()
+        ) :: {:ok, Client.MultiDocumentResponseTagModel.t()} | error()
+  defdelegate multiple_tag(
+                start_date,
+                end_date,
+                next_token \\ nil,
+                opts \\ []
+              ),
+              to: Tag
+
+  @doc """
+  Single Tag (Deprecated)
+
+  Note: This endpoint is deprecated. Use Enhanced Tags instead.
+  """
+  @spec single_tag(document_id(), opts()) ::
+          {:ok, Client.TagModel.t()} | error()
+  defdelegate single_tag(document_id, opts \\ []), to: Tag
 
   @doc """
   Update Webhook Subscription

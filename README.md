@@ -8,16 +8,16 @@
 [![License](https://img.shields.io/hexpm/l/ex_oura.svg)](https://github.com/sticksnleaves/ex_oura/blob/master/LICENSE.md)
 
 
-**An Elixir client for the Oura API, leveraging the OpenAPI v1.23 specification.**
+**An Elixir client for the Oura API, leveraging the OpenAPI v1.27 specification.**
 
-An Elixir library for interacting with the [Oura API](https://cloud.ouraring.com/v2/docs) with a base client generated using [OpenAPI Code Generator](https://github.com/aj-foster/open-api-generator) from [Oura OpenAPI specs v1.23](https://cloud.ouraring.com/v2/static/json/openapi-1.23.json). It supports basic functionality for tertrieving data from Oura, such as activity, readiness, and sleep metrics.
+An Elixir library for interacting with the [Oura API](https://cloud.ouraring.com/v2/docs) with a base client generated using [OpenAPI Code Generator](https://github.com/aj-foster/open-api-generator) from [Oura OpenAPI specs v1.27](https://cloud.ouraring.com/v2/static/json/openapi-1.27.json). It supports basic functionality for tertrieving data from Oura, such as activity, readiness, and sleep metrics.
 
 ## Features
 
 - **Basic authorization** support (OAuth2 support is on the roadmap)
 - Fetch data such as activity, readiness, and sleep metrics 
 - Built on the robust Elixir ecosystem 
-- Compatible with OpenAPI v1.23 
+- Compatible with OpenAPI v1.27
 
 ## Installation
 

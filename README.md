@@ -124,10 +124,10 @@ defmodule MyApp.OuraService do
     
     if ExOura.token_expired?(tokens) do
       case ExOura.refresh_token(tokens.refresh_token) do
-        {:ok, new_tokens} ->
+        {:ok, new_tokens} = result ->
           update_user_tokens(user, new_tokens)
           restart_client_with_tokens(new_tokens)
-          {:ok, new_tokens}
+          result
         
         {:error, reason} ->
           # Token refresh failed - user needs to re-authorize
@@ -196,13 +196,10 @@ defmodule MyApp.HealthDashboard do
     }
   end
   
+  defp avg_field([] =_ data, _field), do: 0
   defp avg_field(data, field) when is_list(data) do
-    case data do
-      [] -> 0
-      items ->
-        sum = items |> Enum.map(&Map.get(&1, field, 0)) |> Enum.sum()
-        sum / length(items)
-    end
+    sum = data |> Enum.map(&Map.get(&1, field, 0)) |> Enum.sum()
+    sum / length(data)
   end
 end
 ```
@@ -268,24 +265,24 @@ defmodule MyApp.OuraAPI do
       {:error, :reauthorization_required} ->
         {:error, :user_needs_reauth}
         
-      {:error, reason} ->
-        {:error, reason}
+      {:error, _reason} = error ->
+        error
     end
   end
   
   defp with_retry(func, retries_left) when retries_left > 0 do
     case func.() do
-      {:ok, result} -> 
-        {:ok, result}
+      {:ok, _result} = result -> 
+        result
       
       {:error, %{status: status}} when status in [429, 500, 502, 503, 504] ->
         # Retryable errors
         :timer.sleep(exponential_backoff(3 - retries_left))
         with_retry(func, retries_left - 1)
       
-      {:error, reason} ->
+      {:error, _reason} = error ->
         # Non-retryable error
-        {:error, reason}
+        error
     end
   end
   

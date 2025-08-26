@@ -34,6 +34,39 @@ end
 
 ## Developer Integration Guide
 
+## API Module Reference
+
+ExOura provides dedicated modules for each type of Oura data:
+
+### Core Data Modules
+
+- **`ExOura.DailyActivity`** - Daily activity metrics (steps, calories, activity score)
+- **`ExOura.DailySleep`** - Sleep data (sleep score, stages, duration, quality)
+- **`ExOura.DailyReadiness`** - Readiness scores and recovery metrics
+- **`ExOura.Workout`** - Exercise sessions and workout data
+- **`ExOura.PersonalInfo`** - User demographics and physical information
+
+### Specialized Data Modules
+
+- **`ExOura.HeartRate`** - Time-series heart rate data (Gen 3+ only)
+- **`ExOura.DailySp02`** - Blood oxygen saturation data during sleep
+- **`ExOura.DailyStress`** - Daily stress levels and patterns
+- **`ExOura.DailyResilience`** - Resilience scores and stress recovery
+- **`ExOura.EnhancedTag`** - User tags and annotations (recommended)
+- **`ExOura.Tag`** - Legacy tag system (deprecated by Oura)
+- **`ExOura.Session`** - Guided sessions and breathing exercises
+- **`ExOura.Sleep`** - Detailed sleep session data
+- **`ExOura.SleepTime`** - Sleep timing preferences
+- **`ExOura.Vo2Max`** - VO2 Max measurements
+- **`ExOura.WebhookSubscription`** - Webhook management
+
+### Core Infrastructure Modules
+
+- **`ExOura.Client`** - Base HTTP client with authentication
+- **`ExOura.OAuth2`** - OAuth2 flow management
+- **`ExOura.Pagination`** - Automatic pagination handling
+- **`ExOura.RateLimiter`** - API rate limit management
+
 ### Getting Started
 
 1. **Register Your Application** (OAuth2 - Recommended)
@@ -384,39 +417,6 @@ defmodule MyApp.OuraSync do
 end
 ```
 
-## API Module Reference
-
-ExOura provides dedicated modules for each type of Oura data:
-
-### Core Data Modules
-
-- **`ExOura.DailyActivity`** - Daily activity metrics (steps, calories, activity score)
-- **`ExOura.DailySleep`** - Sleep data (sleep score, stages, duration, quality)
-- **`ExOura.DailyReadiness`** - Readiness scores and recovery metrics
-- **`ExOura.Workout`** - Exercise sessions and workout data
-- **`ExOura.PersonalInfo`** - User demographics and physical information
-
-### Specialized Data Modules
-
-- **`ExOura.HeartRate`** - Time-series heart rate data (Gen 3+ only)
-- **`ExOura.DailySp02`** - Blood oxygen saturation data during sleep
-- **`ExOura.DailyStress`** - Daily stress levels and patterns
-- **`ExOura.DailyResilience`** - Resilience scores and stress recovery
-- **`ExOura.EnhancedTag`** - User tags and annotations (recommended)
-- **`ExOura.Tag`** - Legacy tag system (deprecated by Oura)
-- **`ExOura.Session`** - Guided sessions and breathing exercises
-- **`ExOura.Sleep`** - Detailed sleep session data
-- **`ExOura.SleepTime`** - Sleep timing preferences
-- **`ExOura.Vo2Max`** - VO2 Max measurements
-- **`ExOura.WebhookSubscription`** - Webhook management
-
-### Core Infrastructure Modules
-
-- **`ExOura.Client`** - Base HTTP client with authentication
-- **`ExOura.OAuth2`** - OAuth2 flow management
-- **`ExOura.Pagination`** - Automatic pagination handling
-- **`ExOura.RateLimiter`** - API rate limit management
-
 ### Quick Reference
 
 ```elixir
@@ -555,14 +555,6 @@ status = ExOura.RateLimiter.get_status()
 IO.puts "Daily remaining: #{status.remaining}"
 IO.puts "Per-minute remaining: #{status.per_minute_remaining}"
 ```
-
-## Oura OpenAPI issues
-
- A few issues in the Oura spec that I came across during the implementation:
-
-  - no title for tag/timestamp
-  - daily cardiovascular age has no ID -> no way to query a single document 
-
 
 ## License
 

@@ -3,6 +3,8 @@ defmodule ExOura.RateLimiterTest do
 
   alias ExOura.RateLimiter
 
+  @one_hour_in_seconds 3600
+
   setup do
     # Start a fresh rate limiter for each test
     pid = start_supervised!({RateLimiter, [daily_limit: 100, per_minute_limit: 10]})
@@ -17,7 +19,7 @@ defmodule ExOura.RateLimiterTest do
 
     test "blocks requests when daily limit is exceeded" do
       # Update state to simulate daily limit reached
-      headers = %{"x-ratelimit-remaining" => "0", "x-ratelimit-reset" => "#{System.system_time(:second) + 3600}"}
+      headers = %{"x-ratelimit-remaining" => "0", "x-ratelimit-reset" => "#{System.system_time(:second) + @one_hour_in_seconds}"}
       RateLimiter.update_rate_limit_headers(headers)
 
       assert {:error, {:rate_limited, retry_after}} = RateLimiter.check_rate_limit()
@@ -219,7 +221,7 @@ defmodule ExOura.RateLimiterTest do
     end
 
     test "rejects requests when both daily and per-minute limits hit" do
-      future_time = System.system_time(:second) + 3600
+      future_time = System.system_time(:second) + @one_hour_in_seconds
 
       headers = %{
         "x-ratelimit-remaining" => "0",

@@ -336,7 +336,7 @@ defmodule ExOura.OAuth2 do
            form: token_data,
            decode_json: [keys: :atoms],
            retry: false,
-           timeout: timeout
+           connect_options: [timeout: timeout]
          ) do
       {:ok, %Req.Response{status: 200, body: body}} ->
         {:ok, body}

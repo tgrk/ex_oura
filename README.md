@@ -27,7 +27,7 @@ Add `ex_oura` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:ex_oura, "~> 1.0.0"}
+    {:ex_oura, "~> 2.0.0"}
   ]
 end
 ```
@@ -46,7 +46,7 @@ end
    # In mix.exs
    def deps do
      [
-       {:ex_oura, "~> 1.0.0"}
+       {:ex_oura, "~> 2.0.0"}
      ]
    end
    ```

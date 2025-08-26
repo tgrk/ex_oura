@@ -1,0 +1,24 @@
+[
+  {
+    "request": {
+      "body": "",
+      "headers": {
+        "authorization": "Bearer ***",
+        "user-agent": "req/0.5.6"
+      },
+      "method": "get",
+      "options": [],
+      "request_body": "",
+      "url": "https://api.ouraring.com/v2/usercollection/daily_cardiovascular_age/cardio-age-id-123"
+    },
+    "response": {
+      "binary": false,
+      "body": "{\"day\":\"2024-11-11\",\"id\":\"cardio-age-id-123\",\"vascular_age\":30,\"timestamp\":\"2024-11-11T03:00:00+00:00\"}",
+      "headers": {
+        "content-type": "application/json",
+        "date": "Thu, 25 Aug 2025 10:00:00 GMT"
+      },
+      "status_code": 200
+    }
+  }
+]

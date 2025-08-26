@@ -1,7 +1,17 @@
 import Config
 
 config :ex_oura,
-  timeout: 10_000
+  timeout: 10_000,
+  # Rate limiting configuration
+  rate_limiting: [
+    enabled: true,
+    daily_limit: 5000,
+    per_minute_limit: 300
+  ],
+  # Retry configuration (uses Req's built-in retry mechanism)
+  retry: [
+    max_retries: 3
+  ]
 
 # used for testing
 config :exvcr,
@@ -13,6 +23,6 @@ config :oapi_generator,
   default: [
     output: [
       base_module: ExOura,
-      location: "lib/client"
+      location: "lib/ex_oura/client"
     ]
   ]

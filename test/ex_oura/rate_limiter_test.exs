@@ -19,7 +19,11 @@ defmodule ExOura.RateLimiterTest do
 
     test "blocks requests when daily limit is exceeded" do
       # Update state to simulate daily limit reached
-      headers = %{"x-ratelimit-remaining" => "0", "x-ratelimit-reset" => "#{System.system_time(:second) + @one_hour_in_seconds}"}
+      headers = %{
+        "x-ratelimit-remaining" => "0",
+        "x-ratelimit-reset" => "#{System.system_time(:second) + @one_hour_in_seconds}"
+      }
+
       RateLimiter.update_rate_limit_headers(headers)
 
       assert {:error, {:rate_limited, retry_after}} = RateLimiter.check_rate_limit()

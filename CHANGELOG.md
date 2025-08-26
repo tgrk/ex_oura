@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.0](https://github.com/tgrk/ex_oura/compare/v1.0.0...v2.0.0) (2025-08-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* upgrade to Oura API V2
+
+### Features
+
+* upgrade to Oura API V2 ([02aa81a](https://github.com/tgrk/ex_oura/commit/02aa81a3c79552211fd8c1e5602613f7ddb53a41))
+
 ## 1.0.0 (2024-12-21)
 
 

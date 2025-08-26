@@ -6,9 +6,15 @@ defmodule ExOura.ClientOAuth2Test do
   alias ExOura.Client
 
   setup do
-    # Stop any existing client
-    if Process.whereis(Client) do
-      GenServer.stop(Client)
+    # Stop any existing client safely
+    case Process.whereis(Client) do
+      pid when is_pid(pid) ->
+        if Process.alive?(pid) do
+          GenServer.stop(Client, :normal, 1000)
+        end
+
+      nil ->
+        :ok
     end
 
     :ok
@@ -63,7 +69,9 @@ defmodule ExOura.ClientOAuth2Test do
 
       auth_config = [
         access_token: "old_access_token",
-        refresh_token: "oauth2_refresh_token"
+        refresh_token: "oauth2_refresh_token",
+        expires_at: NaiveDateTime.add(NaiveDateTime.utc_now(), 86_400),
+        expires_in: 86_400
       ]
 
       {:ok, _pid} = Client.start_link(auth_config)
@@ -78,6 +86,7 @@ defmodule ExOura.ClientOAuth2Test do
           access_token: "new_access_token",
           refresh_token: "new_refresh_token_value",
           token_type: "Bearer",
+          expires_at: NaiveDateTime.add(NaiveDateTime.utc_now(), 86_400),
           expires_in: 86_400,
           scope: "daily personal"
         }
@@ -91,7 +100,7 @@ defmodule ExOura.ClientOAuth2Test do
         assert new_token_info.auth_type == :oauth2
 
         # Verify client state was updated
-        {:ok, current_token_info} = Client.get_token_info()
+        assert {:ok, current_token_info} = Client.get_token_info()
         assert current_token_info.access_token == new_token_info.access_token
         assert current_token_info.refresh_token == new_token_info.refresh_token
       end
@@ -108,19 +117,21 @@ defmodule ExOura.ClientOAuth2Test do
 
       with_mock Req, [:passthrough], post: fn _url, _opts -> {:ok, error_response} end do
         # First update to an invalid refresh token
-        GenServer.stop(Client)
+        assert GenServer.stop(Client)
 
         auth_config = [
           access_token: "old_access_token",
-          refresh_token: "invalid_refresh_token"
+          refresh_token: "invalid_refresh_token",
+          expires_at: NaiveDateTime.add(NaiveDateTime.utc_now(), 86_400),
+          expires_in: 86_400
         ]
 
-        {:ok, _pid} = Client.start_link(auth_config)
+        assert {:ok, _pid} = Client.start_link(auth_config)
 
         assert {:error, {:oauth2_error, 400, _body}} = Client.refresh_oauth2_token()
 
         # Verify client state wasn't changed
-        {:ok, current_token_info} = Client.get_token_info()
+        assert {:ok, current_token_info} = Client.get_token_info()
         assert current_token_info.access_token == "old_access_token"
         assert current_token_info.refresh_token == "invalid_refresh_token"
       end
@@ -129,15 +140,16 @@ defmodule ExOura.ClientOAuth2Test do
 
   describe "OAuth2 token refresh for non-OAuth2 clients" do
     test "returns error when no refresh token available" do
-      # Start client with bearer token only
-      {:ok, _pid} = Client.start_link("bearer_token")
-
+      assert {:ok, _pid} = Client.start_link("bearer_token")
       assert {:error, :no_refresh_token} = Client.refresh_oauth2_token()
     end
 
     test "returns error for OAuth2 client without refresh token" do
-      auth_config = [access_token: "oauth2_access_token"]
-      {:ok, _pid} = Client.start_link(auth_config)
+      auth_config = [
+        access_token: "oauth2_access_token"
+      ]
+
+      assert {:ok, _pid} = Client.start_link(auth_config)
 
       assert {:error, :no_refresh_token} = Client.refresh_oauth2_token()
     end
@@ -145,9 +157,9 @@ defmodule ExOura.ClientOAuth2Test do
 
   describe "get_token_info/0" do
     test "returns token info for bearer token" do
-      {:ok, _pid} = Client.start_link("bearer_token")
+      assert {:ok, _pid} = Client.start_link("bearer_token")
 
-      {:ok, token_info} = Client.get_token_info()
+      assert {:ok, token_info} = Client.get_token_info()
       assert token_info.access_token == "bearer_token"
       assert token_info.refresh_token == nil
       assert token_info.auth_type == :bearer
@@ -156,12 +168,14 @@ defmodule ExOura.ClientOAuth2Test do
     test "returns token info for OAuth2 tokens" do
       auth_config = [
         access_token: "oauth2_access_token",
-        refresh_token: "oauth2_refresh_token"
+        refresh_token: "oauth2_refresh_token",
+        expires_at: NaiveDateTime.add(NaiveDateTime.utc_now(), 86_400),
+        expires_in: 86_400
       ]
 
-      {:ok, _pid} = Client.start_link(auth_config)
+      assert {:ok, _pid} = Client.start_link(auth_config)
 
-      {:ok, token_info} = Client.get_token_info()
+      assert {:ok, token_info} = Client.get_token_info()
       assert token_info.access_token == "oauth2_access_token"
       assert token_info.refresh_token == "oauth2_refresh_token"
       assert token_info.auth_type == :oauth2

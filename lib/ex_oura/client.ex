@@ -1,5 +1,6 @@
 defmodule ExOura.Client do
   @moduledoc false
+
   use GenServer
 
   alias ExOura.OAuth2
@@ -23,6 +24,30 @@ defmodule ExOura.Client do
   # Client API
 
   @doc """
+  Sets the OAuth2 authentication configuration for the client.
+  """
+  @spec set_auth_config(OAuth2.oauth2_config()) :: :ok | {:error, term()}
+  def set_auth_config(auth_config) do
+    GenServer.call(__MODULE__, {:set_auth_config, auth_config}, @timeout)
+  end
+
+  @doc """
+  Gets current token information from the client.
+  """
+  @spec get_token_info() :: {:ok, map()} | {:error, term()}
+  def get_token_info do
+    GenServer.call(__MODULE__, :get_token_info, @timeout)
+  end
+
+  @doc """
+  Refreshes the OAuth2 token if a refresh token is available.
+  """
+  @spec refresh_oauth2_token() :: {:ok, map()} | {:error, term()}
+  def refresh_oauth2_token do
+    GenServer.call(__MODULE__, :refresh_oauth2_token, @timeout)
+  end
+
+  @doc """
   Calls Oura Client modules
   """
   def call_api(mod, fun, args, opts) do
@@ -38,7 +63,16 @@ defmodule ExOura.Client do
     end
   end
 
-  def date_range_args(start_date, end_date, next_token \\ nil) do
+  def date_range_args(start_date, end_date, next_token \\ nil)
+
+  def date_range_args(start_date, end_date, nil = _next_token) do
+    [
+      start_date: start_date,
+      end_date: end_date
+    ]
+  end
+
+  def date_range_args(start_date, end_date, next_token) do
     [
       start_date: start_date,
       end_date: end_date,
@@ -82,45 +116,7 @@ defmodule ExOura.Client do
 
   @impl true
   def init(auth_config) do
-    state =
-      case auth_config do
-        # OAuth2 configuration with refresh token
-        [access_token: access_token, refresh_token: refresh_token]
-        when is_binary(access_token) and is_binary(refresh_token) ->
-          %{
-            bearer_token: access_token,
-            refresh_token: refresh_token,
-            auth_type: :oauth2
-          }
-
-        # OAuth2 configuration with keyword list but only access token
-        [access_token: access_token] when is_binary(access_token) ->
-          %{
-            bearer_token: access_token,
-            refresh_token: nil,
-            auth_type: :oauth2
-          }
-
-        # Simple string token (Personal Access Token or OAuth2 access token)
-        access_token when is_binary(access_token) ->
-          %{
-            bearer_token: access_token,
-            refresh_token: nil,
-            auth_type: :bearer
-          }
-
-        # No token provided, try to get from config
-        _ ->
-          token = get_access_token(nil)
-
-          %{
-            bearer_token: token,
-            refresh_token: nil,
-            auth_type: :bearer
-          }
-      end
-
-    {:ok, state}
+    {:ok, prepare_state(auth_config)}
   end
 
   @impl true
@@ -194,12 +190,19 @@ defmodule ExOura.Client do
   @impl true
   def handle_call(:get_token_info, _from, state) do
     token_info = %{
-      access_token: state.bearer_token,
+      access_token: state.access_token,
       refresh_token: state.refresh_token,
+      expires_at: state[:expires_at],
+      expires_in: state[:expires_in],
       auth_type: state.auth_type
     }
 
     {:reply, {:ok, token_info}, state}
+  end
+
+  @impl true
+  def handle_call({:set_auth_config, auth_config}, _from, _state) do
+    {:reply, :ok, prepare_state(auth_config)}
   end
 
   @impl true
@@ -215,13 +218,18 @@ defmodule ExOura.Client do
 
         new_state = %{
           state
-          | bearer_token: new_tokens.access_token,
-            refresh_token: updated_refresh_token
+          | access_token: new_tokens.access_token,
+            refresh_token: updated_refresh_token,
+            expires_at: new_tokens.expires_at,
+            expires_in: new_tokens.expires_in,
+            auth_type: :oauth2
         }
 
         token_info = %{
           access_token: new_tokens.access_token,
           refresh_token: updated_refresh_token,
+          expires_at: new_tokens.expires_at,
+          expires_in: new_tokens.expires_in,
           auth_type: :oauth2
         }
 
@@ -321,17 +329,16 @@ defmodule ExOura.Client do
 
   defp handle_response({:error, _exception} = error, _operation), do: error
 
-  defp req_opts(operation, %{bearer_token: bearer_token} = _state) do
+  defp req_opts(operation, %{access_token: access_token} = _state) do
     base_opts = [
       base_url: @base_url,
       params: Map.get(operation, :query, []),
-      auth: {:bearer, bearer_token},
+      auth: {:bearer, access_token},
       decode_json: [keys: :atoms],
       body: Map.get(operation, :body),
-      headers: maybe_include_client_credentials(operation)
+      headers: maybe_include_client_credentials(operation, access_token)
     ]
 
-    # Add retry configuration to base options
     base_opts ++ @default_retry_opts
   end
 
@@ -358,14 +365,16 @@ defmodule ExOura.Client do
     |> round()
   end
 
-  defp maybe_include_client_credentials(operation) do
+  defp maybe_include_client_credentials(operation, access_token) do
     if webhook?(operation) do
       [
         {"x-client-id", System.get_env("OURA_CLIENT_ID")},
         {"x-client-secret", System.get_env("OURA_CLIENT_SECRET")}
       ]
     else
-      []
+      [
+        {"Authorization", "Bearer #{access_token}"}
+      ]
     end
   end
 
@@ -423,12 +432,27 @@ defmodule ExOura.Client do
   defp valid_date?(%Date{} = _date), do: true
   defp valid_date?(_date), do: false
 
-  # OAuth2 Token Management
+  defp maybe_refresh_token(%{auth_type: :oauth2, expires_at: expires_at, refresh_token: refresh_token} = state)
+       when is_binary(refresh_token) do
+    if expires_at && DateTime.after?(DateTime.utc_now(), expires_at) do
+      case OAuth2.refresh_token(refresh_token) do
+        {:ok, new_token_info} ->
+          updated_state = %{
+            state
+            | access_token: new_token_info.access_token,
+              refresh_token: new_token_info.refresh_token || refresh_token,
+              expires_at: new_token_info.expires_at,
+              expires_in: new_token_info.expires_in
+          }
 
-  defp maybe_refresh_token(%{auth_type: :oauth2, refresh_token: refresh_token} = state) when is_binary(refresh_token) do
-    # For OAuth2 tokens, we could check expiry here and refresh if needed
-    # For now, we'll just return the current state and handle 401s in error handling
-    {:ok, state}
+          {:ok, updated_state}
+
+        {:error, _reason} = error ->
+          error
+      end
+    else
+      {:ok, state}
+    end
   end
 
   defp maybe_refresh_token(state) do
@@ -436,36 +460,73 @@ defmodule ExOura.Client do
     {:ok, state}
   end
 
-  @doc """
-  Gets current token information from the client.
+  defp prepare_state(auth_config) do
+    case auth_config do
+      # OAuth2 configuration with keyword list (full config)
+      auth_list when is_list(auth_list) ->
+        access_token = Keyword.get(auth_list, :access_token)
+        refresh_token = Keyword.get(auth_list, :refresh_token)
+        expires_at = Keyword.get(auth_list, :expires_at)
+        expires_in = Keyword.get(auth_list, :expires_in)
 
-  Returns token details including access token, refresh token (if available),
-  and authentication type.
+        cond do
+          # OAuth2 with refresh token
+          is_binary(access_token) and is_binary(refresh_token) ->
+            %{
+              access_token: access_token,
+              refresh_token: refresh_token,
+              expires_at: expires_at,
+              expires_in: expires_in,
+              auth_type: :oauth2
+            }
 
-  ## Examples
+          # OAuth2 access token only
+          is_binary(access_token) ->
+            %{
+              access_token: access_token,
+              refresh_token: nil,
+              expires_at: expires_at,
+              expires_in: expires_in,
+              auth_type: :oauth2
+            }
 
-      {:ok, token_info} = ExOura.Client.get_token_info()
-      # => {:ok, %{access_token: "...", refresh_token: "...", auth_type: :oauth2}}
+          true ->
+            # Fallback to config
+            token = get_access_token(nil)
 
-  """
-  @spec get_token_info() :: {:ok, map()} | {:error, term()}
-  def get_token_info do
-    GenServer.call(__MODULE__, :get_token_info, @timeout)
-  end
+            %{
+              access_token: token,
+              refresh_token: nil,
+              auth_type: :bearer
+            }
+        end
 
-  @doc """
-  Refreshes the OAuth2 token if a refresh token is available.
+      # Simple string token (Personal Access Token or OAuth2 access token)
+      access_token when is_binary(access_token) ->
+        %{
+          access_token: access_token,
+          refresh_token: nil,
+          auth_type: :bearer
+        }
 
-  This function attempts to refresh the access token using the stored refresh token.
-  Only works if the client was initialized with OAuth2 tokens including a refresh token.
+      auth_config when is_map(auth_config) ->
+        %{
+          access_token: auth_config.access_token,
+          expires_at: auth_config.expires_at,
+          expires_in: auth_config.expires_in,
+          refresh_token: auth_config.refresh_token,
+          auth_type: :oauth2
+        }
 
-  ## Examples
+      # No token provided, try to get from config
+      _ ->
+        token = get_access_token(nil)
 
-      {:ok, new_token_info} = ExOura.Client.refresh_oauth2_token()
-
-  """
-  @spec refresh_oauth2_token() :: {:ok, map()} | {:error, term()}
-  def refresh_oauth2_token do
-    GenServer.call(__MODULE__, :refresh_oauth2_token, @timeout)
+        %{
+          access_token: token,
+          refresh_token: nil,
+          auth_type: :bearer
+        }
+    end
   end
 end

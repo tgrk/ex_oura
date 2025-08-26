@@ -824,4 +824,11 @@ defmodule ExOura do
 
   """
   defdelegate default_scopes(), to: OAuth2
+
+  @doc """
+  Sets the OAuth2 authentication configuration for the client in
+  situations where we want to reconfigure the client at runtime.
+  """
+  @spec set_auth_config(OAuth2.oauth2_config()) :: :ok | {:error, term()}
+  defdelegate set_auth_config(auth_config), to: Client
 end

@@ -39,7 +39,7 @@ end
 1. **Register Your Application** (OAuth2 - Recommended)
    - Visit [Oura OAuth Applications](https://cloud.ouraring.com/oauth/applications)
    - Create a new application and note your client credentials
-   - Configure your redirect URI
+   - Configure your redirect URI (it has to be a valid one not `http://localhost` as you will get 403 error)
 
 2. **Install ExOura**
    ```elixir
@@ -55,6 +55,7 @@ end
    ```elixir
    # In config/config.exs
    config :ex_oura,
+     timeout: 10_000,
      oauth2: [
        client_id: "your_client_id",
        client_secret: "your_client_secret",
@@ -62,7 +63,7 @@ end
      ],
      rate_limiting: [
        enabled: true,
-       daily_limit: 5000,
+       daily_limit: 5_000,
        per_minute_limit: 300
      ]
    ```

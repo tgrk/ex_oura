@@ -121,70 +121,86 @@ defmodule ExOura.Client do
 
   @impl true
   def handle_call({:request, %{method: :get} = operation}, _from, state) do
-    {:ok, new_state} = maybe_refresh_token(state)
+    case maybe_refresh_token(state) do
+      {:ok, new_state} ->
+        reply =
+          make_request_with_retry(
+            fn ->
+              operation
+              |> Map.get(:url)
+              |> Req.get(req_opts(operation, new_state))
+            end,
+            operation
+          )
 
-    reply =
-      make_request_with_retry(
-        fn ->
-          operation
-          |> Map.get(:url)
-          |> Req.get(req_opts(operation, new_state))
-        end,
-        operation
-      )
+        {:reply, reply, new_state}
 
-    {:reply, reply, new_state}
+      {:error, _reason} = error ->
+        {:reply, error, state}
+    end
   end
 
   @impl true
   def handle_call({:request, %{method: :post} = operation}, _from, state) do
-    {:ok, new_state} = maybe_refresh_token(state)
+    case maybe_refresh_token(state) do
+      {:ok, new_state} ->
+        reply =
+          make_request_with_retry(
+            fn ->
+              operation
+              |> Map.get(:url)
+              |> Req.post(req_opts(operation, new_state))
+            end,
+            operation
+          )
 
-    reply =
-      make_request_with_retry(
-        fn ->
-          operation
-          |> Map.get(:url)
-          |> Req.post(req_opts(operation, new_state))
-        end,
-        operation
-      )
+        {:reply, reply, new_state}
 
-    {:reply, reply, new_state}
+      {:error, _reason} = error ->
+        {:reply, error, state}
+    end
   end
 
   @impl true
   def handle_call({:request, %{method: :put} = operation}, _from, state) do
-    {:ok, new_state} = maybe_refresh_token(state)
+    case maybe_refresh_token(state) do
+      {:ok, new_state} ->
+        reply =
+          make_request_with_retry(
+            fn ->
+              operation
+              |> Map.get(:url)
+              |> Req.put(req_opts(operation, new_state))
+            end,
+            operation
+          )
 
-    reply =
-      make_request_with_retry(
-        fn ->
-          operation
-          |> Map.get(:url)
-          |> Req.put(req_opts(operation, new_state))
-        end,
-        operation
-      )
+        {:reply, reply, new_state}
 
-    {:reply, reply, new_state}
+      {:error, _reason} = error ->
+        {:reply, error, state}
+    end
   end
 
   @impl true
   def handle_call({:request, %{method: :delete} = operation}, _from, state) do
-    {:ok, new_state} = maybe_refresh_token(state)
+    case maybe_refresh_token(state) do
+      {:ok, new_state} ->
+        reply =
+          make_request_with_retry(
+            fn ->
+              operation
+              |> Map.get(:url)
+              |> Req.delete(req_opts(operation, new_state))
+            end,
+            operation
+          )
 
-    reply =
-      make_request_with_retry(
-        fn ->
-          operation
-          |> Map.get(:url)
-          |> Req.delete(req_opts(operation, new_state))
-        end,
-        operation
-      )
+        {:reply, reply, new_state}
 
-    {:reply, reply, new_state}
+      {:error, _reason} = error ->
+        {:reply, error, state}
+    end
   end
 
   @impl true

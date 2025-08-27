@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.1](https://github.com/tgrk/ex_oura/compare/v2.0.0...v2.0.1) (2025-08-27)
+
+
+### Bug Fixes
+
+* error handling for OAuth2 refresh token ([#34](https://github.com/tgrk/ex_oura/issues/34)) ([3fa17f7](https://github.com/tgrk/ex_oura/commit/3fa17f72ef630a66f7add5dc666c8e2239d5b77c))
+
 ## [2.0.0](https://github.com/tgrk/ex_oura/compare/v1.0.0...v2.0.0) (2025-08-26)
 
 

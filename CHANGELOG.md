@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.2](https://github.com/tgrk/ex_oura/compare/v2.0.1...v2.0.2) (2025-08-31)
+
+
+### Bug Fixes
+
+* use valid spo2 scope instead of spo2Daily from OpenAPI ([#36](https://github.com/tgrk/ex_oura/issues/36)) ([5c8f5bf](https://github.com/tgrk/ex_oura/commit/5c8f5bf383c56e6b9eef06bf41d49b9e1ebc32c4))
+
 ## [2.0.1](https://github.com/tgrk/ex_oura/compare/v2.0.0...v2.0.1) (2025-08-27)
 
 

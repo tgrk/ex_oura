@@ -245,7 +245,7 @@ defmodule ExOura.OAuth2Test do
         "workout",
         "tag",
         "session",
-        "spo2Daily"
+        "spo2"
       ]
 
       assert scopes == expected_scopes

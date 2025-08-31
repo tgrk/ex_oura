@@ -54,7 +54,7 @@ defmodule ExOura.OAuth2 do
   - `workout` - Summaries for auto-detected and user entered workouts
   - `tag` - User entered tags
   - `session` - Guided and unguided sessions in the Oura app
-  - `spo2` - SpO2 Average recorded during sleep (in doc mistakely as spo2Daily!)
+  - `spo2` - SpO2 Average recorded during sleep (in doc mistakenly as spo2Daily!)
 
   ## Token Structure
 

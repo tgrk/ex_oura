@@ -54,7 +54,7 @@ defmodule ExOura.OAuth2 do
   - `workout` - Summaries for auto-detected and user entered workouts
   - `tag` - User entered tags
   - `session` - Guided and unguided sessions in the Oura app
-  - `spo2Daily` - SpO2 Average recorded during sleep
+  - `spo2` - SpO2 Average recorded during sleep (in doc mistakenly as spo2Daily!)
 
   ## Token Structure
 
@@ -83,7 +83,7 @@ defmodule ExOura.OAuth2 do
     "workout",
     "tag",
     "session",
-    "spo2Daily"
+    "spo2"
   ]
 
   @type scope :: String.t()
@@ -265,7 +265,7 @@ defmodule ExOura.OAuth2 do
   ## Examples
 
       ExOura.OAuth2.available_scopes()
-      # => ["email", "personal", "daily", "heartrate", "workout", "tag", "session", "spo2Daily"]
+      # => ["email", "personal", "daily", "heartrate", "workout", "tag", "session", "spo2"]
 
   """
   @spec available_scopes() :: scopes()

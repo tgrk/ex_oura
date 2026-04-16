@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.0.0](https://github.com/tgrk/ex_oura/compare/v2.0.2...v3.0.0) (2026-04-16)
+
+### ⚠ BREAKING CHANGES
+
+* upgrade generated client to Oura OpenAPI v1.29
+* align public return types with the Oura v1.29 `Public*` models
+
+### Features
+
+* add interbeat interval and ring battery level endpoints
+
+### Documentation
+
+* refresh README and public docs for v3.0.0 and OpenAPI v1.29
+
 ## [2.0.2](https://github.com/tgrk/ex_oura/compare/v2.0.1...v2.0.2) (2025-08-31)
 
 

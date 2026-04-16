@@ -6,7 +6,7 @@ defmodule ExOura.SleepTimeTest do
   alias ExOura.Client.PublicSleepTime
 
   describe "Sleep Time" do
-    test "should return multiple sleep timeg" do
+    test "should return multiple sleep time" do
       use_cassette "multiple_sleep_time" do
         assert {:ok, %MultiDocumentResponsePublicSleepTime{data: [_ | _]}} =
                  ExOura.multiple_sleep_time(~D[2024-10-09], ~D[2024-11-03])
@@ -24,7 +24,7 @@ defmodule ExOura.SleepTimeTest do
       end
     end
 
-    test "should fail when document ID for single sleep time does not exists" do
+    test "should fail when document ID for single sleep time does not exist" do
       use_cassette "single_sleep_time_non_existing" do
         assert {:error, %{detail: "Document not found."}} =
                  ExOura.single_sleep_time("not-existing")

@@ -1,5 +1,8 @@
 defmodule ExOura.Client.PersonalInfoRoutes do
-  @moduledoc false
+  @moduledoc """
+  Provides API endpoint related to personal info routes
+  """
+
   alias ExOura.Client.PersonalInfoResponse
 
   @default_client ExOura.Client
@@ -7,7 +10,7 @@ defmodule ExOura.Client.PersonalInfoRoutes do
   @doc """
   Single Personal Info Document
   """
-  @spec single_personal_info_document_v2_usercollection_personal_info_get(keyword) ::
+  @spec single_personal_info_document_v2_usercollection_personal_info_get(opts :: keyword) ::
           {:ok, PersonalInfoResponse.t()} | :error
   def single_personal_info_document_v2_usercollection_personal_info_get(opts \\ []) do
     client = opts[:client] || @default_client

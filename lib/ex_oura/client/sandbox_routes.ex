@@ -1,40 +1,47 @@
 defmodule ExOura.Client.SandboxRoutes do
-  @moduledoc false
-  alias ExOura.Client.DailyActivityModel
-  alias ExOura.Client.DailyCardiovascularAgeModel
-  alias ExOura.Client.DailyReadinessModel
+  @moduledoc """
+  Provides API endpoints related to sandbox routes
+  """
+
   alias ExOura.Client.DailyResilienceModel
-  alias ExOura.Client.DailySleepModel
-  alias ExOura.Client.DailySpO2Model
-  alias ExOura.Client.DailyStressModel
   alias ExOura.Client.EnhancedTagModel
   alias ExOura.Client.HTTPValidationError
-  alias ExOura.Client.MultiDocumentResponseDailyActivityModel
-  alias ExOura.Client.MultiDocumentResponseDailyCardiovascularAgeModel
-  alias ExOura.Client.MultiDocumentResponseDailyReadinessModel
   alias ExOura.Client.MultiDocumentResponseDailyResilienceModel
-  alias ExOura.Client.MultiDocumentResponseDailySleepModel
-  alias ExOura.Client.MultiDocumentResponseDailySpO2Model
-  alias ExOura.Client.MultiDocumentResponseDailyStressModel
+  alias ExOura.Client.MultiDocumentResponseDict
   alias ExOura.Client.MultiDocumentResponseEnhancedTagModel
+  alias ExOura.Client.MultiDocumentResponsePublicDailyActivity
+  alias ExOura.Client.MultiDocumentResponsePublicDailyCardiovascularAge
+  alias ExOura.Client.MultiDocumentResponsePublicDailyReadiness
+  alias ExOura.Client.MultiDocumentResponsePublicDailySleep
+  alias ExOura.Client.MultiDocumentResponsePublicDailySpO2
+  alias ExOura.Client.MultiDocumentResponsePublicDailyStress
+  alias ExOura.Client.MultiDocumentResponsePublicModifiedSleepModel
+  alias ExOura.Client.MultiDocumentResponsePublicRestModePeriod
+  alias ExOura.Client.MultiDocumentResponsePublicRingConfiguration
+  alias ExOura.Client.MultiDocumentResponsePublicSession
+  alias ExOura.Client.MultiDocumentResponsePublicSleepTime
+  alias ExOura.Client.MultiDocumentResponsePublicVo2Max
   alias ExOura.Client.MultiDocumentResponsePublicWorkout
-  alias ExOura.Client.MultiDocumentResponseRestModePeriodModel
-  alias ExOura.Client.MultiDocumentResponseRingConfigurationModel
-  alias ExOura.Client.MultiDocumentResponseSessionModel
-  alias ExOura.Client.MultiDocumentResponseSleepModel
-  alias ExOura.Client.MultiDocumentResponseSleepTimeModel
   alias ExOura.Client.MultiDocumentResponseTagModel
-  alias ExOura.Client.MultiDocumentResponseVo2MaxModel
+  alias ExOura.Client.PublicDailyActivity
+  alias ExOura.Client.PublicDailyCardiovascularAge
+  alias ExOura.Client.PublicDailyReadiness
+  alias ExOura.Client.PublicDailySleep
+  alias ExOura.Client.PublicDailySpO2
+  alias ExOura.Client.PublicDailyStress
+  alias ExOura.Client.PublicModifiedSleepModel
+  alias ExOura.Client.PublicRestModePeriod
+  alias ExOura.Client.PublicRingConfiguration
+  alias ExOura.Client.PublicSession
+  alias ExOura.Client.PublicSleepTime
+  alias ExOura.Client.PublicVo2Max
   alias ExOura.Client.PublicWorkout
-  alias ExOura.Client.RestModePeriodModel
-  alias ExOura.Client.RingConfigurationModel
   alias ExOura.Client.SandboxRoutes
-  alias ExOura.Client.SessionModel
-  alias ExOura.Client.SleepModel
-  alias ExOura.Client.SleepTimeModel
   alias ExOura.Client.TagModel
-  alias ExOura.Client.TimeSeriesResponseHeartRateModel
-  alias ExOura.Client.Vo2MaxModel
+  alias ExOura.Client.TimeSeriesResponseDict
+  alias ExOura.Client.TimeSeriesResponsePublicHeartRateRow
+  alias ExOura.Client.TimeSeriesResponsePublicInterbeatIntervalRow
+  alias ExOura.Client.TimeSeriesResponsePublicRingBatteryLevelRow
 
   @default_client ExOura.Client
 
@@ -48,8 +55,10 @@ defmodule ExOura.Client.SandboxRoutes do
     * `next_token`
 
   """
-  @spec sandbox_multiple_daily_activity_documents_v2_sandbox_usercollection_daily_activity_get(keyword) ::
-          {:ok, MultiDocumentResponseDailyActivityModel.t()}
+  @spec sandbox_multiple_daily_activity_documents_v2_sandbox_usercollection_daily_activity_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponsePublicDailyActivity.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_multiple_daily_activity_documents_v2_sandbox_usercollection_daily_activity_get(opts \\ []) do
     client = opts[:client] || @default_client
@@ -62,7 +71,12 @@ defmodule ExOura.Client.SandboxRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseDailyActivityModel, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponsePublicDailyActivity, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -84,9 +98,11 @@ defmodule ExOura.Client.SandboxRoutes do
 
   """
   @spec sandbox_multiple_daily_cardiovascular_age_documents_v2_sandbox_usercollection_daily_cardiovascular_age_get(
-          keyword
+          opts :: keyword
         ) ::
-          {:ok, MultiDocumentResponseDailyCardiovascularAgeModel.t()}
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponsePublicDailyCardiovascularAge.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_multiple_daily_cardiovascular_age_documents_v2_sandbox_usercollection_daily_cardiovascular_age_get(
         opts \\ []
@@ -103,7 +119,12 @@ defmodule ExOura.Client.SandboxRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseDailyCardiovascularAgeModel, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponsePublicDailyCardiovascularAge, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -124,8 +145,10 @@ defmodule ExOura.Client.SandboxRoutes do
     * `next_token`
 
   """
-  @spec sandbox_multiple_daily_readiness_documents_v2_sandbox_usercollection_daily_readiness_get(keyword) ::
-          {:ok, MultiDocumentResponseDailyReadinessModel.t()}
+  @spec sandbox_multiple_daily_readiness_documents_v2_sandbox_usercollection_daily_readiness_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponsePublicDailyReadiness.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_multiple_daily_readiness_documents_v2_sandbox_usercollection_daily_readiness_get(opts \\ []) do
     client = opts[:client] || @default_client
@@ -138,7 +161,12 @@ defmodule ExOura.Client.SandboxRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseDailyReadinessModel, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponsePublicDailyReadiness, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -159,8 +187,10 @@ defmodule ExOura.Client.SandboxRoutes do
     * `next_token`
 
   """
-  @spec sandbox_multiple_daily_resilience_documents_v2_sandbox_usercollection_daily_resilience_get(keyword) ::
-          {:ok, MultiDocumentResponseDailyResilienceModel.t()}
+  @spec sandbox_multiple_daily_resilience_documents_v2_sandbox_usercollection_daily_resilience_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDailyResilienceModel.t()
+           | MultiDocumentResponseDict.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_multiple_daily_resilience_documents_v2_sandbox_usercollection_daily_resilience_get(opts \\ []) do
     client = opts[:client] || @default_client
@@ -173,7 +203,12 @@ defmodule ExOura.Client.SandboxRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseDailyResilienceModel, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDailyResilienceModel, :t},
+            {MultiDocumentResponseDict, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -194,8 +229,10 @@ defmodule ExOura.Client.SandboxRoutes do
     * `next_token`
 
   """
-  @spec sandbox_multiple_daily_sleep_documents_v2_sandbox_usercollection_daily_sleep_get(keyword) ::
-          {:ok, MultiDocumentResponseDailySleepModel.t()}
+  @spec sandbox_multiple_daily_sleep_documents_v2_sandbox_usercollection_daily_sleep_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponsePublicDailySleep.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_multiple_daily_sleep_documents_v2_sandbox_usercollection_daily_sleep_get(opts \\ []) do
     client = opts[:client] || @default_client
@@ -208,7 +245,12 @@ defmodule ExOura.Client.SandboxRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseDailySleepModel, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponsePublicDailySleep, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -229,8 +271,10 @@ defmodule ExOura.Client.SandboxRoutes do
     * `next_token`
 
   """
-  @spec sandbox_multiple_daily_spo2_documents_v2_sandbox_usercollection_daily_spo2_get(keyword) ::
-          {:ok, MultiDocumentResponseDailySpO2Model.t()}
+  @spec sandbox_multiple_daily_spo2_documents_v2_sandbox_usercollection_daily_spo2_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponsePublicDailySpO2.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_multiple_daily_spo2_documents_v2_sandbox_usercollection_daily_spo2_get(opts \\ []) do
     client = opts[:client] || @default_client
@@ -243,7 +287,12 @@ defmodule ExOura.Client.SandboxRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseDailySpO2Model, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponsePublicDailySpO2, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -264,8 +313,10 @@ defmodule ExOura.Client.SandboxRoutes do
     * `next_token`
 
   """
-  @spec sandbox_multiple_daily_stress_documents_v2_sandbox_usercollection_daily_stress_get(keyword) ::
-          {:ok, MultiDocumentResponseDailyStressModel.t()}
+  @spec sandbox_multiple_daily_stress_documents_v2_sandbox_usercollection_daily_stress_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponsePublicDailyStress.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_multiple_daily_stress_documents_v2_sandbox_usercollection_daily_stress_get(opts \\ []) do
     client = opts[:client] || @default_client
@@ -278,7 +329,12 @@ defmodule ExOura.Client.SandboxRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseDailyStressModel, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponsePublicDailyStress, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -299,8 +355,10 @@ defmodule ExOura.Client.SandboxRoutes do
     * `next_token`
 
   """
-  @spec sandbox_multiple_enhanced_tag_documents_v2_sandbox_usercollection_enhanced_tag_get(keyword) ::
-          {:ok, MultiDocumentResponseEnhancedTagModel.t()}
+  @spec sandbox_multiple_enhanced_tag_documents_v2_sandbox_usercollection_enhanced_tag_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponseEnhancedTagModel.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_multiple_enhanced_tag_documents_v2_sandbox_usercollection_enhanced_tag_get(opts \\ []) do
     client = opts[:client] || @default_client
@@ -313,7 +371,12 @@ defmodule ExOura.Client.SandboxRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseEnhancedTagModel, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponseEnhancedTagModel, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -334,8 +397,10 @@ defmodule ExOura.Client.SandboxRoutes do
     * `next_token`
 
   """
-  @spec sandbox_multiple_heartrate_documents_v2_sandbox_usercollection_heartrate_get(keyword) ::
-          {:ok, TimeSeriesResponseHeartRateModel.t()}
+  @spec sandbox_multiple_heartrate_documents_v2_sandbox_usercollection_heartrate_get(opts :: keyword) ::
+          {:ok,
+           TimeSeriesResponseDict.t()
+           | TimeSeriesResponsePublicHeartRateRow.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_multiple_heartrate_documents_v2_sandbox_usercollection_heartrate_get(opts \\ []) do
     client = opts[:client] || @default_client
@@ -348,7 +413,55 @@ defmodule ExOura.Client.SandboxRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {TimeSeriesResponseHeartRateModel, :t}},
+        {200,
+         {:union,
+          [
+            {TimeSeriesResponseDict, :t},
+            {TimeSeriesResponsePublicHeartRateRow, :t}
+          ]}},
+        {400, :null},
+        {401, :null},
+        {403, :null},
+        {422, {HTTPValidationError, :t}},
+        {429, :null}
+      ],
+      opts: opts
+    })
+  end
+
+  @doc """
+  Sandbox - Multiple Interbeat Interval Documents
+
+  ## Options
+
+    * `start_datetime`
+    * `end_datetime`
+    * `next_token`
+
+  """
+  @spec sandbox_multiple_interbeat_interval_documents_v2_sandbox_usercollection_interbeat_interval_get(opts :: keyword) ::
+          {:ok,
+           TimeSeriesResponseDict.t()
+           | TimeSeriesResponsePublicInterbeatIntervalRow.t()}
+          | {:error, HTTPValidationError.t()}
+  def sandbox_multiple_interbeat_interval_documents_v2_sandbox_usercollection_interbeat_interval_get(opts \\ []) do
+    client = opts[:client] || @default_client
+    query = Keyword.take(opts, [:end_datetime, :next_token, :start_datetime])
+
+    client.request(%{
+      args: [],
+      call:
+        {SandboxRoutes, :sandbox_multiple_interbeat_interval_documents_v2_sandbox_usercollection_interbeat_interval_get},
+      url: "/v2/sandbox/usercollection/interbeat_interval",
+      method: :get,
+      query: query,
+      response: [
+        {200,
+         {:union,
+          [
+            {TimeSeriesResponseDict, :t},
+            {TimeSeriesResponsePublicInterbeatIntervalRow, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -369,8 +482,10 @@ defmodule ExOura.Client.SandboxRoutes do
     * `next_token`
 
   """
-  @spec sandbox_multiple_rest_mode_period_documents_v2_sandbox_usercollection_rest_mode_period_get(keyword) ::
-          {:ok, MultiDocumentResponseRestModePeriodModel.t()}
+  @spec sandbox_multiple_rest_mode_period_documents_v2_sandbox_usercollection_rest_mode_period_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponsePublicRestModePeriod.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_multiple_rest_mode_period_documents_v2_sandbox_usercollection_rest_mode_period_get(opts \\ []) do
     client = opts[:client] || @default_client
@@ -383,7 +498,55 @@ defmodule ExOura.Client.SandboxRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseRestModePeriodModel, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponsePublicRestModePeriod, :t}
+          ]}},
+        {400, :null},
+        {401, :null},
+        {403, :null},
+        {422, {HTTPValidationError, :t}},
+        {429, :null}
+      ],
+      opts: opts
+    })
+  end
+
+  @doc """
+  Sandbox - Multiple Ring Battery Level Documents
+
+  ## Options
+
+    * `start_datetime`
+    * `end_datetime`
+    * `next_token`
+
+  """
+  @spec sandbox_multiple_ring_battery_level_documents_v2_sandbox_usercollection_ring_battery_level_get(opts :: keyword) ::
+          {:ok,
+           TimeSeriesResponseDict.t()
+           | TimeSeriesResponsePublicRingBatteryLevelRow.t()}
+          | {:error, HTTPValidationError.t()}
+  def sandbox_multiple_ring_battery_level_documents_v2_sandbox_usercollection_ring_battery_level_get(opts \\ []) do
+    client = opts[:client] || @default_client
+    query = Keyword.take(opts, [:end_datetime, :next_token, :start_datetime])
+
+    client.request(%{
+      args: [],
+      call:
+        {SandboxRoutes, :sandbox_multiple_ring_battery_level_documents_v2_sandbox_usercollection_ring_battery_level_get},
+      url: "/v2/sandbox/usercollection/ring_battery_level",
+      method: :get,
+      query: query,
+      response: [
+        {200,
+         {:union,
+          [
+            {TimeSeriesResponseDict, :t},
+            {TimeSeriesResponsePublicRingBatteryLevelRow, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -402,8 +565,10 @@ defmodule ExOura.Client.SandboxRoutes do
     * `next_token`
 
   """
-  @spec sandbox_multiple_ring_configuration_documents_v2_sandbox_usercollection_ring_configuration_get(keyword) ::
-          {:ok, MultiDocumentResponseRingConfigurationModel.t()}
+  @spec sandbox_multiple_ring_configuration_documents_v2_sandbox_usercollection_ring_configuration_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponsePublicRingConfiguration.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_multiple_ring_configuration_documents_v2_sandbox_usercollection_ring_configuration_get(opts \\ []) do
     client = opts[:client] || @default_client
@@ -417,7 +582,12 @@ defmodule ExOura.Client.SandboxRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseRingConfigurationModel, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponsePublicRingConfiguration, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -438,8 +608,10 @@ defmodule ExOura.Client.SandboxRoutes do
     * `next_token`
 
   """
-  @spec sandbox_multiple_session_documents_v2_sandbox_usercollection_session_get(keyword) ::
-          {:ok, MultiDocumentResponseSessionModel.t()}
+  @spec sandbox_multiple_session_documents_v2_sandbox_usercollection_session_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponsePublicSession.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_multiple_session_documents_v2_sandbox_usercollection_session_get(opts \\ []) do
     client = opts[:client] || @default_client
@@ -452,7 +624,12 @@ defmodule ExOura.Client.SandboxRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseSessionModel, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponsePublicSession, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -473,8 +650,10 @@ defmodule ExOura.Client.SandboxRoutes do
     * `next_token`
 
   """
-  @spec sandbox_multiple_sleep_documents_v2_sandbox_usercollection_sleep_get(keyword) ::
-          {:ok, MultiDocumentResponseSleepModel.t()}
+  @spec sandbox_multiple_sleep_documents_v2_sandbox_usercollection_sleep_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponsePublicModifiedSleepModel.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_multiple_sleep_documents_v2_sandbox_usercollection_sleep_get(opts \\ []) do
     client = opts[:client] || @default_client
@@ -487,7 +666,12 @@ defmodule ExOura.Client.SandboxRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseSleepModel, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponsePublicModifiedSleepModel, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -508,8 +692,10 @@ defmodule ExOura.Client.SandboxRoutes do
     * `next_token`
 
   """
-  @spec sandbox_multiple_sleep_time_documents_v2_sandbox_usercollection_sleep_time_get(keyword) ::
-          {:ok, MultiDocumentResponseSleepTimeModel.t()}
+  @spec sandbox_multiple_sleep_time_documents_v2_sandbox_usercollection_sleep_time_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponsePublicSleepTime.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_multiple_sleep_time_documents_v2_sandbox_usercollection_sleep_time_get(opts \\ []) do
     client = opts[:client] || @default_client
@@ -522,7 +708,12 @@ defmodule ExOura.Client.SandboxRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseSleepTimeModel, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponsePublicSleepTime, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -543,8 +734,10 @@ defmodule ExOura.Client.SandboxRoutes do
     * `next_token`
 
   """
-  @spec sandbox_multiple_tag_documents_v2_sandbox_usercollection_tag_get(keyword) ::
-          {:ok, MultiDocumentResponseTagModel.t()}
+  @spec sandbox_multiple_tag_documents_v2_sandbox_usercollection_tag_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponseTagModel.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_multiple_tag_documents_v2_sandbox_usercollection_tag_get(opts \\ []) do
     client = opts[:client] || @default_client
@@ -557,7 +750,12 @@ defmodule ExOura.Client.SandboxRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseTagModel, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponseTagModel, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -578,8 +776,10 @@ defmodule ExOura.Client.SandboxRoutes do
     * `next_token`
 
   """
-  @spec sandbox_multiple_v_o2_max_documents_v2_sandbox_usercollection_v_o2_max_get(keyword) ::
-          {:ok, MultiDocumentResponseVo2MaxModel.t()}
+  @spec sandbox_multiple_v_o2_max_documents_v2_sandbox_usercollection_v_o2_max_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponsePublicVo2Max.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_multiple_v_o2_max_documents_v2_sandbox_usercollection_v_o2_max_get(opts \\ []) do
     client = opts[:client] || @default_client
@@ -592,7 +792,12 @@ defmodule ExOura.Client.SandboxRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseVo2MaxModel, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponsePublicVo2Max, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -613,8 +818,10 @@ defmodule ExOura.Client.SandboxRoutes do
     * `next_token`
 
   """
-  @spec sandbox_multiple_workout_documents_v2_sandbox_usercollection_workout_get(keyword) ::
-          {:ok, MultiDocumentResponsePublicWorkout.t()}
+  @spec sandbox_multiple_workout_documents_v2_sandbox_usercollection_workout_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponsePublicWorkout.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_multiple_workout_documents_v2_sandbox_usercollection_workout_get(opts \\ []) do
     client = opts[:client] || @default_client
@@ -627,7 +834,12 @@ defmodule ExOura.Client.SandboxRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponsePublicWorkout, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponsePublicWorkout, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -642,10 +854,10 @@ defmodule ExOura.Client.SandboxRoutes do
   Sandbox - Single Daily Activity Document
   """
   @spec sandbox_single_daily_activity_document_v2_sandbox_usercollection_daily_activity_document_id_get(
-          String.t(),
-          keyword
+          document_id :: String.t(),
+          opts :: keyword
         ) ::
-          {:ok, DailyActivityModel.t()}
+          {:ok, PublicDailyActivity.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_single_daily_activity_document_v2_sandbox_usercollection_daily_activity_document_id_get(
         document_id,
@@ -660,7 +872,7 @@ defmodule ExOura.Client.SandboxRoutes do
       url: "/v2/sandbox/usercollection/daily_activity/#{document_id}",
       method: :get,
       response: [
-        {200, {DailyActivityModel, :t}},
+        {200, {PublicDailyActivity, :t}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -676,10 +888,10 @@ defmodule ExOura.Client.SandboxRoutes do
   Sandbox - Single Daily Cardiovascular Age Document
   """
   @spec sandbox_single_daily_cardiovascular_age_document_v2_sandbox_usercollection_daily_cardiovascular_age_document_id_get(
-          String.t(),
-          keyword
+          document_id :: String.t(),
+          opts :: keyword
         ) ::
-          {:ok, DailyCardiovascularAgeModel.t()}
+          {:ok, PublicDailyCardiovascularAge.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_single_daily_cardiovascular_age_document_v2_sandbox_usercollection_daily_cardiovascular_age_document_id_get(
         document_id,
@@ -695,7 +907,7 @@ defmodule ExOura.Client.SandboxRoutes do
       url: "/v2/sandbox/usercollection/daily_cardiovascular_age/#{document_id}",
       method: :get,
       response: [
-        {200, {DailyCardiovascularAgeModel, :t}},
+        {200, {PublicDailyCardiovascularAge, :t}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -711,10 +923,10 @@ defmodule ExOura.Client.SandboxRoutes do
   Sandbox - Single Daily Readiness Document
   """
   @spec sandbox_single_daily_readiness_document_v2_sandbox_usercollection_daily_readiness_document_id_get(
-          String.t(),
-          keyword
+          document_id :: String.t(),
+          opts :: keyword
         ) ::
-          {:ok, DailyReadinessModel.t()}
+          {:ok, PublicDailyReadiness.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_single_daily_readiness_document_v2_sandbox_usercollection_daily_readiness_document_id_get(
         document_id,
@@ -730,7 +942,7 @@ defmodule ExOura.Client.SandboxRoutes do
       url: "/v2/sandbox/usercollection/daily_readiness/#{document_id}",
       method: :get,
       response: [
-        {200, {DailyReadinessModel, :t}},
+        {200, {PublicDailyReadiness, :t}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -746,8 +958,8 @@ defmodule ExOura.Client.SandboxRoutes do
   Sandbox - Single Daily Resilience Document
   """
   @spec sandbox_single_daily_resilience_document_v2_sandbox_usercollection_daily_resilience_document_id_get(
-          String.t(),
-          keyword
+          document_id :: String.t(),
+          opts :: keyword
         ) ::
           {:ok, DailyResilienceModel.t()}
           | {:error, HTTPValidationError.t()}
@@ -781,10 +993,10 @@ defmodule ExOura.Client.SandboxRoutes do
   Sandbox - Single Daily Sleep Document
   """
   @spec sandbox_single_daily_sleep_document_v2_sandbox_usercollection_daily_sleep_document_id_get(
-          String.t(),
-          keyword
+          document_id :: String.t(),
+          opts :: keyword
         ) ::
-          {:ok, DailySleepModel.t()}
+          {:ok, PublicDailySleep.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_single_daily_sleep_document_v2_sandbox_usercollection_daily_sleep_document_id_get(document_id, opts \\ []) do
     client = opts[:client] || @default_client
@@ -795,7 +1007,7 @@ defmodule ExOura.Client.SandboxRoutes do
       url: "/v2/sandbox/usercollection/daily_sleep/#{document_id}",
       method: :get,
       response: [
-        {200, {DailySleepModel, :t}},
+        {200, {PublicDailySleep, :t}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -811,10 +1023,10 @@ defmodule ExOura.Client.SandboxRoutes do
   Sandbox - Single Daily Spo2 Document
   """
   @spec sandbox_single_daily_spo2_document_v2_sandbox_usercollection_daily_spo2_document_id_get(
-          String.t(),
-          keyword
+          document_id :: String.t(),
+          opts :: keyword
         ) ::
-          {:ok, DailySpO2Model.t()}
+          {:ok, PublicDailySpO2.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_single_daily_spo2_document_v2_sandbox_usercollection_daily_spo2_document_id_get(document_id, opts \\ []) do
     client = opts[:client] || @default_client
@@ -825,7 +1037,7 @@ defmodule ExOura.Client.SandboxRoutes do
       url: "/v2/sandbox/usercollection/daily_spo2/#{document_id}",
       method: :get,
       response: [
-        {200, {DailySpO2Model, :t}},
+        {200, {PublicDailySpO2, :t}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -841,10 +1053,10 @@ defmodule ExOura.Client.SandboxRoutes do
   Sandbox - Single Daily Stress Document
   """
   @spec sandbox_single_daily_stress_document_v2_sandbox_usercollection_daily_stress_document_id_get(
-          String.t(),
-          keyword
+          document_id :: String.t(),
+          opts :: keyword
         ) ::
-          {:ok, DailyStressModel.t()}
+          {:ok, PublicDailyStress.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_single_daily_stress_document_v2_sandbox_usercollection_daily_stress_document_id_get(document_id, opts \\ []) do
     client = opts[:client] || @default_client
@@ -855,7 +1067,7 @@ defmodule ExOura.Client.SandboxRoutes do
       url: "/v2/sandbox/usercollection/daily_stress/#{document_id}",
       method: :get,
       response: [
-        {200, {DailyStressModel, :t}},
+        {200, {PublicDailyStress, :t}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -871,8 +1083,8 @@ defmodule ExOura.Client.SandboxRoutes do
   Sandbox - Single Enhanced Tag Document
   """
   @spec sandbox_single_enhanced_tag_document_v2_sandbox_usercollection_enhanced_tag_document_id_get(
-          String.t(),
-          keyword
+          document_id :: String.t(),
+          opts :: keyword
         ) ::
           {:ok, EnhancedTagModel.t()}
           | {:error, HTTPValidationError.t()}
@@ -901,10 +1113,10 @@ defmodule ExOura.Client.SandboxRoutes do
   Sandbox - Single Rest Mode Period Document
   """
   @spec sandbox_single_rest_mode_period_document_v2_sandbox_usercollection_rest_mode_period_document_id_get(
-          String.t(),
-          keyword
+          document_id :: String.t(),
+          opts :: keyword
         ) ::
-          {:ok, RestModePeriodModel.t()}
+          {:ok, PublicRestModePeriod.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_single_rest_mode_period_document_v2_sandbox_usercollection_rest_mode_period_document_id_get(
         document_id,
@@ -920,7 +1132,7 @@ defmodule ExOura.Client.SandboxRoutes do
       url: "/v2/sandbox/usercollection/rest_mode_period/#{document_id}",
       method: :get,
       response: [
-        {200, {RestModePeriodModel, :t}},
+        {200, {PublicRestModePeriod, :t}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -936,10 +1148,10 @@ defmodule ExOura.Client.SandboxRoutes do
   Sandbox - Single Ring Configuration Document
   """
   @spec sandbox_single_ring_configuration_document_v2_sandbox_usercollection_ring_configuration_document_id_get(
-          String.t(),
-          keyword
+          document_id :: String.t(),
+          opts :: keyword
         ) ::
-          {:ok, RingConfigurationModel.t()}
+          {:ok, PublicRingConfiguration.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_single_ring_configuration_document_v2_sandbox_usercollection_ring_configuration_document_id_get(
         document_id,
@@ -955,7 +1167,7 @@ defmodule ExOura.Client.SandboxRoutes do
       url: "/v2/sandbox/usercollection/ring_configuration/#{document_id}",
       method: :get,
       response: [
-        {200, {RingConfigurationModel, :t}},
+        {200, {PublicRingConfiguration, :t}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -971,10 +1183,10 @@ defmodule ExOura.Client.SandboxRoutes do
   Sandbox - Single Session Document
   """
   @spec sandbox_single_session_document_v2_sandbox_usercollection_session_document_id_get(
-          String.t(),
-          keyword
+          document_id :: String.t(),
+          opts :: keyword
         ) ::
-          {:ok, SessionModel.t()} | {:error, HTTPValidationError.t()}
+          {:ok, PublicSession.t()} | {:error, HTTPValidationError.t()}
   def sandbox_single_session_document_v2_sandbox_usercollection_session_document_id_get(document_id, opts \\ []) do
     client = opts[:client] || @default_client
 
@@ -984,7 +1196,7 @@ defmodule ExOura.Client.SandboxRoutes do
       url: "/v2/sandbox/usercollection/session/#{document_id}",
       method: :get,
       response: [
-        {200, {SessionModel, :t}},
+        {200, {PublicSession, :t}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -1000,9 +1212,11 @@ defmodule ExOura.Client.SandboxRoutes do
   Sandbox - Single Sleep Document
   """
   @spec sandbox_single_sleep_document_v2_sandbox_usercollection_sleep_document_id_get(
-          String.t(),
-          keyword
-        ) :: {:ok, SleepModel.t()} | {:error, HTTPValidationError.t()}
+          document_id :: String.t(),
+          opts :: keyword
+        ) ::
+          {:ok, PublicModifiedSleepModel.t()}
+          | {:error, HTTPValidationError.t()}
   def sandbox_single_sleep_document_v2_sandbox_usercollection_sleep_document_id_get(document_id, opts \\ []) do
     client = opts[:client] || @default_client
 
@@ -1012,7 +1226,7 @@ defmodule ExOura.Client.SandboxRoutes do
       url: "/v2/sandbox/usercollection/sleep/#{document_id}",
       method: :get,
       response: [
-        {200, {SleepModel, :t}},
+        {200, {PublicModifiedSleepModel, :t}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -1028,10 +1242,10 @@ defmodule ExOura.Client.SandboxRoutes do
   Sandbox - Single Sleep Time Document
   """
   @spec sandbox_single_sleep_time_document_v2_sandbox_usercollection_sleep_time_document_id_get(
-          String.t(),
-          keyword
+          document_id :: String.t(),
+          opts :: keyword
         ) ::
-          {:ok, SleepTimeModel.t()}
+          {:ok, PublicSleepTime.t()}
           | {:error, HTTPValidationError.t()}
   def sandbox_single_sleep_time_document_v2_sandbox_usercollection_sleep_time_document_id_get(document_id, opts \\ []) do
     client = opts[:client] || @default_client
@@ -1042,7 +1256,7 @@ defmodule ExOura.Client.SandboxRoutes do
       url: "/v2/sandbox/usercollection/sleep_time/#{document_id}",
       method: :get,
       response: [
-        {200, {SleepTimeModel, :t}},
+        {200, {PublicSleepTime, :t}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -1058,8 +1272,8 @@ defmodule ExOura.Client.SandboxRoutes do
   Sandbox - Single Tag Document
   """
   @spec sandbox_single_tag_document_v2_sandbox_usercollection_tag_document_id_get(
-          String.t(),
-          keyword
+          document_id :: String.t(),
+          opts :: keyword
         ) :: {:ok, TagModel.t()} | {:error, HTTPValidationError.t()}
   def sandbox_single_tag_document_v2_sandbox_usercollection_tag_document_id_get(document_id, opts \\ []) do
     client = opts[:client] || @default_client
@@ -1086,10 +1300,10 @@ defmodule ExOura.Client.SandboxRoutes do
   Sandbox - Single Vo2 Max Document
   """
   @spec sandbox_single_v_o2_max_document_v2_sandbox_usercollection_v_o2_max_document_id_get(
-          String.t(),
-          keyword
+          document_id :: String.t(),
+          opts :: keyword
         ) ::
-          {:ok, Vo2MaxModel.t()} | {:error, HTTPValidationError.t()}
+          {:ok, PublicVo2Max.t()} | {:error, HTTPValidationError.t()}
   def sandbox_single_v_o2_max_document_v2_sandbox_usercollection_v_o2_max_document_id_get(document_id, opts \\ []) do
     client = opts[:client] || @default_client
 
@@ -1099,7 +1313,7 @@ defmodule ExOura.Client.SandboxRoutes do
       url: "/v2/sandbox/usercollection/vO2_max/#{document_id}",
       method: :get,
       response: [
-        {200, {Vo2MaxModel, :t}},
+        {200, {PublicVo2Max, :t}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -1115,8 +1329,8 @@ defmodule ExOura.Client.SandboxRoutes do
   Sandbox - Single Workout Document
   """
   @spec sandbox_single_workout_document_v2_sandbox_usercollection_workout_document_id_get(
-          String.t(),
-          keyword
+          document_id :: String.t(),
+          opts :: keyword
         ) ::
           {:ok, PublicWorkout.t()} | {:error, HTTPValidationError.t()}
   def sandbox_single_workout_document_v2_sandbox_usercollection_workout_document_id_get(document_id, opts \\ []) do

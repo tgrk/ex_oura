@@ -1,5 +1,8 @@
 defmodule ExOura.Client.CreateWebhookSubscriptionRequest do
-  @moduledoc false
+  @moduledoc """
+  Provides struct and type for a CreateWebhookSubscriptionRequest
+  """
+
   @type t :: %__MODULE__{
           callback_url: String.t(),
           data_type: String.t(),
@@ -15,7 +18,7 @@ defmodule ExOura.Client.CreateWebhookSubscriptionRequest do
 
   def __fields__(:t) do
     [
-      callback_url: {:string, :generic},
+      callback_url: :string,
       data_type:
         {:enum,
          [
@@ -32,12 +35,19 @@ defmodule ExOura.Client.CreateWebhookSubscriptionRequest do
            "rest_mode_period",
            "ring_configuration",
            "daily_stress",
+           "daily_cycle_phases",
+           "activation_status",
            "daily_cardiovascular_age",
            "daily_resilience",
-           "vo2_max"
+           "vo2_max",
+           "period_start",
+           "pregnancy",
+           "fertile_window",
+           "ovulation_confirmed",
+           "blood_glucose"
          ]},
       event_type: {:enum, ["create", "update", "delete"]},
-      verification_token: {:string, :generic}
+      verification_token: :string
     ]
   end
 end

@@ -1,8 +1,12 @@
 defmodule ExOura.Client.SessionRoutes do
-  @moduledoc false
+  @moduledoc """
+  Provides API endpoints related to session routes
+  """
+
   alias ExOura.Client.HTTPValidationError
-  alias ExOura.Client.MultiDocumentResponseSessionModel
-  alias ExOura.Client.SessionModel
+  alias ExOura.Client.MultiDocumentResponseDict
+  alias ExOura.Client.MultiDocumentResponsePublicSession
+  alias ExOura.Client.PublicSession
   alias ExOura.Client.SessionRoutes
 
   @default_client ExOura.Client
@@ -15,14 +19,17 @@ defmodule ExOura.Client.SessionRoutes do
     * `start_date`
     * `end_date`
     * `next_token`
+    * `fields`: Comma-separated list of fields to include in the response, in addition to the always returned fields. Defaults to all fields if not provided.
 
   """
-  @spec multiple_session_documents_v2_usercollection_session_get(keyword) ::
-          {:ok, MultiDocumentResponseSessionModel.t()}
+  @spec multiple_session_documents_v2_usercollection_session_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponsePublicSession.t()}
           | {:error, HTTPValidationError.t()}
   def multiple_session_documents_v2_usercollection_session_get(opts \\ []) do
     client = opts[:client] || @default_client
-    query = Keyword.take(opts, [:end_date, :next_token, :start_date])
+    query = Keyword.take(opts, [:end_date, :fields, :next_token, :start_date])
 
     client.request(%{
       args: [],
@@ -31,7 +38,12 @@ defmodule ExOura.Client.SessionRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseSessionModel, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponsePublicSession, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -45,8 +57,11 @@ defmodule ExOura.Client.SessionRoutes do
   @doc """
   Single Session Document
   """
-  @spec single_session_document_v2_usercollection_session_document_id_get(String.t(), keyword) ::
-          {:ok, SessionModel.t()} | {:error, HTTPValidationError.t()}
+  @spec single_session_document_v2_usercollection_session_document_id_get(
+          document_id :: String.t(),
+          opts :: keyword
+        ) ::
+          {:ok, PublicSession.t()} | {:error, HTTPValidationError.t()}
   def single_session_document_v2_usercollection_session_document_id_get(document_id, opts \\ []) do
     client = opts[:client] || @default_client
 
@@ -56,7 +71,7 @@ defmodule ExOura.Client.SessionRoutes do
       url: "/v2/usercollection/session/#{document_id}",
       method: :get,
       response: [
-        {200, {SessionModel, :t}},
+        {200, {PublicSession, :t}},
         {400, :null},
         {401, :null},
         {403, :null},

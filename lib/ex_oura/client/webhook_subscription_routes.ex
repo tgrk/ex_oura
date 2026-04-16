@@ -1,5 +1,8 @@
 defmodule ExOura.Client.WebhookSubscriptionRoutes do
-  @moduledoc false
+  @moduledoc """
+  Provides API endpoints related to webhook subscription routes
+  """
+
   alias ExOura.Client.CreateWebhookSubscriptionRequest
   alias ExOura.Client.HTTPValidationError
   alias ExOura.Client.UpdateWebhookSubscriptionRequest
@@ -10,10 +13,14 @@ defmodule ExOura.Client.WebhookSubscriptionRoutes do
 
   @doc """
   Create Webhook Subscription
+
+  ## Request Body
+
+  **Content Types**: `application/json`
   """
   @spec create_webhook_subscription_v2_webhook_subscription_post(
-          CreateWebhookSubscriptionRequest.t(),
-          keyword
+          body :: CreateWebhookSubscriptionRequest.t(),
+          opts :: keyword
         ) ::
           {:ok, WebhookSubscriptionModel.t()}
           | {:error, HTTPValidationError.t()}
@@ -38,8 +45,10 @@ defmodule ExOura.Client.WebhookSubscriptionRoutes do
   @doc """
   Delete Webhook Subscription
   """
-  @spec delete_webhook_subscription_v2_webhook_subscription_id_delete(String.t(), keyword) ::
-          :ok | {:error, HTTPValidationError.t()}
+  @spec delete_webhook_subscription_v2_webhook_subscription_id_delete(
+          id :: String.t(),
+          opts :: keyword
+        ) :: :ok | {:error, HTTPValidationError.t()}
   def delete_webhook_subscription_v2_webhook_subscription_id_delete(id, opts \\ []) do
     client = opts[:client] || @default_client
 
@@ -56,7 +65,7 @@ defmodule ExOura.Client.WebhookSubscriptionRoutes do
   @doc """
   Get Webhook Subscription
   """
-  @spec get_webhook_subscription_v2_webhook_subscription_id_get(String.t(), keyword) ::
+  @spec get_webhook_subscription_v2_webhook_subscription_id_get(id :: String.t(), opts :: keyword) ::
           {:ok, WebhookSubscriptionModel.t()}
           | {:error, HTTPValidationError.t()}
   def get_webhook_subscription_v2_webhook_subscription_id_get(id, opts \\ []) do
@@ -79,7 +88,7 @@ defmodule ExOura.Client.WebhookSubscriptionRoutes do
   @doc """
   List Webhook Subscriptions
   """
-  @spec list_webhook_subscriptions_v2_webhook_subscription_get(keyword) ::
+  @spec list_webhook_subscriptions_v2_webhook_subscription_get(opts :: keyword) ::
           {:ok, [WebhookSubscriptionModel.t()]} | :error
   def list_webhook_subscriptions_v2_webhook_subscription_get(opts \\ []) do
     client = opts[:client] || @default_client
@@ -97,7 +106,10 @@ defmodule ExOura.Client.WebhookSubscriptionRoutes do
   @doc """
   Renew Webhook Subscription
   """
-  @spec renew_webhook_subscription_v2_webhook_subscription_renew_id_put(String.t(), keyword) ::
+  @spec renew_webhook_subscription_v2_webhook_subscription_renew_id_put(
+          id :: String.t(),
+          opts :: keyword
+        ) ::
           {:ok, WebhookSubscriptionModel.t()}
           | {:error, HTTPValidationError.t()}
   def renew_webhook_subscription_v2_webhook_subscription_renew_id_put(id, opts \\ []) do
@@ -119,11 +131,15 @@ defmodule ExOura.Client.WebhookSubscriptionRoutes do
 
   @doc """
   Update Webhook Subscription
+
+  ## Request Body
+
+  **Content Types**: `application/json`
   """
   @spec update_webhook_subscription_v2_webhook_subscription_id_put(
-          String.t(),
-          UpdateWebhookSubscriptionRequest.t(),
-          keyword
+          id :: String.t(),
+          body :: UpdateWebhookSubscriptionRequest.t(),
+          opts :: keyword
         ) ::
           {:ok, WebhookSubscriptionModel.t()}
           | {:error, HTTPValidationError.t()}

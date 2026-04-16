@@ -1,8 +1,12 @@
 defmodule ExOura.Client.EnhancedTagRoutes do
-  @moduledoc false
+  @moduledoc """
+  Provides API endpoints related to enhanced tag routes
+  """
+
   alias ExOura.Client.EnhancedTagModel
   alias ExOura.Client.EnhancedTagRoutes
   alias ExOura.Client.HTTPValidationError
+  alias ExOura.Client.MultiDocumentResponseDict
   alias ExOura.Client.MultiDocumentResponseEnhancedTagModel
 
   @default_client ExOura.Client
@@ -15,14 +19,17 @@ defmodule ExOura.Client.EnhancedTagRoutes do
     * `start_date`
     * `end_date`
     * `next_token`
+    * `fields`: N/A. This route does not support field selection yet, all fields will be returned.
 
   """
-  @spec multiple_enhanced_tag_documents_v2_usercollection_enhanced_tag_get(keyword) ::
-          {:ok, MultiDocumentResponseEnhancedTagModel.t()}
+  @spec multiple_enhanced_tag_documents_v2_usercollection_enhanced_tag_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponseEnhancedTagModel.t()}
           | {:error, HTTPValidationError.t()}
   def multiple_enhanced_tag_documents_v2_usercollection_enhanced_tag_get(opts \\ []) do
     client = opts[:client] || @default_client
-    query = Keyword.take(opts, [:end_date, :next_token, :start_date])
+    query = Keyword.take(opts, [:end_date, :fields, :next_token, :start_date])
 
     client.request(%{
       args: [],
@@ -31,7 +38,12 @@ defmodule ExOura.Client.EnhancedTagRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseEnhancedTagModel, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponseEnhancedTagModel, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -46,8 +58,8 @@ defmodule ExOura.Client.EnhancedTagRoutes do
   Single Enhanced Tag Document
   """
   @spec single_enhanced_tag_document_v2_usercollection_enhanced_tag_document_id_get(
-          String.t(),
-          keyword
+          document_id :: String.t(),
+          opts :: keyword
         ) ::
           {:ok, EnhancedTagModel.t()}
           | {:error, HTTPValidationError.t()}

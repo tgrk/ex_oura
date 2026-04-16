@@ -1,6 +1,10 @@
 defmodule ExOura.Client.WorkoutRoutes do
-  @moduledoc false
+  @moduledoc """
+  Provides API endpoints related to workout routes
+  """
+
   alias ExOura.Client.HTTPValidationError
+  alias ExOura.Client.MultiDocumentResponseDict
   alias ExOura.Client.MultiDocumentResponsePublicWorkout
   alias ExOura.Client.PublicWorkout
   alias ExOura.Client.WorkoutRoutes
@@ -15,14 +19,17 @@ defmodule ExOura.Client.WorkoutRoutes do
     * `start_date`
     * `end_date`
     * `next_token`
+    * `fields`: Comma-separated list of fields to include in the response, in addition to the always returned fields. Defaults to all fields if not provided.
 
   """
-  @spec multiple_workout_documents_v2_usercollection_workout_get(keyword) ::
-          {:ok, MultiDocumentResponsePublicWorkout.t()}
+  @spec multiple_workout_documents_v2_usercollection_workout_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponsePublicWorkout.t()}
           | {:error, HTTPValidationError.t()}
   def multiple_workout_documents_v2_usercollection_workout_get(opts \\ []) do
     client = opts[:client] || @default_client
-    query = Keyword.take(opts, [:end_date, :next_token, :start_date])
+    query = Keyword.take(opts, [:end_date, :fields, :next_token, :start_date])
 
     client.request(%{
       args: [],
@@ -31,7 +38,12 @@ defmodule ExOura.Client.WorkoutRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponsePublicWorkout, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponsePublicWorkout, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -45,7 +57,10 @@ defmodule ExOura.Client.WorkoutRoutes do
   @doc """
   Single Workout Document
   """
-  @spec single_workout_document_v2_usercollection_workout_document_id_get(String.t(), keyword) ::
+  @spec single_workout_document_v2_usercollection_workout_document_id_get(
+          document_id :: String.t(),
+          opts :: keyword
+        ) ::
           {:ok, PublicWorkout.t()} | {:error, HTTPValidationError.t()}
   def single_workout_document_v2_usercollection_workout_document_id_get(document_id, opts \\ []) do
     client = opts[:client] || @default_client

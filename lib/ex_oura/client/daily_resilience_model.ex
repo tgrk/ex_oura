@@ -1,5 +1,8 @@
 defmodule ExOura.Client.DailyResilienceModel do
-  @moduledoc false
+  @moduledoc """
+  Provides struct and type for a DailyResilienceModel
+  """
+
   alias ExOura.Client.ResilienceContributors
 
   @type t :: %__MODULE__{
@@ -18,8 +21,8 @@ defmodule ExOura.Client.DailyResilienceModel do
   def __fields__(:t) do
     [
       contributors: {ResilienceContributors, :t},
-      day: {:string, :date},
-      id: {:string, :generic},
+      day: {:string, "date"},
+      id: :string,
       level: {:enum, ["limited", "adequate", "solid", "strong", "exceptional"]}
     ]
   end

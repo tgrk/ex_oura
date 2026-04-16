@@ -1,5 +1,8 @@
 defmodule ExOura.Client.PersonalInfoResponse do
-  @moduledoc false
+  @moduledoc """
+  Provides struct and type for a PersonalInfoResponse
+  """
+
   @type t :: %__MODULE__{
           age: integer | nil,
           biological_sex: String.t() | nil,
@@ -18,10 +21,10 @@ defmodule ExOura.Client.PersonalInfoResponse do
   def __fields__(:t) do
     [
       age: {:union, [:integer, :null]},
-      biological_sex: {:union, [{:string, :generic}, :null]},
-      email: {:union, [{:string, :generic}, :null]},
+      biological_sex: {:union, [:string, :null]},
+      email: {:union, [:string, :null]},
       height: {:union, [:number, :null]},
-      id: {:string, :generic},
+      id: :string,
       weight: {:union, [:number, :null]}
     ]
   end

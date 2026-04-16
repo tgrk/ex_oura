@@ -1,5 +1,8 @@
 defmodule ExOura.Client.HTTPValidationError do
-  @moduledoc false
+  @moduledoc """
+  Provides struct and type for a HTTPValidationError
+  """
+
   alias ExOura.Client.ValidationError
 
   @type t :: %__MODULE__{detail: [ValidationError.t()] | nil}

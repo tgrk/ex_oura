@@ -52,6 +52,7 @@ defmodule ExOura.Client do
   """
   def call_api(mod, fun, args, opts) do
     with :ok <- validate_date_range_args(opts),
+         :ok <- validate_datetime_range_args(opts),
          true <- client_ready?(opts) do
       apply(mod, fun, args, opts)
     else
@@ -452,9 +453,32 @@ defmodule ExOura.Client do
     end
   end
 
+  defp validate_datetime_range_args(opts) do
+    start_datetime = Keyword.get(opts, :start_datetime)
+    end_datetime = Keyword.get(opts, :end_datetime)
+
+    if start_datetime != nil && end_datetime != nil do
+      case {valid_datetime?(start_datetime), valid_datetime?(end_datetime)} do
+        {false, _} -> {:error, :invalid_start_datetime}
+        {_, false} -> {:error, :invalid_end_datetime}
+        {true, true} -> start_datetime_before_end_datetime?(start_datetime, end_datetime)
+      end
+    else
+      :ok
+    end
+  end
+
   defp start_date_before_end_date?(start_date, end_date) do
     if Date.before?(end_date, start_date) do
       {:error, :end_date_before_start_date}
+    else
+      :ok
+    end
+  end
+
+  defp start_datetime_before_end_datetime?(start_datetime, end_datetime) do
+    if datetime_compare_value(end_datetime) < datetime_compare_value(start_datetime) do
+      {:error, :end_datetime_before_start_datetime}
     else
       :ok
     end
@@ -464,6 +488,17 @@ defmodule ExOura.Client do
 
   defp valid_date?(%Date{} = _date), do: true
   defp valid_date?(_date), do: false
+  defp valid_datetime?(%DateTime{} = _datetime), do: true
+  defp valid_datetime?(%NaiveDateTime{} = _datetime), do: true
+  defp valid_datetime?(_datetime), do: false
+
+  defp datetime_compare_value(%DateTime{} = datetime), do: DateTime.to_unix(datetime, :microsecond)
+
+  defp datetime_compare_value(%NaiveDateTime{} = datetime) do
+    datetime
+    |> DateTime.from_naive!("Etc/UTC")
+    |> DateTime.to_unix(:microsecond)
+  end
 
   defp maybe_refresh_token(%{auth_type: :oauth2, expires_at: expires_at, refresh_token: refresh_token} = state)
        when is_binary(refresh_token) do

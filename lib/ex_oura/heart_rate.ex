@@ -5,8 +5,8 @@ defmodule ExOura.HeartRate do
 
   alias ExOura.Client
 
-  @type start_datetime :: Date.t() | DateTime.t() | NaiveDateTime.t()
-  @type end_datetime :: Date.t() | DateTime.t() | NaiveDateTime.t()
+  @type start_datetime :: DateTime.t() | NaiveDateTime.t()
+  @type end_datetime :: DateTime.t() | NaiveDateTime.t()
   @type next_token :: String.t() | nil
   @type opts :: Keyword.t()
 

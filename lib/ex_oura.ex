@@ -107,8 +107,8 @@ defmodule ExOura do
   @type opts() :: Keyword.t()
   @type start_date() :: Date.t()
   @type end_date() :: Date.t()
-  @type start_datetime() :: Date.t() | DateTime.t() | NaiveDateTime.t()
-  @type end_datetime() :: Date.t() | DateTime.t() | NaiveDateTime.t()
+  @type start_datetime() :: DateTime.t() | NaiveDateTime.t()
+  @type end_datetime() :: DateTime.t() | NaiveDateTime.t()
   @type next_token() :: String.t() | nil
   @type document_id() :: String.t()
   @type webhook_id() :: String.t()

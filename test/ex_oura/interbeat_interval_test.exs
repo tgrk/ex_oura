@@ -12,15 +12,24 @@ defmodule ExOura.InterbeatIntervalTest do
         {:ok, :stubbed}
       end do
       assert {:ok, :stubbed} =
-               ExOura.multiple_interbeat_interval(~D[2024-11-11], ~D[2024-11-12], "token123")
+               ExOura.multiple_interbeat_interval(
+                 ~U[2024-11-11 00:00:00Z],
+                 ~N[2024-11-12 00:00:00],
+                 "token123"
+               )
 
       assert_received {:call_api, Client.InterbeatIntervalRoutes,
                        :multiple_interbeat_interval_documents_v2_usercollection_interbeat_interval_get, [],
                        [
-                         start_datetime: ~D[2024-11-11],
-                         end_datetime: ~D[2024-11-12],
+                         start_datetime: ~U[2024-11-11 00:00:00Z],
+                         end_datetime: ~N[2024-11-12 00:00:00],
                          next_token: "token123"
                        ]}
     end
+  end
+
+  test "multiple_interbeat_interval rejects Date params" do
+    assert {:error, :invalid_start_datetime} =
+             ExOura.multiple_interbeat_interval(~D[2024-11-11], ~U[2024-11-12 00:00:00Z], "token123")
   end
 end

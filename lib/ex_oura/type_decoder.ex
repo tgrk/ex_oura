@@ -75,7 +75,7 @@ defmodule ExOura.TypeDecoder do
   def decode_response(status, body, operation) do
     case get_type(operation, status) do
       {:ok, response_type} ->
-        {:ok, decode(body, response_type)}
+        {:ok, decode(body, maybe_prefer_dict_union(response_type, operation))}
 
       {:error, :unable_to_decode} = error ->
         error
@@ -97,13 +97,25 @@ defmodule ExOura.TypeDecoder do
     end
   end
 
+  defp maybe_prefer_dict_union({:union, types}, %{query: query}) when is_list(query) do
+    if fields_requested?(query) do
+      Enum.find(types, &dict_union_type?/1) || {:union, types}
+    else
+      {:union, types}
+    end
+  end
+
+  defp maybe_prefer_dict_union(response_type, _operation), do: response_type
+
   # Core decoding functions
 
   defp decode(nil, _response_type), do: nil
   defp decode(value, {:string, :date}), do: Date.from_iso8601!(value)
   defp decode(value, {:string, "date"}), do: Date.from_iso8601!(value)
+  defp decode(value, {:string, :"date-time"}), do: parse_datetime!(value)
+  defp decode(value, {:string, "date-time"}), do: parse_datetime!(value)
   defp decode(value, {:union, types}), do: decode(value, union(value, types))
-  defp decode(value, :string) when is_binary(value), do: maybe_parse_string(value)
+  defp decode(value, :string) when is_binary(value), do: value
 
   defp decode(value, [type]), do: Enum.map(value, &decode(&1, type))
 
@@ -118,7 +130,12 @@ defmodule ExOura.TypeDecoder do
             decoded_value
 
           field_value ->
-            Map.put(decoded_value, field_name, decode(field_value, field_type))
+            decoded_field_value =
+              field_value
+              |> decode(field_type)
+              |> maybe_parse_temporal_field(field_name)
+
+            Map.put(decoded_value, field_name, decoded_field_value)
         end
     end
   end
@@ -136,7 +153,7 @@ defmodule ExOura.TypeDecoder do
 
   # Generic string handling with smart date/datetime parsing
   defp decode(value, {:string, :generic}) when is_binary(value) do
-    maybe_parse_string(value)
+    value
   end
 
   defp decode(value, _type), do: value
@@ -168,16 +185,50 @@ defmodule ExOura.TypeDecoder do
     end
   end
 
-  defp maybe_parse_string(value) do
-    case Date.from_iso8601(value) do
-      {:ok, date} ->
-        date
+  defp maybe_parse_temporal_field(value, field_name) when is_binary(value) do
+    field_name
+    |> to_string()
+    |> temporal_field_parser()
+    |> case do
+      :date -> maybe_parse_date(value)
+      :datetime -> maybe_parse_datetime(value)
+      :none -> value
+    end
+  end
 
-      _error ->
-        case DateTime.from_iso8601(value) do
-          {:ok, dt, _} -> dt
-          _error -> value
-        end
+  defp maybe_parse_temporal_field(value, _field_name), do: value
+
+  defp temporal_field_parser(field_name) do
+    cond do
+      field_name in ["day", "start_day", "end_day"] -> :date
+      field_name == "timestamp" -> :datetime
+      String.ends_with?(field_name, "_timestamp") -> :datetime
+      String.ends_with?(field_name, "_datetime") -> :datetime
+      String.ends_with?(field_name, "_time") -> :datetime
+      String.ends_with?(field_name, "_at") -> :datetime
+      field_name in ["bedtime_start", "bedtime_end"] -> :datetime
+      true -> :none
+    end
+  end
+
+  defp maybe_parse_date(value) do
+    case Date.from_iso8601(value) do
+      {:ok, date} -> date
+      _error -> value
+    end
+  end
+
+  defp maybe_parse_datetime(value) do
+    case DateTime.from_iso8601(value) do
+      {:ok, dt, _offset} -> dt
+      _error -> value
+    end
+  end
+
+  defp parse_datetime!(value) do
+    case DateTime.from_iso8601(value) do
+      {:ok, dt, _offset} -> dt
+      {:error, reason} -> raise ArgumentError, "invalid ISO8601 datetime #{inspect(value)}: #{inspect(reason)}"
     end
   end
 
@@ -188,6 +239,8 @@ defmodule ExOura.TypeDecoder do
   defp union_priority(:map), do: 3
   defp union_priority(_type), do: 1
 
+  defp union_type_match?(nil, :null), do: true
+  defp union_type_match?(value, {:union, types}), do: Enum.any?(types, &union_type_match?(value, &1))
   defp union_type_match?(value, {_, :t}), do: is_map(value)
   defp union_type_match?(value, {:enum, _values}), do: is_binary(value)
   defp union_type_match?(value, {:string, _format}), do: is_binary(value)
@@ -198,4 +251,15 @@ defmodule ExOura.TypeDecoder do
   defp union_type_match?(value, :map), do: is_map(value)
   defp union_type_match?(value, [type]), do: is_list(value) and Enum.all?(value, &union_type_match?(&1, type))
   defp union_type_match?(_value, _type), do: false
+
+  defp fields_requested?(query), do: query |> Keyword.get(:fields) |> present_value?()
+
+  defp present_value?(value) when value in [nil, ""], do: false
+  defp present_value?(_value), do: true
+
+  defp dict_union_type?({module, :t}) do
+    module |> Module.split() |> List.last() |> String.ends_with?("Dict")
+  end
+
+  defp dict_union_type?(_type), do: false
 end

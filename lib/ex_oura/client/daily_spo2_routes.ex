@@ -1,9 +1,13 @@
 defmodule ExOura.Client.DailySpo2Routes do
-  @moduledoc false
-  alias ExOura.Client.DailySpO2Model
+  @moduledoc """
+  Provides API endpoints related to daily spo2 routes
+  """
+
   alias ExOura.Client.DailySpo2Routes
   alias ExOura.Client.HTTPValidationError
-  alias ExOura.Client.MultiDocumentResponseDailySpO2Model
+  alias ExOura.Client.MultiDocumentResponseDict
+  alias ExOura.Client.MultiDocumentResponsePublicDailySpO2
+  alias ExOura.Client.PublicDailySpO2
 
   @default_client ExOura.Client
 
@@ -15,14 +19,17 @@ defmodule ExOura.Client.DailySpo2Routes do
     * `start_date`
     * `end_date`
     * `next_token`
+    * `fields`: Comma-separated list of fields to include in the response, in addition to the always returned fields. Defaults to all fields if not provided.
 
   """
-  @spec multiple_daily_spo2_documents_v2_usercollection_daily_spo2_get(keyword) ::
-          {:ok, MultiDocumentResponseDailySpO2Model.t()}
+  @spec multiple_daily_spo2_documents_v2_usercollection_daily_spo2_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponsePublicDailySpO2.t()}
           | {:error, HTTPValidationError.t()}
   def multiple_daily_spo2_documents_v2_usercollection_daily_spo2_get(opts \\ []) do
     client = opts[:client] || @default_client
-    query = Keyword.take(opts, [:end_date, :next_token, :start_date])
+    query = Keyword.take(opts, [:end_date, :fields, :next_token, :start_date])
 
     client.request(%{
       args: [],
@@ -31,7 +38,12 @@ defmodule ExOura.Client.DailySpo2Routes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseDailySpO2Model, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponsePublicDailySpO2, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -46,10 +58,10 @@ defmodule ExOura.Client.DailySpo2Routes do
   Single Daily Spo2 Document
   """
   @spec single_daily_spo2_document_v2_usercollection_daily_spo2_document_id_get(
-          String.t(),
-          keyword
+          document_id :: String.t(),
+          opts :: keyword
         ) ::
-          {:ok, DailySpO2Model.t()}
+          {:ok, PublicDailySpO2.t()}
           | {:error, HTTPValidationError.t()}
   def single_daily_spo2_document_v2_usercollection_daily_spo2_document_id_get(document_id, opts \\ []) do
     client = opts[:client] || @default_client
@@ -60,7 +72,7 @@ defmodule ExOura.Client.DailySpo2Routes do
       url: "/v2/usercollection/daily_spo2/#{document_id}",
       method: :get,
       response: [
-        {200, {DailySpO2Model, :t}},
+        {200, {PublicDailySpO2, :t}},
         {400, :null},
         {401, :null},
         {403, :null},

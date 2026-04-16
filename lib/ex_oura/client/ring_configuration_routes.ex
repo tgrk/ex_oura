@@ -1,8 +1,12 @@
 defmodule ExOura.Client.RingConfigurationRoutes do
-  @moduledoc false
+  @moduledoc """
+  Provides API endpoints related to ring configuration routes
+  """
+
   alias ExOura.Client.HTTPValidationError
-  alias ExOura.Client.MultiDocumentResponseRingConfigurationModel
-  alias ExOura.Client.RingConfigurationModel
+  alias ExOura.Client.MultiDocumentResponseDict
+  alias ExOura.Client.MultiDocumentResponsePublicRingConfiguration
+  alias ExOura.Client.PublicRingConfiguration
   alias ExOura.Client.RingConfigurationRoutes
 
   @default_client ExOura.Client
@@ -12,15 +16,18 @@ defmodule ExOura.Client.RingConfigurationRoutes do
 
   ## Options
 
+    * `fields`: Comma-separated list of fields to include in the response, in addition to the always returned fields. Defaults to all fields if not provided.
     * `next_token`
 
   """
-  @spec multiple_ring_configuration_documents_v2_usercollection_ring_configuration_get(keyword) ::
-          {:ok, MultiDocumentResponseRingConfigurationModel.t()}
+  @spec multiple_ring_configuration_documents_v2_usercollection_ring_configuration_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponsePublicRingConfiguration.t()}
           | {:error, HTTPValidationError.t()}
   def multiple_ring_configuration_documents_v2_usercollection_ring_configuration_get(opts \\ []) do
     client = opts[:client] || @default_client
-    query = Keyword.take(opts, [:next_token])
+    query = Keyword.take(opts, [:fields, :next_token])
 
     client.request(%{
       args: [],
@@ -29,7 +36,12 @@ defmodule ExOura.Client.RingConfigurationRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseRingConfigurationModel, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponsePublicRingConfiguration, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -44,10 +56,10 @@ defmodule ExOura.Client.RingConfigurationRoutes do
   Single Ring Configuration Document
   """
   @spec single_ring_configuration_document_v2_usercollection_ring_configuration_document_id_get(
-          String.t(),
-          keyword
+          document_id :: String.t(),
+          opts :: keyword
         ) ::
-          {:ok, RingConfigurationModel.t()}
+          {:ok, PublicRingConfiguration.t()}
           | {:error, HTTPValidationError.t()}
   def single_ring_configuration_document_v2_usercollection_ring_configuration_document_id_get(document_id, opts \\ []) do
     client = opts[:client] || @default_client
@@ -60,7 +72,7 @@ defmodule ExOura.Client.RingConfigurationRoutes do
       url: "/v2/usercollection/ring_configuration/#{document_id}",
       method: :get,
       response: [
-        {200, {RingConfigurationModel, :t}},
+        {200, {PublicRingConfiguration, :t}},
         {400, :null},
         {401, :null},
         {403, :null},

@@ -1,9 +1,13 @@
 defmodule ExOura.Client.DailyCardiovascularAgeRoutes do
-  @moduledoc false
-  alias ExOura.Client.DailyCardiovascularAgeModel
+  @moduledoc """
+  Provides API endpoints related to daily cardiovascular age routes
+  """
+
   alias ExOura.Client.DailyCardiovascularAgeRoutes
   alias ExOura.Client.HTTPValidationError
-  alias ExOura.Client.MultiDocumentResponseDailyCardiovascularAgeModel
+  alias ExOura.Client.MultiDocumentResponseDict
+  alias ExOura.Client.MultiDocumentResponsePublicDailyCardiovascularAge
+  alias ExOura.Client.PublicDailyCardiovascularAge
 
   @default_client ExOura.Client
 
@@ -15,14 +19,17 @@ defmodule ExOura.Client.DailyCardiovascularAgeRoutes do
     * `start_date`
     * `end_date`
     * `next_token`
+    * `fields`: Comma-separated list of fields to include in the response, in addition to the always returned fields. Defaults to all fields if not provided.
 
   """
-  @spec multiple_daily_cardiovascular_age_documents_v2_usercollection_daily_cardiovascular_age_get(keyword) ::
-          {:ok, MultiDocumentResponseDailyCardiovascularAgeModel.t()}
+  @spec multiple_daily_cardiovascular_age_documents_v2_usercollection_daily_cardiovascular_age_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponsePublicDailyCardiovascularAge.t()}
           | {:error, HTTPValidationError.t()}
   def multiple_daily_cardiovascular_age_documents_v2_usercollection_daily_cardiovascular_age_get(opts \\ []) do
     client = opts[:client] || @default_client
-    query = Keyword.take(opts, [:end_date, :next_token, :start_date])
+    query = Keyword.take(opts, [:end_date, :fields, :next_token, :start_date])
 
     client.request(%{
       args: [],
@@ -33,7 +40,12 @@ defmodule ExOura.Client.DailyCardiovascularAgeRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseDailyCardiovascularAgeModel, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponsePublicDailyCardiovascularAge, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -48,10 +60,10 @@ defmodule ExOura.Client.DailyCardiovascularAgeRoutes do
   Single Daily Cardiovascular Age Document
   """
   @spec single_daily_cardiovascular_age_document_v2_usercollection_daily_cardiovascular_age_document_id_get(
-          String.t(),
-          keyword
+          document_id :: String.t(),
+          opts :: keyword
         ) ::
-          {:ok, DailyCardiovascularAgeModel.t()}
+          {:ok, PublicDailyCardiovascularAge.t()}
           | {:error, HTTPValidationError.t()}
   def single_daily_cardiovascular_age_document_v2_usercollection_daily_cardiovascular_age_document_id_get(
         document_id,
@@ -67,7 +79,7 @@ defmodule ExOura.Client.DailyCardiovascularAgeRoutes do
       url: "/v2/usercollection/daily_cardiovascular_age/#{document_id}",
       method: :get,
       response: [
-        {200, {DailyCardiovascularAgeModel, :t}},
+        {200, {PublicDailyCardiovascularAge, :t}},
         {400, :null},
         {401, :null},
         {403, :null},

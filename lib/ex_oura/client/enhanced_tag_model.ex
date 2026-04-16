@@ -1,5 +1,8 @@
 defmodule ExOura.Client.EnhancedTagModel do
-  @moduledoc false
+  @moduledoc """
+  Provides struct and type for a EnhancedTagModel
+  """
+
   @type t :: %__MODULE__{
           comment: String.t() | nil,
           custom_name: String.t() | nil,
@@ -28,14 +31,14 @@ defmodule ExOura.Client.EnhancedTagModel do
 
   def __fields__(:t) do
     [
-      comment: {:union, [{:string, :generic}, :null]},
-      custom_name: {:union, [{:string, :generic}, :null]},
-      end_day: {:union, [{:string, :date}, :null]},
-      end_time: {:union, [{:string, :generic}, :null]},
-      id: {:string, :generic},
-      start_day: {:string, :date},
-      start_time: {:string, :generic},
-      tag_type_code: {:union, [{:string, :generic}, :null]}
+      comment: {:union, [:string, :null]},
+      custom_name: {:union, [:string, :null]},
+      end_day: {:union, [{:string, "date"}, :null]},
+      end_time: {:union, [:string, :null]},
+      id: :string,
+      start_day: {:string, "date"},
+      start_time: :string,
+      tag_type_code: {:union, [:string, :null]}
     ]
   end
 end

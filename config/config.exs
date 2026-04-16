@@ -22,7 +22,8 @@ config :exvcr,
 config :oapi_generator,
   default: [
     output: [
-      base_module: ExOura,
+      base_module: ExOura.Client,
+      default_client: ExOura.Client,
       location: "lib/ex_oura/client"
     ]
   ]

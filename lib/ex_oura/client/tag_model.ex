@@ -1,5 +1,8 @@
 defmodule ExOura.Client.TagModel do
-  @moduledoc false
+  @moduledoc """
+  Provides struct and type for a TagModel
+  """
+
   @type t :: %__MODULE__{
           day: Date.t(),
           id: String.t(),
@@ -16,11 +19,11 @@ defmodule ExOura.Client.TagModel do
 
   def __fields__(:t) do
     [
-      day: {:string, :date},
-      id: {:string, :generic},
-      tags: [string: :generic],
-      text: {:union, [{:string, :generic}, :null]},
-      timestamp: {:string, :generic}
+      day: {:string, "date"},
+      id: :string,
+      tags: [:string],
+      text: {:union, [:string, :null]},
+      timestamp: :string
     ]
   end
 end

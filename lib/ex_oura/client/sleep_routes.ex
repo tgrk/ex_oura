@@ -1,8 +1,12 @@
 defmodule ExOura.Client.SleepRoutes do
-  @moduledoc false
+  @moduledoc """
+  Provides API endpoints related to sleep routes
+  """
+
   alias ExOura.Client.HTTPValidationError
-  alias ExOura.Client.MultiDocumentResponseSleepModel
-  alias ExOura.Client.SleepModel
+  alias ExOura.Client.MultiDocumentResponseDict
+  alias ExOura.Client.MultiDocumentResponsePublicModifiedSleepModel
+  alias ExOura.Client.PublicModifiedSleepModel
   alias ExOura.Client.SleepRoutes
 
   @default_client ExOura.Client
@@ -15,14 +19,17 @@ defmodule ExOura.Client.SleepRoutes do
     * `start_date`
     * `end_date`
     * `next_token`
+    * `fields`: Comma-separated list of fields to include in the response, in addition to the always returned fields. Defaults to all fields if not provided.
 
   """
-  @spec multiple_sleep_documents_v2_usercollection_sleep_get(keyword) ::
-          {:ok, MultiDocumentResponseSleepModel.t()}
+  @spec multiple_sleep_documents_v2_usercollection_sleep_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponsePublicModifiedSleepModel.t()}
           | {:error, HTTPValidationError.t()}
   def multiple_sleep_documents_v2_usercollection_sleep_get(opts \\ []) do
     client = opts[:client] || @default_client
-    query = Keyword.take(opts, [:end_date, :next_token, :start_date])
+    query = Keyword.take(opts, [:end_date, :fields, :next_token, :start_date])
 
     client.request(%{
       args: [],
@@ -31,7 +38,12 @@ defmodule ExOura.Client.SleepRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseSleepModel, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponsePublicModifiedSleepModel, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -45,8 +57,12 @@ defmodule ExOura.Client.SleepRoutes do
   @doc """
   Single Sleep Document
   """
-  @spec single_sleep_document_v2_usercollection_sleep_document_id_get(String.t(), keyword) ::
-          {:ok, SleepModel.t()} | {:error, HTTPValidationError.t()}
+  @spec single_sleep_document_v2_usercollection_sleep_document_id_get(
+          document_id :: String.t(),
+          opts :: keyword
+        ) ::
+          {:ok, PublicModifiedSleepModel.t()}
+          | {:error, HTTPValidationError.t()}
   def single_sleep_document_v2_usercollection_sleep_document_id_get(document_id, opts \\ []) do
     client = opts[:client] || @default_client
 
@@ -56,7 +72,7 @@ defmodule ExOura.Client.SleepRoutes do
       url: "/v2/usercollection/sleep/#{document_id}",
       method: :get,
       response: [
-        {200, {SleepModel, :t}},
+        {200, {PublicModifiedSleepModel, :t}},
         {400, :null},
         {401, :null},
         {403, :null},

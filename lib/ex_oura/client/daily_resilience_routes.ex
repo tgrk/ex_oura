@@ -1,9 +1,13 @@
 defmodule ExOura.Client.DailyResilienceRoutes do
-  @moduledoc false
+  @moduledoc """
+  Provides API endpoints related to daily resilience routes
+  """
+
   alias ExOura.Client.DailyResilienceModel
   alias ExOura.Client.DailyResilienceRoutes
   alias ExOura.Client.HTTPValidationError
   alias ExOura.Client.MultiDocumentResponseDailyResilienceModel
+  alias ExOura.Client.MultiDocumentResponseDict
 
   @default_client ExOura.Client
 
@@ -15,14 +19,17 @@ defmodule ExOura.Client.DailyResilienceRoutes do
     * `start_date`
     * `end_date`
     * `next_token`
+    * `fields`: N/A. This route does not support field selection yet, all fields will be returned.
 
   """
-  @spec multiple_daily_resilience_documents_v2_usercollection_daily_resilience_get(keyword) ::
-          {:ok, MultiDocumentResponseDailyResilienceModel.t()}
+  @spec multiple_daily_resilience_documents_v2_usercollection_daily_resilience_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDailyResilienceModel.t()
+           | MultiDocumentResponseDict.t()}
           | {:error, HTTPValidationError.t()}
   def multiple_daily_resilience_documents_v2_usercollection_daily_resilience_get(opts \\ []) do
     client = opts[:client] || @default_client
-    query = Keyword.take(opts, [:end_date, :next_token, :start_date])
+    query = Keyword.take(opts, [:end_date, :fields, :next_token, :start_date])
 
     client.request(%{
       args: [],
@@ -31,7 +38,12 @@ defmodule ExOura.Client.DailyResilienceRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseDailyResilienceModel, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDailyResilienceModel, :t},
+            {MultiDocumentResponseDict, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -46,8 +58,8 @@ defmodule ExOura.Client.DailyResilienceRoutes do
   Single Daily Resilience Document
   """
   @spec single_daily_resilience_document_v2_usercollection_daily_resilience_document_id_get(
-          String.t(),
-          keyword
+          document_id :: String.t(),
+          opts :: keyword
         ) ::
           {:ok, DailyResilienceModel.t()}
           | {:error, HTTPValidationError.t()}

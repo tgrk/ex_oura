@@ -1,9 +1,13 @@
 defmodule ExOura.Client.DailyActivityRoutes do
-  @moduledoc false
-  alias ExOura.Client.DailyActivityModel
+  @moduledoc """
+  Provides API endpoints related to daily activity routes
+  """
+
   alias ExOura.Client.DailyActivityRoutes
   alias ExOura.Client.HTTPValidationError
-  alias ExOura.Client.MultiDocumentResponseDailyActivityModel
+  alias ExOura.Client.MultiDocumentResponseDict
+  alias ExOura.Client.MultiDocumentResponsePublicDailyActivity
+  alias ExOura.Client.PublicDailyActivity
 
   @default_client ExOura.Client
 
@@ -15,14 +19,17 @@ defmodule ExOura.Client.DailyActivityRoutes do
     * `start_date`
     * `end_date`
     * `next_token`
+    * `fields`: Comma-separated list of fields to include in the response, in addition to the always returned fields. Defaults to all fields if not provided.
 
   """
-  @spec multiple_daily_activity_documents_v2_usercollection_daily_activity_get(keyword) ::
-          {:ok, MultiDocumentResponseDailyActivityModel.t()}
+  @spec multiple_daily_activity_documents_v2_usercollection_daily_activity_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponsePublicDailyActivity.t()}
           | {:error, HTTPValidationError.t()}
   def multiple_daily_activity_documents_v2_usercollection_daily_activity_get(opts \\ []) do
     client = opts[:client] || @default_client
-    query = Keyword.take(opts, [:end_date, :next_token, :start_date])
+    query = Keyword.take(opts, [:end_date, :fields, :next_token, :start_date])
 
     client.request(%{
       args: [],
@@ -31,7 +38,12 @@ defmodule ExOura.Client.DailyActivityRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseDailyActivityModel, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponsePublicDailyActivity, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -46,10 +58,10 @@ defmodule ExOura.Client.DailyActivityRoutes do
   Single Daily Activity Document
   """
   @spec single_daily_activity_document_v2_usercollection_daily_activity_document_id_get(
-          String.t(),
-          keyword
+          document_id :: String.t(),
+          opts :: keyword
         ) ::
-          {:ok, DailyActivityModel.t()}
+          {:ok, PublicDailyActivity.t()}
           | {:error, HTTPValidationError.t()}
   def single_daily_activity_document_v2_usercollection_daily_activity_document_id_get(document_id, opts \\ []) do
     client = opts[:client] || @default_client
@@ -60,7 +72,7 @@ defmodule ExOura.Client.DailyActivityRoutes do
       url: "/v2/usercollection/daily_activity/#{document_id}",
       method: :get,
       response: [
-        {200, {DailyActivityModel, :t}},
+        {200, {PublicDailyActivity, :t}},
         {400, :null},
         {401, :null},
         {403, :null},

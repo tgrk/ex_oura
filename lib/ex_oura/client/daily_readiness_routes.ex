@@ -1,9 +1,13 @@
 defmodule ExOura.Client.DailyReadinessRoutes do
-  @moduledoc false
-  alias ExOura.Client.DailyReadinessModel
+  @moduledoc """
+  Provides API endpoints related to daily readiness routes
+  """
+
   alias ExOura.Client.DailyReadinessRoutes
   alias ExOura.Client.HTTPValidationError
-  alias ExOura.Client.MultiDocumentResponseDailyReadinessModel
+  alias ExOura.Client.MultiDocumentResponseDict
+  alias ExOura.Client.MultiDocumentResponsePublicDailyReadiness
+  alias ExOura.Client.PublicDailyReadiness
 
   @default_client ExOura.Client
 
@@ -15,14 +19,17 @@ defmodule ExOura.Client.DailyReadinessRoutes do
     * `start_date`
     * `end_date`
     * `next_token`
+    * `fields`: Comma-separated list of fields to include in the response, in addition to the always returned fields. Defaults to all fields if not provided.
 
   """
-  @spec multiple_daily_readiness_documents_v2_usercollection_daily_readiness_get(keyword) ::
-          {:ok, MultiDocumentResponseDailyReadinessModel.t()}
+  @spec multiple_daily_readiness_documents_v2_usercollection_daily_readiness_get(opts :: keyword) ::
+          {:ok,
+           MultiDocumentResponseDict.t()
+           | MultiDocumentResponsePublicDailyReadiness.t()}
           | {:error, HTTPValidationError.t()}
   def multiple_daily_readiness_documents_v2_usercollection_daily_readiness_get(opts \\ []) do
     client = opts[:client] || @default_client
-    query = Keyword.take(opts, [:end_date, :next_token, :start_date])
+    query = Keyword.take(opts, [:end_date, :fields, :next_token, :start_date])
 
     client.request(%{
       args: [],
@@ -31,7 +38,12 @@ defmodule ExOura.Client.DailyReadinessRoutes do
       method: :get,
       query: query,
       response: [
-        {200, {MultiDocumentResponseDailyReadinessModel, :t}},
+        {200,
+         {:union,
+          [
+            {MultiDocumentResponseDict, :t},
+            {MultiDocumentResponsePublicDailyReadiness, :t}
+          ]}},
         {400, :null},
         {401, :null},
         {403, :null},
@@ -46,10 +58,10 @@ defmodule ExOura.Client.DailyReadinessRoutes do
   Single Daily Readiness Document
   """
   @spec single_daily_readiness_document_v2_usercollection_daily_readiness_document_id_get(
-          String.t(),
-          keyword
+          document_id :: String.t(),
+          opts :: keyword
         ) ::
-          {:ok, DailyReadinessModel.t()}
+          {:ok, PublicDailyReadiness.t()}
           | {:error, HTTPValidationError.t()}
   def single_daily_readiness_document_v2_usercollection_daily_readiness_document_id_get(document_id, opts \\ []) do
     client = opts[:client] || @default_client
@@ -60,7 +72,7 @@ defmodule ExOura.Client.DailyReadinessRoutes do
       url: "/v2/usercollection/daily_readiness/#{document_id}",
       method: :get,
       response: [
-        {200, {DailyReadinessModel, :t}},
+        {200, {PublicDailyReadiness, :t}},
         {400, :null},
         {401, :null},
         {403, :null},

@@ -1,5 +1,10 @@
 defmodule ExOura.Client.PublicWorkout do
-  @moduledoc false
+  @moduledoc """
+  Provides struct and type for a PublicWorkout
+  """
+
+  alias ExOura.Client.Metadata
+
   @type t :: %__MODULE__{
           activity: String.t(),
           calories: number | nil,
@@ -9,6 +14,7 @@ defmodule ExOura.Client.PublicWorkout do
           id: String.t(),
           intensity: String.t(),
           label: String.t() | nil,
+          meta: Metadata.t(),
           source: String.t(),
           start_datetime: String.t()
         }
@@ -22,6 +28,7 @@ defmodule ExOura.Client.PublicWorkout do
     :id,
     :intensity,
     :label,
+    :meta,
     :source,
     :start_datetime
   ]
@@ -32,16 +39,17 @@ defmodule ExOura.Client.PublicWorkout do
 
   def __fields__(:t) do
     [
-      activity: {:string, :generic},
+      activity: :string,
       calories: {:union, [:number, :null]},
-      day: {:string, :generic},
+      day: :string,
       distance: {:union, [:number, :null]},
-      end_datetime: {:string, :generic},
-      id: {:string, :generic},
+      end_datetime: :string,
+      id: :string,
       intensity: {:enum, ["easy", "moderate", "hard"]},
-      label: {:union, [{:string, :generic}, :null]},
+      label: {:union, [:string, :null]},
+      meta: {Metadata, :t},
       source: {:enum, ["manual", "autodetected", "confirmed", "workout_heart_rate"]},
-      start_datetime: {:string, :generic}
+      start_datetime: :string
     ]
   end
 end

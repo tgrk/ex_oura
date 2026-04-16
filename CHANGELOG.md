@@ -2,6 +2,24 @@
 
 ## [3.0.0](https://github.com/tgrk/ex_oura/compare/v2.0.2...v3.0.0) (2026-04-16)
 
+
+### ⚠ BREAKING CHANGES
+
+* support Oura OpenAPI v1.29 response models
+
+### Features
+
+* support Oura OpenAPI v1.29 response models ([576109f](https://github.com/tgrk/ex_oura/commit/576109fafd4766e2ae7b4f794a0ad1e041229c82))
+
+
+### Bug Fixes
+
+* correct Metadata updated_at type from string to datetime ([c4694c3](https://github.com/tgrk/ex_oura/commit/c4694c36925973dfeb0278da5d4d9ebfbf7e7b05))
+* correct typos in sleep time test names ([9d9c86f](https://github.com/tgrk/ex_oura/commit/9d9c86fa93d6368cae70dab8dc3409be1ca049fc))
+* preserve typed and dict response decoding ([ac62922](https://github.com/tgrk/ex_oura/commit/ac62922e7c03a2f7e8e304d8ec29dca5400ff36a))
+
+## [3.0.0](https://github.com/tgrk/ex_oura/compare/v2.0.2...v3.0.0) (2026-04-16)
+
 ### ⚠ BREAKING CHANGES
 
 * upgrade generated client to Oura OpenAPI v1.29

@@ -51,15 +51,15 @@ defmodule ExOura.Client do
   Calls Oura Client modules
   """
   def call_api(mod, fun, args, opts) do
-    with true <- client_ready?(opts),
-         :ok <- validate_date_range_args(opts) do
+    with :ok <- validate_date_range_args(opts),
+         true <- client_ready?(opts) do
       apply(mod, fun, args, opts)
     else
-      false ->
-        {:error, :client_not_ready}
-
       {:error, _reason} = error ->
         error
+
+      false ->
+        {:error, :client_not_ready}
     end
   end
 
@@ -76,6 +76,23 @@ defmodule ExOura.Client do
     [
       start_date: start_date,
       end_date: end_date,
+      next_token: next_token
+    ]
+  end
+
+  def datetime_range_args(start_datetime, end_datetime, next_token \\ nil)
+
+  def datetime_range_args(start_datetime, end_datetime, nil = _next_token) do
+    [
+      start_datetime: start_datetime,
+      end_datetime: end_datetime
+    ]
+  end
+
+  def datetime_range_args(start_datetime, end_datetime, next_token) do
+    [
+      start_datetime: start_datetime,
+      end_datetime: end_datetime,
       next_token: next_token
     ]
   end

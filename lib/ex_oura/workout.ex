@@ -3,8 +3,8 @@ defmodule ExOura.Workout do
   API functions for retrieving Oura workout data.
 
   Workout data includes both auto-detected workouts and manually entered workout sessions.
-  This data provides detailed information about exercise sessions including duration, intensity,
-  calories burned, heart rate zones, and workout-specific metrics.
+  This data provides workout summary information including activity, timestamps, intensity,
+  calories, distance, source, and optional labels.
 
   ## Workout Types
 
@@ -18,16 +18,15 @@ defmodule ExOura.Workout do
   Workout data is available shortly after the workout session ends. Historical workout
   data can be retrieved for up to 2 years.
 
-  ## Workout Metrics
+  ## Workout Summary Fields
 
   Each workout record includes:
   - Activity type and source (auto-detected vs manual)
-  - Start and end times
-  - Duration and intensity
+  - Start and end timestamps
+  - Intensity classification
   - Calories burned
-  - Average and maximum heart rate
-  - Time in different heart rate zones
-  - Motion count and intensity patterns
+  - Optional distance and label
+  - Oura metadata for the workout document
 
   ## Common Use Cases
 
@@ -55,8 +54,8 @@ defmodule ExOura.Workout do
   @type next_token :: String.t() | nil
   @type document_id :: String.t()
   @type opts :: Keyword.t()
-  @type workout_response :: {:ok, Client.MultiDocumentResponseWorkoutModel.t()} | {:error, term()}
-  @type single_workout_response :: {:ok, Client.WorkoutModel.t()} | {:error, term()}
+  @type workout_response :: {:ok, Client.MultiDocumentResponsePublicWorkout.t()} | {:error, term()}
+  @type single_workout_response :: {:ok, Client.PublicWorkout.t()} | {:error, term()}
 
   @doc """
   Retrieves multiple workout records for a specified date range.
@@ -93,16 +92,14 @@ defmodule ExOura.Workout do
       |> Enum.group_by(& &1.activity)
       |> Enum.each(fn {activity_type, workouts} ->
         count = length(workouts)
-        avg_duration = workouts |> Enum.map(& &1.duration) |> Enum.sum() |> div(count)
-        IO.puts("\#{activity_type}: \#{count} workouts, avg duration: \#{avg_duration}s")
+        total_calories = workouts |> Enum.map(&(&1.calories || 0)) |> Enum.sum()
+        IO.puts("\#{activity_type}: \#{count} workouts, \#{total_calories} total calories")
       end)
 
-      # Filter high-intensity workouts
-      high_intensity_workouts = workouts.data
-      |> Enum.filter(fn workout ->
-        workout.intensity == "high" or
-        (workout.average_heart_rate && workout.average_heart_rate > 150)
-      end)
+      # Filter labeled workouts
+      labeled_workouts =
+        workouts.data
+        |> Enum.filter(&is_binary(&1.label))
 
       # Handle pagination for large date ranges
       {:ok, page1} = ExOura.Workout.multiple_workout(
@@ -131,13 +128,11 @@ defmodule ExOura.Workout do
   - `day` - Date of the workout (YYYY-MM-DD)
   - `start_datetime` - When the workout started
   - `end_datetime` - When the workout ended
-  - `duration` - Workout duration in seconds
-  - `intensity` - Intensity level ("low", "medium", "high")
+  - `intensity` - Intensity level ("easy", "moderate", "hard")
   - `calories` - Calories burned during the workout
-  - `average_heart_rate` - Average heart rate (if available)
-  - `maximum_heart_rate` - Peak heart rate (if available)
-  - `heart_rate_zones` - Time spent in different HR zones
-  - `motion_count` - Movement intensity data
+  - `distance` - Distance in meters when available
+  - `label` - Optional user-visible workout label
+  - `meta` - Oura metadata for the workout document
   """
   @spec multiple_workout(start_date(), end_date(), next_token(), opts()) :: workout_response()
   def multiple_workout(start_date, end_date, next_token \\ nil, opts \\ []) do
@@ -175,16 +170,17 @@ defmodule ExOura.Workout do
       {:ok, workout} = ExOura.Workout.single_workout("workout_2025-01-15T14-30-00")
 
       IO.puts("Activity: \#{workout.activity}")
-      IO.puts("Duration: \#{workout.duration} seconds")
+      IO.puts("Start: \#{workout.start_datetime}")
       IO.puts("Calories: \#{workout.calories}")
-      IO.puts("Average HR: \#{workout.average_heart_rate} bpm")
+      IO.puts("Distance: \#{workout.distance}")
 
-      # Analyze heart rate zones
+      # Check whether the workout has a label
       case ExOura.Workout.single_workout("workout_id") do
         {:ok, workout} ->
-          if workout.heart_rate_zones do
-            IO.puts("Time in zones: \#{inspect(workout.heart_rate_zones)}")
+          if workout.label do
+            IO.puts("Label: \#{workout.label}")
           end
+
         {:error, reason} ->
           IO.puts("Error: \#{inspect(reason)}")
       end
@@ -193,7 +189,7 @@ defmodule ExOura.Workout do
       {:ok, workout} = ExOura.Workout.single_workout("workout_id")
 
       case {workout.source, workout.intensity} do
-        {"autodetected", "high"} ->
+        {"autodetected", "hard"} ->
           IO.puts("High-intensity workout automatically detected")
         {"manual", _} ->
           IO.puts("Manually logged workout")
@@ -210,8 +206,8 @@ defmodule ExOura.Workout do
 
   - Use `source` to distinguish between auto-detected and manual workouts
   - `intensity` provides a quick assessment of workout difficulty
-  - Heart rate data (when available) offers detailed cardiovascular insights
-  - Motion count can indicate movement patterns and workout variability
+  - `distance` and `calories` are the main quantitative workout fields in this model
+  - `label` can help distinguish user-curated sessions from generic activity names
   """
   @spec single_workout(document_id(), opts()) :: single_workout_response()
   def single_workout(document_id, opts \\ []) do

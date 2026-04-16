@@ -5,9 +5,19 @@ defmodule ExOura.Sleep do
 
   alias ExOura.Client
 
+  @type start_date :: Date.t()
+  @type end_date :: Date.t()
+  @type next_token :: String.t() | nil
+  @type document_id :: String.t()
+  @type opts :: Keyword.t()
+  @type sleep_response ::
+          {:ok, Client.MultiDocumentResponsePublicModifiedSleepModel.t()} | {:error, term()}
+  @type single_sleep_response :: {:ok, Client.PublicModifiedSleepModel.t()} | {:error, term()}
+
   @doc """
   Multiple Sleep
   """
+  @spec multiple_sleep(start_date(), end_date(), next_token(), opts()) :: sleep_response()
   def multiple_sleep(start_date, end_date, next_token \\ nil, opts \\ []) do
     Client.call_api(
       Client.SleepRoutes,
@@ -20,6 +30,7 @@ defmodule ExOura.Sleep do
   @doc """
   Single Sleep
   """
+  @spec single_sleep(document_id(), opts()) :: single_sleep_response()
   def single_sleep(document_id, opts \\ []) do
     Client.call_api(
       Client.SleepRoutes,

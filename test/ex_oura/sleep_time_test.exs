@@ -2,13 +2,13 @@ defmodule ExOura.SleepTimeTest do
   use ExOura.Test.Support.Case, async: true
   use ExVCR.Mock, adapter: ExVCR.Adapter.Finch
 
-  alias ExOura.Client.MultiDocumentResponseSleepTimeModel
-  alias ExOura.Client.SleepTimeModel
+  alias ExOura.Client.MultiDocumentResponsePublicSleepTime
+  alias ExOura.Client.PublicSleepTime
 
   describe "Sleep Time" do
     test "should return multiple sleep timeg" do
       use_cassette "multiple_sleep_time" do
-        assert {:ok, %MultiDocumentResponseSleepTimeModel{data: [_ | _]}} =
+        assert {:ok, %MultiDocumentResponsePublicSleepTime{data: [_ | _]}} =
                  ExOura.multiple_sleep_time(~D[2024-10-09], ~D[2024-11-03])
       end
     end
@@ -19,7 +19,7 @@ defmodule ExOura.SleepTimeTest do
 
     test "should return a single sleep time" do
       use_cassette "single_sleep_time" do
-        assert {:ok, %SleepTimeModel{}} =
+        assert {:ok, %PublicSleepTime{}} =
                  ExOura.single_sleep_time("b3a48c58-3f61-4cef-b091-d03ec3503a56")
       end
     end

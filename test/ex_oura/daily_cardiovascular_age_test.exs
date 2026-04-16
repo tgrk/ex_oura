@@ -2,20 +2,20 @@ defmodule ExOura.DailyCardiovascularAgeTest do
   use ExOura.Test.Support.Case, async: true
   use ExVCR.Mock, adapter: ExVCR.Adapter.Finch
 
-  alias ExOura.Client.DailyCardiovascularAgeModel
-  alias ExOura.Client.MultiDocumentResponseDailyCardiovascularAgeModel
+  alias ExOura.Client.MultiDocumentResponsePublicDailyCardiovascularAge
+  alias ExOura.Client.PublicDailyCardiovascularAge
 
   describe "Daily Cardiovascular Age" do
     test "should return multiple daily cardiovascular age" do
       use_cassette "multiple_daily_cardiovascular_age" do
-        assert {:ok, %MultiDocumentResponseDailyCardiovascularAgeModel{data: [_ | _]}} =
+        assert {:ok, %MultiDocumentResponsePublicDailyCardiovascularAge{data: [_ | _]}} =
                  ExOura.multiple_daily_cardiovascular_age(~D[2024-11-11], ~D[2024-11-12])
       end
     end
 
     test "should return multiple daily cardiovascular age with next_token" do
       use_cassette "multiple_daily_cardiovascular_age_with_token" do
-        assert {:ok, %MultiDocumentResponseDailyCardiovascularAgeModel{data: [_ | _]}} =
+        assert {:ok, %MultiDocumentResponsePublicDailyCardiovascularAge{data: [_ | _]}} =
                  ExOura.multiple_daily_cardiovascular_age(~D[2024-11-11], ~D[2024-11-12], "token123")
       end
     end
@@ -34,7 +34,7 @@ defmodule ExOura.DailyCardiovascularAgeTest do
 
     test "should return a single daily cardiovascular age" do
       use_cassette "single_daily_cardiovascular_age" do
-        assert {:ok, %DailyCardiovascularAgeModel{}} =
+        assert {:ok, %PublicDailyCardiovascularAge{}} =
                  ExOura.single_daily_cardiovascular_age("cardio-age-id-123")
       end
     end

@@ -2,26 +2,23 @@ defmodule ExOura.DailySleep do
   @moduledoc """
   API functions for retrieving Oura daily sleep data.
 
-  Daily sleep data provides comprehensive sleep metrics including sleep score, sleep duration,
-  bedtime and wake-up times, sleep efficiency, time in different sleep stages, and various
-  sleep quality indicators. This data represents the user's sleep patterns and quality.
+  Daily sleep data provides a compact day-level sleep summary including the sleep score,
+  contributing factors, and timestamps for when the daily aggregate was produced.
+
+  For detailed per-sleep-session metrics such as bedtime windows, sleep stages, or heart-rate
+  data, use `ExOura.Sleep`.
 
   ## Data Availability
 
   Daily sleep data is typically available by around 10 AM local time for the previous night.
   Historical data can be retrieved for up to 2 years.
 
-  ## Sleep Metrics Included
+  ## Daily Summary Included
 
   - Sleep score (0-100)
-  - Total sleep time and time in bed
-  - Sleep efficiency percentage
-  - Time spent in different sleep stages (deep, light, REM, awake)
-  - Sleep latency (time to fall asleep)
-  - Bedtime and wake-up times
-  - Heart rate variability during sleep
-  - Respiratory rate
-  - Sleep contributors (factors affecting sleep quality)
+  - Sleep contributors (factors affecting the score)
+  - Day-level identifier and timestamp
+  - Oura metadata for the aggregate document
 
   ## Common Use Cases
 
@@ -44,8 +41,8 @@ defmodule ExOura.DailySleep do
   @type next_token :: String.t() | nil
   @type document_id :: String.t()
   @type opts :: Keyword.t()
-  @type sleep_response :: {:ok, Client.MultiDocumentResponseDailySleepModel.t()} | {:error, term()}
-  @type single_sleep_response :: {:ok, Client.DailySleepModel.t()} | {:error, term()}
+  @type sleep_response :: {:ok, Client.MultiDocumentResponsePublicDailySleep.t()} | {:error, term()}
+  @type single_sleep_response :: {:ok, Client.PublicDailySleep.t()} | {:error, term()}
 
   @doc """
   Retrieves multiple daily sleep records for a specified date range.
@@ -77,12 +74,12 @@ defmodule ExOura.DailySleep do
         ~D[2025-01-31]
       )
 
-      # Access sleep metrics
+      # Access daily sleep summary data
       sleep_data.data
       |> Enum.each(fn sleep ->
         IO.puts("Sleep Score: \#{sleep.score}")
-        IO.puts("Total Sleep: \#{sleep.total_sleep_duration} minutes")
-        IO.puts("Sleep Efficiency: \#{sleep.efficiency}%")
+        IO.puts("Day: \#{sleep.day}")
+        IO.puts("Generated At: \#{sleep.timestamp}")
       end)
 
       # Handle pagination for larger date ranges
@@ -105,19 +102,13 @@ defmodule ExOura.DailySleep do
   - `data` - List of daily sleep records
   - `next_token` - Token for next page (nil if no more data)
 
-  Each sleep record includes comprehensive sleep metrics such as:
+  Each daily sleep record includes:
   - `id` - Unique identifier
   - `day` - Date of the sleep session (YYYY-MM-DD)
   - `score` - Overall sleep score (0-100)
-  - `total_sleep_duration` - Total sleep time in minutes
-  - `efficiency` - Sleep efficiency percentage
-  - `bedtime_start` - When the user went to bed
-  - `bedtime_end` - When the user woke up
-  - `deep_sleep_duration` - Time in deep sleep (minutes)
-  - `light_sleep_duration` - Time in light sleep (minutes)
-  - `rem_sleep_duration` - Time in REM sleep (minutes)
-  - `awake_duration` - Time awake in bed (minutes)
   - `contributors` - Factors affecting sleep score
+  - `timestamp` - When the aggregate document was recorded
+  - `meta` - Oura metadata for the aggregate document
   """
   @spec multiple_daily_sleep(start_date(), end_date(), next_token(), opts()) :: sleep_response()
   def multiple_daily_sleep(start_date, end_date, next_token \\ nil, opts \\ []) do
@@ -130,10 +121,7 @@ defmodule ExOura.DailySleep do
   end
 
   @doc """
-  Retrieves a single daily sleep record by its document ID.
-
-  Use this function when you need to fetch detailed sleep information for a specific night.
-  This is useful for getting comprehensive sleep metrics for a particular sleep session.
+  Retrieves a single daily sleep summary record by its document ID.
 
   ## Parameters
 
@@ -155,9 +143,8 @@ defmodule ExOura.DailySleep do
       {:ok, sleep} = ExOura.DailySleep.single_daily_sleep("daily_sleep_2025-01-15")
 
       IO.puts("Sleep Score: \#{sleep.score}")
-      IO.puts("Total Sleep: \#{sleep.total_sleep_duration} minutes")
-      IO.puts("Deep Sleep: \#{sleep.deep_sleep_duration} minutes")
-      IO.puts("REM Sleep: \#{sleep.rem_sleep_duration} minutes")
+      IO.puts("Day: \#{sleep.day}")
+      IO.puts("Generated At: \#{sleep.timestamp}")
 
       # Analyze sleep quality
       case ExOura.DailySleep.single_daily_sleep("daily_sleep_2025-01-15") do
@@ -171,16 +158,8 @@ defmodule ExOura.DailySleep do
 
   ## Response Structure
 
-  Returns a single sleep record with the same comprehensive metrics as described in
+  Returns a single daily sleep summary record with the same fields as described in
   `multiple_daily_sleep/4`, but without the pagination wrapper.
-
-  ## Sleep Stage Analysis
-
-  The response includes detailed sleep stage information:
-  - Deep sleep: Most restorative sleep phase
-  - Light sleep: Transitional sleep phase
-  - REM sleep: Associated with dreaming and memory consolidation
-  - Awake time: Time spent awake while in bed
   """
   @spec single_daily_sleep(document_id(), opts()) :: single_sleep_response()
   def single_daily_sleep(document_id, opts \\ []) do

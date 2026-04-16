@@ -5,15 +5,22 @@ defmodule ExOura.HeartRate do
 
   alias ExOura.Client
 
+  @type start_datetime :: Date.t() | DateTime.t() | NaiveDateTime.t()
+  @type end_datetime :: Date.t() | DateTime.t() | NaiveDateTime.t()
+  @type next_token :: String.t() | nil
+  @type opts :: Keyword.t()
+
   @doc """
   Multiple Heart Rate
   """
-  def multiple_heart_rate(start_date, end_date, next_token \\ nil, opts \\ []) do
+  @spec multiple_heart_rate(start_datetime(), end_datetime(), next_token(), opts()) ::
+          {:ok, Client.TimeSeriesResponsePublicHeartRateRow.t()} | {:error, term()}
+  def multiple_heart_rate(start_datetime, end_datetime, next_token \\ nil, opts \\ []) do
     Client.call_api(
       Client.HeartRateRoutes,
-      :multiple_heart_rate_documents_v2_usercollection_heartrate_get,
+      :multiple_heartrate_documents_v2_usercollection_heartrate_get,
       [],
-      Client.date_range_args(start_date, end_date, next_token) ++ opts
+      Client.datetime_range_args(start_datetime, end_datetime, next_token) ++ opts
     )
   end
 end

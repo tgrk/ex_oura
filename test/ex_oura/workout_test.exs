@@ -51,16 +51,17 @@ defmodule ExOura.WorkoutTest do
   describe "PublicWorkout Model" do
     test "should have correct field definitions" do
       expected_fields = [
-        activity: {:string, :generic},
+        activity: :string,
         calories: {:union, [:number, :null]},
-        day: {:string, :generic},
+        day: :string,
         distance: {:union, [:number, :null]},
-        end_datetime: {:string, :generic},
-        id: {:string, :generic},
+        end_datetime: :string,
+        id: :string,
         intensity: {:enum, ["easy", "moderate", "hard"]},
-        label: {:union, [{:string, :generic}, :null]},
+        label: {:union, [:string, :null]},
+        meta: {ExOura.Client.Metadata, :t},
         source: {:enum, ["manual", "autodetected", "confirmed", "workout_heart_rate"]},
-        start_datetime: {:string, :generic}
+        start_datetime: :string
       ]
 
       assert PublicWorkout.__fields__(:t) == expected_fields
@@ -78,6 +79,7 @@ defmodule ExOura.WorkoutTest do
         id: "workout-id-123",
         intensity: "moderate",
         label: "Morning run",
+        meta: nil,
         source: "manual",
         start_datetime: "2024-01-15T08:00:00Z"
       }

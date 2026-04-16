@@ -86,10 +86,10 @@ defmodule ExOura.TypeDecoder do
 
   defp get_type(%{response: response} = _operation, status) do
     case response |> Map.new() |> Map.get(status, nil) do
-      [{_response_type, :t}] = type ->
-        {:ok, type}
+      [type] ->
+        {:ok, [type]}
 
-      {_response_type, :t} = type ->
+      type when not is_nil(type) ->
         {:ok, type}
 
       _unexpected ->
@@ -101,7 +101,9 @@ defmodule ExOura.TypeDecoder do
 
   defp decode(nil, _response_type), do: nil
   defp decode(value, {:string, :date}), do: Date.from_iso8601!(value)
+  defp decode(value, {:string, "date"}), do: Date.from_iso8601!(value)
   defp decode(value, {:union, types}), do: decode(value, union(value, types))
+  defp decode(value, :string) when is_binary(value), do: maybe_parse_string(value)
 
   defp decode(value, [type]), do: Enum.map(value, &decode(&1, type))
 
@@ -134,18 +136,7 @@ defmodule ExOura.TypeDecoder do
 
   # Generic string handling with smart date/datetime parsing
   defp decode(value, {:string, :generic}) when is_binary(value) do
-    # Try to parse as date if it looks like a date string (YYYY-MM-DD format)
-    case Date.from_iso8601(value) do
-      {:ok, date} ->
-        date
-
-      _error ->
-        # Try to parse as datetime if it looks like an ISO8601 string
-        case DateTime.from_iso8601(value) do
-          {:ok, dt, _} -> dt
-          _error -> value
-        end
-    end
+    maybe_parse_string(value)
   end
 
   defp decode(value, _type), do: value
@@ -162,13 +153,49 @@ defmodule ExOura.TypeDecoder do
   end
 
   # Union type resolution logic
-  defp union(_value, [type, :null]), do: type
-  defp union(value, [:number, {:string, :generic}]) when is_number(value), do: :number
-  defp union(_value, [:number, {:string, :generic}]), do: :string
-  defp union(value, [:integer, {:string, :generic}]) when is_number(value), do: :integer
-  defp union(_value, [:integer, {:string, :generic}]), do: :string
-
-  defp union(_value, types) do
-    raise "TypedDecoder: Unable to decode union type #{inspect(types)}"
+  defp union(nil, types) do
+    if Enum.member?(types, :null), do: :null, else: hd(types)
   end
+
+  defp union(value, types) do
+    types
+    |> Enum.reject(&(&1 == :null))
+    |> Enum.sort_by(&union_priority/1)
+    |> Enum.find(&union_type_match?(value, &1))
+    |> case do
+      nil -> raise "TypedDecoder: Unable to decode union type #{inspect(types)}"
+      type -> type
+    end
+  end
+
+  defp maybe_parse_string(value) do
+    case Date.from_iso8601(value) do
+      {:ok, date} ->
+        date
+
+      _error ->
+        case DateTime.from_iso8601(value) do
+          {:ok, dt, _} -> dt
+          _error -> value
+        end
+    end
+  end
+
+  defp union_priority({module, :t}) do
+    if module |> Module.split() |> List.last() |> String.ends_with?("Dict"), do: 2, else: 0
+  end
+
+  defp union_priority(:map), do: 3
+  defp union_priority(_type), do: 1
+
+  defp union_type_match?(value, {_, :t}), do: is_map(value)
+  defp union_type_match?(value, {:enum, _values}), do: is_binary(value)
+  defp union_type_match?(value, {:string, _format}), do: is_binary(value)
+  defp union_type_match?(value, :string), do: is_binary(value)
+  defp union_type_match?(value, :integer), do: is_integer(value)
+  defp union_type_match?(value, :number), do: is_number(value)
+  defp union_type_match?(value, :boolean), do: is_boolean(value)
+  defp union_type_match?(value, :map), do: is_map(value)
+  defp union_type_match?(value, [type]), do: is_list(value) and Enum.all?(value, &union_type_match?(&1, type))
+  defp union_type_match?(_value, _type), do: false
 end

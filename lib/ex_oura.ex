@@ -89,10 +89,12 @@ defmodule ExOura do
   alias ExOura.DailyStress
   alias ExOura.EnhancedTag
   alias ExOura.HeartRate
+  alias ExOura.InterbeatInterval
   alias ExOura.OAuth2
   alias ExOura.Pagination
   alias ExOura.PersonalInfo
   alias ExOura.RestModePeriod
+  alias ExOura.RingBatteryLevel
   alias ExOura.RingConfiguration
   alias ExOura.Session
   alias ExOura.Sleep
@@ -105,6 +107,8 @@ defmodule ExOura do
   @type opts() :: Keyword.t()
   @type start_date() :: Date.t()
   @type end_date() :: Date.t()
+  @type start_datetime() :: Date.t() | DateTime.t() | NaiveDateTime.t()
+  @type end_datetime() :: Date.t() | DateTime.t() | NaiveDateTime.t()
   @type next_token() :: String.t() | nil
   @type document_id() :: String.t()
   @type webhook_id() :: String.t()
@@ -138,7 +142,7 @@ defmodule ExOura do
           end_date(),
           next_token(),
           opts()
-        ) :: {:ok, Client.MultiDocumentResponseDailyActivityModel.t()} | error()
+        ) :: {:ok, Client.MultiDocumentResponsePublicDailyActivity.t()} | error()
   defdelegate multiple_daily_activity(
                 start_date,
                 end_date,
@@ -164,7 +168,7 @@ defmodule ExOura do
 
   """
   @spec single_daily_activity(document_id(), opts()) ::
-          {:ok, Client.DailyActivityModel.t()} | error()
+          {:ok, Client.PublicDailyActivity.t()} | error()
   defdelegate single_daily_activity(document_id, opts \\ []), to: DailyActivity
 
   @doc """
@@ -175,7 +179,7 @@ defmodule ExOura do
           end_date(),
           next_token(),
           opts()
-        ) :: {:ok, Client.MultiDocumentResponseDailyCardiovascularAgeModel.t()} | error()
+        ) :: {:ok, Client.MultiDocumentResponsePublicDailyCardiovascularAge.t()} | error()
   defdelegate multiple_daily_cardiovascular_age(
                 start_date,
                 end_date,
@@ -188,7 +192,7 @@ defmodule ExOura do
   Single Daily Cardiovascular Age
   """
   @spec single_daily_cardiovascular_age(document_id(), opts()) ::
-          {:ok, Client.DailyCardiovascularAgeModel.t()} | error()
+          {:ok, Client.PublicDailyCardiovascularAge.t()} | error()
   defdelegate single_daily_cardiovascular_age(document_id, opts \\ []), to: DailyCardiovascularAge
 
   @doc """
@@ -199,7 +203,7 @@ defmodule ExOura do
           end_date(),
           next_token(),
           opts()
-        ) :: {:ok, Client.MultiDocumentResponseDailyReadinessModel.t()} | error()
+        ) :: {:ok, Client.MultiDocumentResponsePublicDailyReadiness.t()} | error()
   defdelegate multiple_daily_readiness(
                 start_date,
                 end_date,
@@ -212,7 +216,7 @@ defmodule ExOura do
   Single Daily Readiness
   """
   @spec single_daily_readiness(document_id(), opts()) ::
-          {:ok, Client.DailyReadinessModel.t()} | error()
+          {:ok, Client.PublicDailyReadiness.t()} | error()
   defdelegate single_daily_readiness(document_id, opts \\ []), to: DailyReadiness
 
   @doc """
@@ -242,8 +246,8 @@ defmodule ExOura do
   @doc """
   Retrieves multiple daily sleep records for a specified date range.
 
-  Returns comprehensive sleep data including sleep score, duration, sleep stages, and sleep quality metrics.
-  Essential for sleep tracking and analysis applications.
+  Returns the daily sleep summary documents for the requested date range.
+  For per-sleep-session details such as stage durations and bedtime windows, use `ExOura.Sleep`.
 
   ## Parameters
 
@@ -256,7 +260,7 @@ defmodule ExOura do
 
       {:ok, sleep_data} = ExOura.multiple_daily_sleep(~D[2025-01-01], ~D[2025-01-31])
       sleep_data.data |> Enum.each(fn sleep ->
-        IO.puts("Sleep score: \#{sleep.score}, Duration: \#{sleep.total_sleep_duration}min")
+        IO.puts("Sleep score: \#{sleep.score}, Day: \#{sleep.day}")
       end)
 
   """
@@ -265,7 +269,7 @@ defmodule ExOura do
           end_date(),
           next_token(),
           opts()
-        ) :: {:ok, Client.MultiDocumentResponseDailySleepModel.t()} | error()
+        ) :: {:ok, Client.MultiDocumentResponsePublicDailySleep.t()} | error()
   defdelegate multiple_daily_sleep(
                 start_date,
                 end_date,
@@ -277,7 +281,7 @@ defmodule ExOura do
   @doc """
   Retrieves a single daily sleep record by its document ID.
 
-  Use this for detailed sleep analysis of a specific night's sleep session.
+  Use this for retrieving the daily sleep summary for a specific day.
 
   ## Parameters
 
@@ -287,11 +291,11 @@ defmodule ExOura do
   ## Examples
 
       {:ok, sleep} = ExOura.single_daily_sleep("daily_sleep_2025-01-15")
-      IO.puts("Deep sleep: \#{sleep.deep_sleep_duration} minutes")
+      IO.puts("Sleep score: \#{sleep.score}, Timestamp: \#{sleep.timestamp}")
 
   """
   @spec single_daily_sleep(document_id(), opts()) ::
-          {:ok, Client.DailySleepModel.t()} | error()
+          {:ok, Client.PublicDailySleep.t()} | error()
   defdelegate single_daily_sleep(document_id, opts \\ []), to: DailySleep
 
   @doc """
@@ -302,7 +306,7 @@ defmodule ExOura do
           end_date(),
           next_token(),
           opts()
-        ) :: {:ok, Client.MultiDocumentResponseDailySpO2Model.t()} | error()
+        ) :: {:ok, Client.MultiDocumentResponsePublicDailySpO2.t()} | error()
   defdelegate multiple_daily_sp02(
                 start_date,
                 end_date,
@@ -315,7 +319,7 @@ defmodule ExOura do
   Single Daily Sp02
   """
   @spec single_daily_sp02(document_id(), opts()) ::
-          {:ok, Client.DailySpO2Model.t()} | error()
+          {:ok, Client.PublicDailySpO2.t()} | error()
   defdelegate single_daily_sp02(document_id, opts \\ []), to: DailySp02
 
   @doc """
@@ -326,7 +330,7 @@ defmodule ExOura do
           end_date(),
           next_token(),
           opts()
-        ) :: {:ok, Client.MultiDocumentResponseDailyStressModel.t()} | error()
+        ) :: {:ok, Client.MultiDocumentResponsePublicDailyStress.t()} | error()
   defdelegate multiple_daily_stress(
                 start_date,
                 end_date,
@@ -339,7 +343,7 @@ defmodule ExOura do
   Single Daily Stress
   """
   @spec single_daily_stress(document_id(), opts()) ::
-          {:ok, Client.DailyStressModel.t()} | error()
+          {:ok, Client.PublicDailyStress.t()} | error()
   defdelegate single_daily_stress(document_id, opts \\ []), to: DailyStress
 
   @doc """
@@ -370,18 +374,35 @@ defmodule ExOura do
   Multiple Heart Rate
   """
   @spec multiple_heart_rate(
-          start_date(),
-          end_date(),
+          start_datetime(),
+          end_datetime(),
           next_token(),
           opts()
-        ) :: {:ok, Client.TimeSeriesResponseHeartRateModel.t()} | error()
+        ) :: {:ok, Client.TimeSeriesResponsePublicHeartRateRow.t()} | error()
   defdelegate multiple_heart_rate(
-                start_date,
-                end_date,
+                start_datetime,
+                end_datetime,
                 next_token \\ nil,
                 opts \\ []
               ),
               to: HeartRate
+
+  @doc """
+  Multiple Interbeat Interval
+  """
+  @spec multiple_interbeat_interval(
+          start_datetime(),
+          end_datetime(),
+          next_token(),
+          opts()
+        ) :: {:ok, Client.TimeSeriesResponsePublicInterbeatIntervalRow.t()} | error()
+  defdelegate multiple_interbeat_interval(
+                start_datetime,
+                end_datetime,
+                next_token \\ nil,
+                opts \\ []
+              ),
+              to: InterbeatInterval
 
   @doc """
   Retrieves personal information for the authenticated user.
@@ -410,7 +431,7 @@ defmodule ExOura do
           end_date(),
           next_token(),
           opts()
-        ) :: {:ok, Client.MultiDocumentResponseRestModePeriodModel.t()} | error()
+        ) :: {:ok, Client.MultiDocumentResponsePublicRestModePeriod.t()} | error()
   defdelegate multiple_rest_mode_period(
                 start_date,
                 end_date,
@@ -423,7 +444,7 @@ defmodule ExOura do
   Single Rest Mode Period
   """
   @spec single_rest_mode_period(document_id(), opts()) ::
-          {:ok, Client.RestModePeriodModel.t()} | error()
+          {:ok, Client.PublicRestModePeriod.t()} | error()
   defdelegate single_rest_mode_period(document_id, opts \\ []), to: RestModePeriod
 
   @doc """
@@ -434,7 +455,7 @@ defmodule ExOura do
           end_date(),
           next_token(),
           opts()
-        ) :: {:ok, Client.MultiDocumentResponseRingConfigurationModel.t()} | error()
+        ) :: {:ok, Client.MultiDocumentResponsePublicRingConfiguration.t()} | error()
   defdelegate multiple_ring_configuration(
                 start_date,
                 end_date,
@@ -447,8 +468,25 @@ defmodule ExOura do
   Single Ring Configuration
   """
   @spec single_ring_configuration(document_id(), opts()) ::
-          {:ok, Client.RingConfigurationModel.t()} | error()
+          {:ok, Client.PublicRingConfiguration.t()} | error()
   defdelegate single_ring_configuration(document_id, opts \\ []), to: RingConfiguration
+
+  @doc """
+  Multiple Ring Battery Level
+  """
+  @spec multiple_ring_battery_level(
+          start_datetime(),
+          end_datetime(),
+          next_token(),
+          opts()
+        ) :: {:ok, Client.TimeSeriesResponsePublicRingBatteryLevelRow.t()} | error()
+  defdelegate multiple_ring_battery_level(
+                start_datetime,
+                end_datetime,
+                next_token \\ nil,
+                opts \\ []
+              ),
+              to: RingBatteryLevel
 
   @doc """
   Multiple Session
@@ -458,7 +496,7 @@ defmodule ExOura do
           end_date(),
           next_token(),
           opts()
-        ) :: {:ok, Client.MultiDocumentResponseSessionModel.t()} | error()
+        ) :: {:ok, Client.MultiDocumentResponsePublicSession.t()} | error()
   defdelegate multiple_session(
                 start_date,
                 end_date,
@@ -471,7 +509,7 @@ defmodule ExOura do
   Single Session
   """
   @spec single_session(document_id(), opts()) ::
-          {:ok, Client.SessionModel.t()} | error()
+          {:ok, Client.PublicSession.t()} | error()
   defdelegate single_session(document_id, opts \\ []), to: Session
 
   @doc """
@@ -482,7 +520,7 @@ defmodule ExOura do
           end_date(),
           next_token(),
           opts()
-        ) :: {:ok, Client.MultiDocumentResponseSleepModel.t()} | error()
+        ) :: {:ok, Client.MultiDocumentResponsePublicModifiedSleepModel.t()} | error()
   defdelegate multiple_sleep(
                 start_date,
                 end_date,
@@ -495,7 +533,7 @@ defmodule ExOura do
   Single Sleep
   """
   @spec single_sleep(document_id(), opts()) ::
-          {:ok, Client.SleepModel.t()} | error()
+          {:ok, Client.PublicModifiedSleepModel.t()} | error()
   defdelegate single_sleep(document_id, opts \\ []), to: Sleep
 
   @doc """
@@ -506,7 +544,7 @@ defmodule ExOura do
           end_date(),
           next_token(),
           opts()
-        ) :: {:ok, Client.MultiDocumentResponseSleepTimeModel.t()} | error()
+        ) :: {:ok, Client.MultiDocumentResponsePublicSleepTime.t()} | error()
   defdelegate multiple_sleep_time(
                 start_date,
                 end_date,
@@ -519,7 +557,7 @@ defmodule ExOura do
   Single Sleep Time
   """
   @spec single_sleep_time(document_id(), opts()) ::
-          {:ok, Client.SleepTimeModel.t()} | error()
+          {:ok, Client.PublicSleepTime.t()} | error()
   defdelegate single_sleep_time(document_id, opts \\ []), to: SleepTime
 
   @doc """
@@ -530,7 +568,7 @@ defmodule ExOura do
           end_date(),
           next_token(),
           opts()
-        ) :: {:ok, Client.MultiDocumentResponseVo2MaxModel.t()} | error()
+        ) :: {:ok, Client.MultiDocumentResponsePublicVo2Max.t()} | error()
   defdelegate multiple_vo2_max(
                 start_date,
                 end_date,
@@ -543,14 +581,14 @@ defmodule ExOura do
   Single Vo2 Max
   """
   @spec single_vo2_max(document_id(), opts()) ::
-          {:ok, Client.Vo2MaxModel.t()} | error()
+          {:ok, Client.PublicVo2Max.t()} | error()
   defdelegate single_vo2_max(document_id, opts \\ []), to: Vo2Max
 
   @doc """
   Retrieves multiple workout records for a specified date range.
 
-  Returns both auto-detected and manually logged workout sessions with detailed metrics
-  including duration, intensity, calories, and heart rate data.
+  Returns both auto-detected and manually logged workout sessions with summary fields
+  such as activity, timestamps, intensity, calories, distance, and labels.
 
   ## Parameters
 
@@ -563,7 +601,7 @@ defmodule ExOura do
 
       {:ok, workouts} = ExOura.multiple_workout(~D[2025-01-01], ~D[2025-01-31])
       workouts.data |> Enum.each(fn workout ->
-        IO.puts("\#{workout.activity}: \#{workout.duration}s, \#{workout.calories} cal")
+        IO.puts("\#{workout.activity}: \#{workout.calories} cal, intensity=\#{workout.intensity}")
       end)
 
   """
@@ -572,7 +610,7 @@ defmodule ExOura do
           end_date(),
           next_token(),
           opts()
-        ) :: {:ok, Client.MultiDocumentResponseWorkoutModel.t()} | error()
+        ) :: {:ok, Client.MultiDocumentResponsePublicWorkout.t()} | error()
   defdelegate multiple_workout(
                 start_date,
                 end_date,
@@ -584,8 +622,7 @@ defmodule ExOura do
   @doc """
   Retrieves a single workout record by its document ID.
 
-  Use this for detailed analysis of a specific workout session including heart rate zones
-  and comprehensive exercise metrics.
+  Use this for the summary fields available on a specific workout document.
 
   ## Parameters
 
@@ -595,11 +632,11 @@ defmodule ExOura do
   ## Examples
 
       {:ok, workout} = ExOura.single_workout("workout_2025-01-15T14-30-00")
-      IO.puts("Average HR: \#{workout.average_heart_rate} bpm")
+      IO.puts("Calories: \#{workout.calories}")
 
   """
   @spec single_workout(document_id(), opts()) ::
-          {:ok, Client.WorkoutModel.t()} | error()
+          {:ok, Client.PublicWorkout.t()} | error()
   defdelegate single_workout(document_id, opts \\ []), to: Workout
 
   @doc """

@@ -2,13 +2,13 @@ defmodule ExOura.Vo2MaxTest do
   use ExOura.Test.Support.Case, async: true
   use ExVCR.Mock, adapter: ExVCR.Adapter.Finch
 
-  alias ExOura.Client.MultiDocumentResponseVo2MaxModel
-  alias ExOura.Client.Vo2MaxModel
+  alias ExOura.Client.MultiDocumentResponsePublicVo2Max
+  alias ExOura.Client.PublicVo2Max
 
   describe "Vo2 Max" do
     test "should return multiple vo2 max" do
       use_cassette "multiple_vo2_max" do
-        assert {:ok, %MultiDocumentResponseVo2MaxModel{data: [_ | _]}} =
+        assert {:ok, %MultiDocumentResponsePublicVo2Max{data: [_ | _]}} =
                  ExOura.multiple_vo2_max(~D[2023-09-17], ~D[2024-11-03])
       end
     end
@@ -19,7 +19,7 @@ defmodule ExOura.Vo2MaxTest do
 
     test "should return a single vo2 max" do
       use_cassette "single_vo2_max" do
-        assert {:ok, %Vo2MaxModel{}} =
+        assert {:ok, %PublicVo2Max{}} =
                  ExOura.single_vo2_max("7c4d1981-ad05-4f24-b2c7-9ac826936555")
       end
     end

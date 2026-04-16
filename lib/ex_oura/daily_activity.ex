@@ -32,8 +32,9 @@ defmodule ExOura.DailyActivity do
   @type next_token :: String.t() | nil
   @type document_id :: String.t()
   @type opts :: Keyword.t()
-  @type activity_response :: {:ok, Client.MultiDocumentResponseDailyActivityModel.t()} | {:error, term()}
-  @type single_activity_response :: {:ok, Client.DailyActivityModel.t()} | {:error, term()}
+  @type activity_response ::
+          {:ok, Client.MultiDocumentResponsePublicDailyActivity.t()} | {:error, term()}
+  @type single_activity_response :: {:ok, Client.PublicDailyActivity.t()} | {:error, term()}
 
   @doc """
   Retrieves multiple daily activity records for a specified date range.

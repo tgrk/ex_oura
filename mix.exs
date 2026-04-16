@@ -1,7 +1,7 @@
 defmodule ExOura.MixProject do
   use Mix.Project
 
-  @version "2.0.2"
+  @version "2.1.2"
   @github_url "https://github.com/tgrk/ex_oura"
 
   def project do
@@ -29,7 +29,8 @@ defmodule ExOura.MixProject do
 
   defp aliases do
     [
-      coverage: &coverage/1
+      coverage: &coverage/1,
+      quality: ["format", "credo --strict", "dialyzer"]
     ]
   end
 

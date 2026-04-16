@@ -8,9 +8,9 @@
 [![License](https://img.shields.io/hexpm/l/ex_oura.svg)](https://github.com/sticksnleaves/ex_oura/blob/master/LICENSE.md)
 
 
-**An Elixir client for the Oura API, leveraging the OpenAPI v1.27 specification.**
+**An Elixir client for the Oura API, leveraging the OpenAPI v1.29 specification.**
 
-An Elixir library for interacting with the [Oura API](https://cloud.ouraring.com/v2/docs) with a base client generated using [OpenAPI Code Generator](https://github.com/aj-foster/open-api-generator) from [Oura OpenAPI specs v1.27](https://cloud.ouraring.com/v2/static/json/openapi-1.27.json). It supports basic functionality for tertrieving data from Oura, such as activity, readiness, and sleep metrics.
+An Elixir library for interacting with the [Oura API](https://cloud.ouraring.com/v2/docs) with a base client generated using [OpenAPI Code Generator](https://github.com/aj-foster/open-api-generator) from [Oura OpenAPI specs v1.29](https://cloud.ouraring.com/v2/static/json/openapi-1.29.json). It supports Oura collection APIs including activity, readiness, sleep, workouts, heart-rate-adjacent time series, and webhook management.
 
 ## Features
 
@@ -18,7 +18,7 @@ An Elixir library for interacting with the [Oura API](https://cloud.ouraring.com
 - **Personal Access Token** support (deprecated - to be removed by end of 2025)
 - Fetch data such as activity, readiness, and sleep metrics 
 - Built on the robust Elixir ecosystem 
-- Compatible with OpenAPI v1.27
+- Compatible with OpenAPI v1.29
 
 ## Installation
 
@@ -27,7 +27,7 @@ Add `ex_oura` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:ex_oura, "~> 2.0.0"}
+    {:ex_oura, "~> 3.0.0"}
   ]
 end
 ```
@@ -49,6 +49,7 @@ ExOura provides dedicated modules for each type of Oura data:
 ### Specialized Data Modules
 
 - **`ExOura.HeartRate`** - Time-series heart rate data (Gen 3+ only)
+- **`ExOura.InterbeatInterval`** - Time-series interbeat interval data
 - **`ExOura.DailySp02`** - Blood oxygen saturation data during sleep
 - **`ExOura.DailyStress`** - Daily stress levels and patterns
 - **`ExOura.DailyResilience`** - Resilience scores and stress recovery
@@ -57,6 +58,7 @@ ExOura provides dedicated modules for each type of Oura data:
 - **`ExOura.Session`** - Guided sessions and breathing exercises
 - **`ExOura.Sleep`** - Detailed sleep session data
 - **`ExOura.SleepTime`** - Sleep timing preferences
+- **`ExOura.RingBatteryLevel`** - Time-series ring battery level events
 - **`ExOura.Vo2Max`** - VO2 Max measurements
 - **`ExOura.WebhookSubscription`** - Webhook management
 
@@ -79,7 +81,7 @@ ExOura provides dedicated modules for each type of Oura data:
    # In mix.exs
    def deps do
      [
-       {:ex_oura, "~> 2.0.0"}
+       {:ex_oura, "~> 3.0.0"}
      ]
    end
    ```

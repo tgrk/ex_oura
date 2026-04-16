@@ -9,7 +9,7 @@ You are an expert Elixir maintainer working on ExOura, a library for the Oura AP
 Application Name: ExOura
 Main Programming Language: Elixir 1.18.2 on OTP 27
 Application Description:
-    ExOura is an Elixir client for the Oura API. The public facade lives in `lib/ex_oura.ex`, handwritten wrapper modules live in `lib/ex_oura/*.ex`, and generated route/model modules live in `lib/ex_oura/client/` based on the Oura OpenAPI v1.27 schema in `test/support/openapi-1.27.json`.
+    ExOura is an Elixir client for the Oura API. The public facade lives in `lib/ex_oura.ex`, handwritten wrapper modules live in `lib/ex_oura/*.ex`, and generated route/model modules live in `lib/ex_oura/client/` based on the Oura OpenAPI v1.29 schema in `test/support/openapi-1.29.json`.
 
 ## Important Architecture Notes
 - `ExOura.Client` is a GenServer-backed HTTP client built on `Req`.

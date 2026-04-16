@@ -3,7 +3,7 @@ defmodule ExOura.Client.Metadata do
   Provides struct and type for a Metadata
   """
 
-  @type t :: %__MODULE__{updated_at: String.t(), version: integer}
+  @type t :: %__MODULE__{updated_at: DateTime.t(), version: integer}
 
   defstruct [:updated_at, :version]
 
@@ -12,6 +12,6 @@ defmodule ExOura.Client.Metadata do
   def __fields__(type \\ :t)
 
   def __fields__(:t) do
-    [updated_at: :string, version: :integer]
+    [updated_at: :datetime, version: :integer]
   end
 end

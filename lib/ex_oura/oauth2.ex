@@ -320,7 +320,7 @@ defmodule ExOura.OAuth2 do
   defp validate_scopes!(scopes) do
     invalid_scopes = scopes -- @all_scopes
 
-    if length(invalid_scopes) > 0 do
+    if invalid_scopes != [] do
       raise ArgumentError, """
       Invalid OAuth2 scopes: #{inspect(invalid_scopes)}
 

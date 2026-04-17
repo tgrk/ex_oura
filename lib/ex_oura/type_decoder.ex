@@ -254,7 +254,8 @@ defmodule ExOura.TypeDecoder do
 
   defp fields_requested?(query), do: query |> Keyword.get(:fields) |> present_value?()
 
-  defp present_value?(value) when value in [nil, ""], do: false
+  defp present_value?(value) when value in [nil, "", []], do: false
+  defp present_value?(value) when is_binary(value), do: String.trim(value) != ""
   defp present_value?(_value), do: true
 
   defp dict_union_type?({module, :t}) do

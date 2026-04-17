@@ -12,6 +12,21 @@ defmodule ExOura.PublicContractTest do
 
   describe "top-level facade specs" do
     test "1.29 endpoints and migrated collections expose public response types" do
+      assert spec_string(ExOura, :multiple_daily_activity, 4) =~ "MultiDocumentResponsePublicDailyActivity"
+      assert spec_string(ExOura, :single_daily_activity, 2) =~ "PublicDailyActivity"
+
+      assert spec_string(ExOura, :multiple_daily_cardiovascular_age, 4) =~
+               "MultiDocumentResponsePublicDailyCardiovascularAge"
+
+      assert spec_string(ExOura, :single_daily_cardiovascular_age, 2) =~ "PublicDailyCardiovascularAge"
+      assert spec_string(ExOura, :multiple_daily_readiness, 4) =~ "MultiDocumentResponsePublicDailyReadiness"
+      assert spec_string(ExOura, :single_daily_readiness, 2) =~ "PublicDailyReadiness"
+      assert spec_string(ExOura, :multiple_daily_sleep, 4) =~ "MultiDocumentResponsePublicDailySleep"
+      assert spec_string(ExOura, :single_daily_sleep, 2) =~ "PublicDailySleep"
+      assert spec_string(ExOura, :multiple_daily_sp02, 4) =~ "MultiDocumentResponsePublicDailySpO2"
+      assert spec_string(ExOura, :single_daily_sp02, 2) =~ "PublicDailySpO2"
+      assert spec_string(ExOura, :multiple_daily_stress, 4) =~ "MultiDocumentResponsePublicDailyStress"
+      assert spec_string(ExOura, :single_daily_stress, 2) =~ "PublicDailyStress"
       assert spec_string(ExOura, :multiple_heart_rate, 4) =~ "TimeSeriesResponsePublicHeartRateRow"
       assert spec_string(ExOura, :multiple_interbeat_interval, 4) =~ "TimeSeriesResponsePublicInterbeatIntervalRow"
       assert spec_string(ExOura, :multiple_ring_battery_level, 4) =~ "TimeSeriesResponsePublicRingBatteryLevelRow"

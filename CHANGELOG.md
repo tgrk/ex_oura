@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.0.1](https://github.com/tgrk/ex_oura/compare/v3.0.0...v3.0.1) (2026-04-18)
+
+
+### Bug Fixes
+
+* correct set_auth_config typespec ([e36f90b](https://github.com/tgrk/ex_oura/commit/e36f90b0de2171a2bf30c463f77cc0f354dfe6e4))
+* harden upgrade decoder regression coverage ([977ec04](https://github.com/tgrk/ex_oura/commit/977ec04f3c76189641be2862dad7dc0c45860a56))
+
 ## [3.0.0](https://github.com/tgrk/ex_oura/compare/v2.0.2...v3.0.0) (2026-04-16)
 
 

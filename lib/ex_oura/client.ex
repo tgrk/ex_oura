@@ -26,7 +26,7 @@ defmodule ExOura.Client do
   @doc """
   Sets the OAuth2 authentication configuration for the client.
   """
-  @spec set_auth_config(OAuth2.oauth2_config()) :: :ok | {:error, term()}
+  @spec set_auth_config(OAuth2.oauth2_config() | OAuth2.token_response() | String.t()) :: :ok | {:error, term()}
   def set_auth_config(auth_config) do
     GenServer.call(__MODULE__, {:set_auth_config, auth_config}, @timeout)
   end

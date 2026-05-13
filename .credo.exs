@@ -66,6 +66,7 @@
       #
       checks: %{
         enabled: [
+          {ExSlop, []},
           #
           ## Consistency Checks
           #

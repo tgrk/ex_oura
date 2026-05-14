@@ -53,14 +53,8 @@ defmodule ExOura.Client do
   def call_api(mod, fun, args, opts) do
     with :ok <- validate_date_range_args(opts),
          :ok <- validate_datetime_range_args(opts),
-         true <- client_ready?(opts) do
+         :ok <- ensure_client_ready(opts) do
       apply(mod, fun, args, opts)
-    else
-      {:error, _reason} = error ->
-        error
-
-      false ->
-        {:error, :client_not_ready}
     end
   end
 
@@ -427,6 +421,14 @@ defmodule ExOura.Client do
     end
   end
 
+  defp ensure_client_ready(opts) do
+    if client_ready?(opts) do
+      :ok
+    else
+      {:error, :client_not_ready}
+    end
+  end
+
   defp webhook?(operation) do
     case Map.get(operation, :call) do
       {ExOura.Client.WebhookSubscriptionRoutes, _} -> true
@@ -446,7 +448,7 @@ defmodule ExOura.Client do
       case {valid_date?(start_date), valid_date?(end_date)} do
         {false, _} -> {:error, :invalid_start_date}
         {_, false} -> {:error, :invalid_end_date}
-        {true, true} -> start_date_before_end_date?(start_date, end_date)
+        {true, true} -> validate_date_order(start_date, end_date)
       end
     else
       :ok
@@ -461,14 +463,14 @@ defmodule ExOura.Client do
       case {valid_datetime?(start_datetime), valid_datetime?(end_datetime)} do
         {false, _} -> {:error, :invalid_start_datetime}
         {_, false} -> {:error, :invalid_end_datetime}
-        {true, true} -> start_datetime_before_end_datetime?(start_datetime, end_datetime)
+        {true, true} -> validate_datetime_order(start_datetime, end_datetime)
       end
     else
       :ok
     end
   end
 
-  defp start_date_before_end_date?(start_date, end_date) do
+  defp validate_date_order(start_date, end_date) do
     if Date.before?(end_date, start_date) do
       {:error, :end_date_before_start_date}
     else
@@ -476,7 +478,7 @@ defmodule ExOura.Client do
     end
   end
 
-  defp start_datetime_before_end_datetime?(start_datetime, end_datetime) do
+  defp validate_datetime_order(start_datetime, end_datetime) do
     if datetime_compare_value(end_datetime) < datetime_compare_value(start_datetime) do
       {:error, :end_datetime_before_start_datetime}
     else

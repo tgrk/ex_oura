@@ -66,7 +66,37 @@
       #
       checks: %{
         enabled: [
+          #
+          # Cheerfulstoic checks to detect inconsistent results and unnecessary reduce calls
+          #
+          {CredoResults.ConsistentResultCheck, []},
+          {CredoUnnecessaryReduce.Check, []},
+
+          #
+          # ExSlop to detect common LLM generated code issues
+          #
           {ExSlop, []},
+
+          #
+          # ForgeCredoChecks to detect common code patterns that are often suboptimal
+          #
+          {ForgeCredoChecks.FilterMap, []},
+          {ForgeCredoChecks.RejectMap, []},
+          {ForgeCredoChecks.MapReject, []},
+          {ForgeCredoChecks.MapRejectNil, []},
+          {ForgeCredoChecks.MapNewFromInto, []},
+          {ForgeCredoChecks.MapNewFromReduce, []},
+          {ForgeCredoChecks.ReverseListFirst, []},
+          {ForgeCredoChecks.SortListFirst, []},
+          {ForgeCredoChecks.WithBareBinding, []},
+          {ForgeCredoChecks.WithElseClauses, []},
+          {ForgeCredoChecks.WithResultTag, [allowed_atoms: [:ok, :error, :atomic]]},
+          {ForgeCredoChecks.InconsistentParamNames, []},
+          {ForgeCredoChecks.NoKernelShadowing, []},
+          {ForgeCredoChecks.NoUnnecessaryCatchAllRaise, []},
+          {ForgeCredoChecks.NoCaseTrueFalse, []},
+          {ForgeCredoChecks.NoKernelOpInPipeline, []},
+
           #
           ## Consistency Checks
           #

@@ -30,7 +30,7 @@ defmodule ExOura.MixProject do
   defp aliases do
     [
       coverage: &coverage/1,
-      quality: ["format", "credo --strict", "dialyzer"]
+      quality: ["format", "ex_dna", "credo --strict", "dialyzer"]
     ]
   end
 
@@ -54,7 +54,11 @@ defmodule ExOura.MixProject do
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:styler, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:ex_slop, "~> 0.4", only: [:dev, :test], runtime: false}
+      {:ex_dna, "~> 1.5", only: [:dev, :test], runtime: false},
+      {:ex_slop, "~> 0.4", only: [:dev, :test], runtime: false},
+      {:credo_results, "~> 0.1", only: [:dev, :test], runtime: false},
+      {:credo_unnecessary_reduce, "~> 0.4", only: [:dev, :test], runtime: false},
+      {:forge_credo_checks, "~> 0.4", only: [:dev, :test], runtime: false}
     ]
   end
 

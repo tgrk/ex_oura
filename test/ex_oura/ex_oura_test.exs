@@ -104,7 +104,7 @@ defmodule ExOuraTest do
 
   describe "OAuth2 and client delegates" do
     test "delegates OAuth2 helper functions" do
-      tokens = %{expires_at: DateTime.add(DateTime.utc_now(), 3600)}
+      tokens = %{expires_at: DateTime.shift(DateTime.utc_now(), hour: 1)}
 
       with_mock ExOura.OAuth2, [:passthrough],
         authorization_url: fn [state: "state-123"] -> "https://example.com/auth" end,

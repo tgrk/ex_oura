@@ -199,7 +199,7 @@ defmodule ExOura.OAuth2Test do
       expired_token = %{
         access_token: "token",
         # 1 hour ago
-        expires_at: DateTime.add(DateTime.utc_now(), -3600)
+        expires_at: DateTime.shift(DateTime.utc_now(), hour: -1)
       }
 
       assert OAuth2.token_expired?(expired_token) == true
@@ -209,7 +209,7 @@ defmodule ExOura.OAuth2Test do
       valid_token = %{
         access_token: "token",
         # 1 hour from now
-        expires_at: DateTime.add(DateTime.utc_now(), 3600)
+        expires_at: DateTime.shift(DateTime.utc_now(), hour: 1)
       }
 
       assert OAuth2.token_expired?(valid_token) == false
@@ -219,7 +219,7 @@ defmodule ExOura.OAuth2Test do
       soon_to_expire = %{
         access_token: "token",
         # 200 seconds from now
-        expires_at: DateTime.add(DateTime.utc_now(), 200)
+        expires_at: DateTime.shift(DateTime.utc_now(), second: 200)
       }
 
       # 5 minute buffer

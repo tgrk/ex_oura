@@ -251,7 +251,7 @@ defmodule ExOura.OAuth2 do
     expires_at = Map.get(tokens, :expires_at)
 
     if expires_at do
-      buffer_time = DateTime.add(DateTime.utc_now(), buffer_seconds)
+      buffer_time = DateTime.shift(DateTime.utc_now(), second: buffer_seconds)
       DateTime.before?(expires_at, buffer_time)
     else
       # If no expiry time, assume it's expired to be safe
@@ -354,7 +354,7 @@ defmodule ExOura.OAuth2 do
 
     expires_at =
       if expires_in do
-        DateTime.add(DateTime.utc_now(), expires_in)
+        DateTime.shift(DateTime.utc_now(), second: expires_in)
       end
 
     response

@@ -186,7 +186,7 @@ defmodule ExOura.ModelCoverageTest do
     test "ValidationError should have field definitions" do
       fields = ValidationError.__fields__(:t)
       assert fields[:ctx] == :map
-      assert fields[:input] == :map
+      assert fields[:input] == :any
       # Test default parameter
       assert ValidationError.__fields__() == fields
     end

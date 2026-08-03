@@ -7,8 +7,16 @@ defmodule ExOura.TypeDecoderTest do
   alias ExOura.Client.PublicRingConfiguration
   alias ExOura.Client.PublicWorkout
   alias ExOura.Client.TagModel
+  alias ExOura.Client.ValidationError
   alias ExOura.Client.WebhookSubscriptionModel
   alias ExOura.TypeDecoder
+
+  test "preserves scalar validation error input" do
+    operation = %{response: %{422 => {ValidationError, :t}}}
+    body = %{input: "invalid-date", loc: ["query", "start_date"], msg: "Invalid date", type: "date_parsing"}
+
+    assert {:ok, %ValidationError{input: "invalid-date"}} = TypeDecoder.decode_response(422, body, operation)
+  end
 
   test "preserves dict union responses when nested rows contain extra fields" do
     operation = %{

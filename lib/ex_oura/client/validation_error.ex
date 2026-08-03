@@ -5,7 +5,7 @@ defmodule ExOura.Client.ValidationError do
 
   @type t :: %__MODULE__{
           ctx: map | nil,
-          input: map | nil,
+          input: any,
           loc: [integer | String.t()],
           msg: String.t(),
           type: String.t()
@@ -18,6 +18,6 @@ defmodule ExOura.Client.ValidationError do
   def __fields__(type \\ :t)
 
   def __fields__(:t) do
-    [ctx: :map, input: :map, loc: [union: [:integer, :string]], msg: :string, type: :string]
+    [ctx: :map, input: :any, loc: [union: [:integer, :string]], msg: :string, type: :string]
   end
 end

@@ -13,7 +13,6 @@ defmodule ExOura.PaginationTest do
       end_date = ~D[2025-01-31]
 
       assert {:ok, data} = Pagination.fetch_all_pages(fetch_fn, start_date, end_date)
-      assert length(data) == 2
       assert data == [%{id: "1"}, %{id: "2"}]
     end
 
@@ -36,7 +35,6 @@ defmodule ExOura.PaginationTest do
       end_date = ~D[2025-01-31]
 
       assert {:ok, data} = Pagination.fetch_all_pages(fetch_fn, start_date, end_date)
-      assert length(data) == 3
       assert data == [%{id: "1"}, %{id: "2"}, %{id: "3"}]
     end
 
@@ -165,7 +163,6 @@ defmodule ExOura.PaginationTest do
       stream = Pagination.stream_all_pages(fetch_fn, start_date, end_date)
       data = Enum.to_list(stream)
 
-      assert length(data) == 3
       assert data == [%{id: "1"}, %{id: "2"}, %{id: "3"}]
     end
 

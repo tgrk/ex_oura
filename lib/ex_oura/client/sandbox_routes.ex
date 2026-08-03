@@ -40,7 +40,6 @@ defmodule ExOura.Client.SandboxRoutes do
   alias ExOura.Client.TagModel
   alias ExOura.Client.TimeSeriesResponseDict
   alias ExOura.Client.TimeSeriesResponsePublicHeartRateRow
-  alias ExOura.Client.TimeSeriesResponsePublicInterbeatIntervalRow
   alias ExOura.Client.TimeSeriesResponsePublicRingBatteryLevelRow
 
   @default_client ExOura.Client
@@ -418,49 +417,6 @@ defmodule ExOura.Client.SandboxRoutes do
           [
             {TimeSeriesResponseDict, :t},
             {TimeSeriesResponsePublicHeartRateRow, :t}
-          ]}},
-        {400, :null},
-        {401, :null},
-        {403, :null},
-        {422, {HTTPValidationError, :t}},
-        {429, :null}
-      ],
-      opts: opts
-    })
-  end
-
-  @doc """
-  Sandbox - Multiple Interbeat Interval Documents
-
-  ## Options
-
-    * `start_datetime`
-    * `end_datetime`
-    * `next_token`
-
-  """
-  @spec sandbox_multiple_interbeat_interval_documents_v2_sandbox_usercollection_interbeat_interval_get(opts :: keyword) ::
-          {:ok,
-           TimeSeriesResponseDict.t()
-           | TimeSeriesResponsePublicInterbeatIntervalRow.t()}
-          | {:error, HTTPValidationError.t()}
-  def sandbox_multiple_interbeat_interval_documents_v2_sandbox_usercollection_interbeat_interval_get(opts \\ []) do
-    client = opts[:client] || @default_client
-    query = Keyword.take(opts, [:end_datetime, :next_token, :start_datetime])
-
-    client.request(%{
-      args: [],
-      call:
-        {SandboxRoutes, :sandbox_multiple_interbeat_interval_documents_v2_sandbox_usercollection_interbeat_interval_get},
-      url: "/v2/sandbox/usercollection/interbeat_interval",
-      method: :get,
-      query: query,
-      response: [
-        {200,
-         {:union,
-          [
-            {TimeSeriesResponseDict, :t},
-            {TimeSeriesResponsePublicInterbeatIntervalRow, :t}
           ]}},
         {400, :null},
         {401, :null},

@@ -8,17 +8,16 @@
 [![License](https://img.shields.io/hexpm/l/ex_oura.svg)](https://github.com/sticksnleaves/ex_oura/blob/master/LICENSE.md)
 
 
-**An Elixir client for the Oura API, leveraging the OpenAPI v1.29 specification.**
+**An Elixir client for the Oura API, leveraging the OpenAPI v1.37 specification.**
 
-An Elixir library for interacting with the [Oura API](https://cloud.ouraring.com/v2/docs) with a base client generated using [OpenAPI Code Generator](https://github.com/aj-foster/open-api-generator) from [Oura OpenAPI specs v1.29](https://cloud.ouraring.com/v2/static/json/openapi-1.29.json). It supports Oura collection APIs including activity, readiness, sleep, workouts, heart-rate-adjacent time series, and webhook management.
+An Elixir library for interacting with the [Oura API](https://cloud.ouraring.com/v2/docs) with a base client generated using [OpenAPI Code Generator](https://github.com/aj-foster/open-api-generator) from [Oura OpenAPI specs v1.37](https://cloud.ouraring.com/v2/static/json/openapi-1.37.json). It supports Oura collection APIs including activity, readiness, sleep, workouts, heart-rate time series, and webhook management.
 
 ## Features
 
 - **OAuth2 authentication** support (recommended approach)
-- **Personal Access Token** support (deprecated - to be removed by end of 2025)
 - Fetch data such as activity, readiness, and sleep metrics 
 - Built on the robust Elixir ecosystem 
-- Compatible with OpenAPI v1.29
+- Compatible with OpenAPI v1.37
 
 ## Installation
 
@@ -49,7 +48,6 @@ ExOura provides dedicated modules for each type of Oura data:
 ### Specialized Data Modules
 
 - **`ExOura.HeartRate`** - Time-series heart rate data (Gen 3+ only)
-- **`ExOura.InterbeatInterval`** - Time-series interbeat interval data
 - **`ExOura.DailySp02`** - Blood oxygen saturation data during sleep
 - **`ExOura.DailyStress`** - Daily stress levels and patterns
 - **`ExOura.DailyResilience`** - Resilience scores and stress recovery

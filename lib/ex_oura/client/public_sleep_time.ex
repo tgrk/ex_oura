@@ -3,19 +3,17 @@ defmodule ExOura.Client.PublicSleepTime do
   Provides struct and type for a PublicSleepTime
   """
 
-  alias ExOura.Client.Metadata
   alias ExOura.Client.PublicSleepTimeWindow
 
   @type t :: %__MODULE__{
           day: String.t(),
           id: String.t(),
-          meta: Metadata.t(),
           optimal_bedtime: PublicSleepTimeWindow.t() | nil,
           recommendation: String.t() | nil,
           status: String.t() | nil
         }
 
-  defstruct [:day, :id, :meta, :optimal_bedtime, :recommendation, :status]
+  defstruct [:day, :id, :optimal_bedtime, :recommendation, :status]
 
   @doc false
   @spec __fields__(atom) :: keyword
@@ -25,7 +23,6 @@ defmodule ExOura.Client.PublicSleepTime do
     [
       day: :string,
       id: :string,
-      meta: {Metadata, :t},
       optimal_bedtime: {:union, [{PublicSleepTimeWindow, :t}, :null]},
       recommendation:
         {:union,

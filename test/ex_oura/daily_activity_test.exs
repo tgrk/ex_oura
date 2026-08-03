@@ -16,8 +16,7 @@ defmodule ExOura.DailyActivityTest do
                       day: ~D[2024-11-11],
                       id: "3e8de08b-9fa1-4fb0-8edc-0ccf097f6693",
                       score: 95,
-                      steps: 15_185,
-                      meta: _meta
+                      steps: 15_185
                     }
                   ]
                 }} = ExOura.multiple_daily_activity(~D[2024-11-11], ~D[2024-11-12])

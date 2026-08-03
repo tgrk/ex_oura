@@ -362,7 +362,8 @@ defmodule ExOura.Client do
       base_url: @base_url,
       params: Map.get(operation, :query, []),
       auth: {:bearer, access_token},
-      decode_json: [keys: :atoms],
+      compressed: true,
+      decoders: [json: &Jason.decode(&1, keys: :atoms)],
       body: Map.get(operation, :body),
       headers: maybe_include_client_credentials(operation, access_token)
     ]

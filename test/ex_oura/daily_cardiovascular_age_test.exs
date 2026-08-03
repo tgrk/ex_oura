@@ -6,6 +6,11 @@ defmodule ExOura.DailyCardiovascularAgeTest do
   alias ExOura.Client.PublicDailyCardiovascularAge
 
   describe "Daily Cardiovascular Age" do
+    test "exposes pulse wave velocity from OpenAPI 1.37" do
+      assert PublicDailyCardiovascularAge.__fields__(:t)[:pulse_wave_velocity] ==
+               {:union, [:number, :null]}
+    end
+
     test "should return multiple daily cardiovascular age" do
       use_cassette "multiple_daily_cardiovascular_age" do
         assert {:ok, %MultiDocumentResponsePublicDailyCardiovascularAge{data: [_ | _]}} =

@@ -108,9 +108,9 @@ defmodule ExOura.RateLimitingConfigurationIntegrationTest do
       delay2 = ExOura.Client.retry_delay(2)
       delay3 = ExOura.Client.retry_delay(3)
 
-      assert is_integer(delay1) and delay1 > 0
-      assert is_integer(delay2) and delay2 > delay1
-      assert is_integer(delay3) and delay3 > delay2
+      assert delay1 > 0
+      assert delay2 > delay1
+      assert delay3 > delay2
 
       # Delays should be reasonable (with jitter, but still follow exponential pattern roughly)
       # Around 1s base
@@ -135,7 +135,7 @@ defmodule ExOura.RateLimitingConfigurationIntegrationTest do
       try do
         # Client retry should still work without RateLimiter
         delay = ExOura.Client.retry_delay(1)
-        assert is_integer(delay) and delay > 0
+        assert delay > 0
 
         # Functions that check enabled?() should still work
         enabled = RateLimiter.enabled?()

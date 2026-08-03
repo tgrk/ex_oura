@@ -11,7 +11,7 @@ defmodule ExOura.Test.Support.Case do
       System.get_env("OURA_ACCESS_TOKEN") ||
         raise """
         environment variable OURA_ACCESS_TOKEN is missing.
-        See https://cloud.ouraring.com/personal-access-tokens for more details
+        Set it to an OAuth2 access token for cassette-backed integration tests.
         """
 
     case Process.whereis(ExOura.Client) do

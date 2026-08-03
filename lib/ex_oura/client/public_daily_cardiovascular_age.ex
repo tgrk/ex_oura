@@ -3,16 +3,14 @@ defmodule ExOura.Client.PublicDailyCardiovascularAge do
   Provides struct and type for a PublicDailyCardiovascularAge
   """
 
-  alias ExOura.Client.Metadata
-
   @type t :: %__MODULE__{
           day: String.t(),
           id: String.t(),
-          meta: Metadata.t(),
+          pulse_wave_velocity: number | nil,
           vascular_age: integer | nil
         }
 
-  defstruct [:day, :id, :meta, :vascular_age]
+  defstruct [:day, :id, :pulse_wave_velocity, :vascular_age]
 
   @doc false
   @spec __fields__(atom) :: keyword
@@ -22,7 +20,7 @@ defmodule ExOura.Client.PublicDailyCardiovascularAge do
     [
       day: :string,
       id: :string,
-      meta: {Metadata, :t},
+      pulse_wave_velocity: {:union, [:number, :null]},
       vascular_age: {:union, [:integer, :null]}
     ]
   end

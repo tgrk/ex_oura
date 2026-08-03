@@ -1,5 +1,16 @@
 # Changelog
 
+## [4.0.0](https://github.com/tgrk/ex_oura/compare/v3.0.1...v4.0.0) (2026-08-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* upgrade Oura OpenAPI client to v1.37 ([#84](https://github.com/tgrk/ex_oura/issues/84))
+
+### Features
+
+* upgrade Oura OpenAPI client to v1.37 ([#84](https://github.com/tgrk/ex_oura/issues/84)) ([544e2c6](https://github.com/tgrk/ex_oura/commit/544e2c60f8808fe47201cc985a03670dcecd0327))
+
 ## [3.0.1](https://github.com/tgrk/ex_oura/compare/v3.0.0...v3.0.1) (2026-04-18)
 
 

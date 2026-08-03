@@ -2,7 +2,6 @@ defmodule ExOura.TypeDecoderTest do
   use ExUnit.Case, async: true
 
   alias ExOura.Client.EnhancedTagModel
-  alias ExOura.Client.Metadata
   alias ExOura.Client.MultiDocumentResponseDict
   alias ExOura.Client.MultiDocumentResponsePublicWorkout
   alias ExOura.Client.PublicRingConfiguration
@@ -72,7 +71,6 @@ defmodule ExOura.TypeDecoderTest do
           id: "workout-id-123",
           intensity: "moderate",
           label: "Morning run",
-          meta: nil,
           source: "manual",
           start_datetime: "2024-01-15T08:00:00Z"
         }
@@ -106,7 +104,6 @@ defmodule ExOura.TypeDecoderTest do
       id: "workout-id-123",
       intensity: "moderate",
       label: "2024-01-15",
-      meta: nil,
       source: "manual",
       start_datetime: "2024-01-15T08:00:00Z"
     }
@@ -120,29 +117,23 @@ defmodule ExOura.TypeDecoderTest do
             }} = TypeDecoder.decode_response(200, body, operation)
   end
 
-  test "parses nested temporal metadata fields without coercing ordinary strings" do
+  test "decodes current ring configuration values and setup time" do
     operation = %{response: %{200 => {PublicRingConfiguration, :t}}}
 
     body = %{
-      color: "tide",
+      color: "deep_rose",
       firmware_version: "1.2.3",
-      hardware_type: "gen4",
+      hardware_type: "or5",
       id: "ring-config-123",
-      meta: %{
-        updated_at: "2024-01-15T08:30:00Z",
-        version: 7
-      },
       set_up_at: "2024-01-01T09:00:00Z",
       size: 10
     }
 
     assert {:ok,
             %PublicRingConfiguration{
+              color: "deep_rose",
               firmware_version: "1.2.3",
-              meta: %Metadata{
-                updated_at: ~U[2024-01-15 08:30:00Z],
-                version: 7
-              },
+              hardware_type: "or5",
               set_up_at: ~U[2024-01-01 09:00:00Z]
             }} = TypeDecoder.decode_response(200, body, operation)
   end

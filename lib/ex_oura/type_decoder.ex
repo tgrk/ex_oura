@@ -170,10 +170,6 @@ defmodule ExOura.TypeDecoder do
   end
 
   # Union type resolution logic
-  defp union(nil, types) do
-    if Enum.member?(types, :null), do: :null, else: hd(types)
-  end
-
   defp union(value, types) do
     types
     |> Enum.reject(&(&1 == :null))

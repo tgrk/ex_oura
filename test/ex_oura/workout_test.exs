@@ -59,7 +59,6 @@ defmodule ExOura.WorkoutTest do
         id: :string,
         intensity: {:enum, ["easy", "moderate", "hard"]},
         label: {:union, [:string, :null]},
-        meta: {ExOura.Client.Metadata, :t},
         source: {:enum, ["manual", "autodetected", "confirmed", "workout_heart_rate"]},
         start_datetime: :string
       ]
@@ -79,7 +78,6 @@ defmodule ExOura.WorkoutTest do
         id: "workout-id-123",
         intensity: "moderate",
         label: "Morning run",
-        meta: nil,
         source: "manual",
         start_datetime: "2024-01-15T08:00:00Z"
       }

@@ -3,7 +3,6 @@ defmodule ExOura.Client.PublicDailyActivity do
   Provides struct and type for a PublicDailyActivity
   """
 
-  alias ExOura.Client.Metadata
   alias ExOura.Client.PublicActivityContributors
   alias ExOura.Client.PublicSample
 
@@ -23,7 +22,6 @@ defmodule ExOura.Client.PublicDailyActivity do
           medium_activity_met_minutes: integer,
           medium_activity_time: integer,
           met: PublicSample.t(),
-          meta: Metadata.t(),
           meters_to_target: integer,
           non_wear_time: integer,
           resting_time: integer,
@@ -53,7 +51,6 @@ defmodule ExOura.Client.PublicDailyActivity do
     :medium_activity_met_minutes,
     :medium_activity_time,
     :met,
-    :meta,
     :meters_to_target,
     :non_wear_time,
     :resting_time,
@@ -88,7 +85,6 @@ defmodule ExOura.Client.PublicDailyActivity do
       medium_activity_met_minutes: :integer,
       medium_activity_time: :integer,
       met: {PublicSample, :t},
-      meta: {Metadata, :t},
       meters_to_target: :integer,
       non_wear_time: :integer,
       resting_time: :integer,

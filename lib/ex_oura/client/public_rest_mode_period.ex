@@ -3,7 +3,6 @@ defmodule ExOura.Client.PublicRestModePeriod do
   Provides struct and type for a PublicRestModePeriod
   """
 
-  alias ExOura.Client.Metadata
   alias ExOura.Client.PublicRestModeEpisode
 
   @type t :: %__MODULE__{
@@ -11,12 +10,11 @@ defmodule ExOura.Client.PublicRestModePeriod do
           end_time: String.t() | nil,
           episodes: [PublicRestModeEpisode.t()],
           id: String.t(),
-          meta: Metadata.t(),
           start_day: String.t(),
           start_time: String.t() | nil
         }
 
-  defstruct [:end_day, :end_time, :episodes, :id, :meta, :start_day, :start_time]
+  defstruct [:end_day, :end_time, :episodes, :id, :start_day, :start_time]
 
   @doc false
   @spec __fields__(atom) :: keyword
@@ -28,7 +26,6 @@ defmodule ExOura.Client.PublicRestModePeriod do
       end_time: {:union, [:string, :null]},
       episodes: [{PublicRestModeEpisode, :t}],
       id: :string,
-      meta: {Metadata, :t},
       start_day: :string,
       start_time: {:union, [:string, :null]}
     ]

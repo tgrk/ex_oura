@@ -17,7 +17,7 @@ defmodule ExOura.Client.HeartRateRoutes do
     * `start_datetime`
     * `end_datetime`
     * `next_token`
-    * `latest`
+    * `latest`: If True, returns most recent sample.
     * `fields`: Comma-separated list of fields to include in the response, in addition to the always returned fields. Defaults to all fields if not provided.
 
   """

@@ -37,16 +37,10 @@ defmodule ExOura.Client.UpdateWebhookSubscriptionRequest do
               "rest_mode_period",
               "ring_configuration",
               "daily_stress",
-              "daily_cycle_phases",
-              "activation_status",
               "daily_cardiovascular_age",
               "daily_resilience",
               "vo2_max",
-              "period_start",
-              "pregnancy",
-              "fertile_window",
-              "ovulation_confirmed",
-              "blood_glucose"
+              "meal"
             ]},
            :null
          ]},

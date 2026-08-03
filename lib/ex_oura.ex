@@ -24,8 +24,7 @@ defmodule ExOura do
 
   ## OAuth2 Authentication (Recommended)
 
-  ExOura supports OAuth2 authentication, which is the recommended approach since
-  Personal Access Tokens are being deprecated by Oura by the end of 2025.
+  ExOura supports OAuth2 authentication, which is required for new Oura API integrations.
 
   ### OAuth2 Setup
 
@@ -89,7 +88,6 @@ defmodule ExOura do
   alias ExOura.DailyStress
   alias ExOura.EnhancedTag
   alias ExOura.HeartRate
-  alias ExOura.InterbeatInterval
   alias ExOura.OAuth2
   alias ExOura.Pagination
   alias ExOura.PersonalInfo
@@ -386,23 +384,6 @@ defmodule ExOura do
                 opts \\ []
               ),
               to: HeartRate
-
-  @doc """
-  Multiple Interbeat Interval
-  """
-  @spec multiple_interbeat_interval(
-          start_datetime(),
-          end_datetime(),
-          next_token(),
-          opts()
-        ) :: {:ok, Client.TimeSeriesResponsePublicInterbeatIntervalRow.t()} | error()
-  defdelegate multiple_interbeat_interval(
-                start_datetime,
-                end_datetime,
-                next_token \\ nil,
-                opts \\ []
-              ),
-              to: InterbeatInterval
 
   @doc """
   Retrieves personal information for the authenticated user.

@@ -3,7 +3,6 @@ defmodule ExOura.Client.PublicModifiedSleepModel do
   Provides struct and type for a PublicModifiedSleepModel
   """
 
-  alias ExOura.Client.Metadata
   alias ExOura.Client.PublicReadiness
   alias ExOura.Client.PublicSample
 
@@ -25,7 +24,6 @@ defmodule ExOura.Client.PublicModifiedSleepModel do
           light_sleep_duration: integer | nil,
           low_battery_alert: boolean,
           lowest_heart_rate: integer | nil,
-          meta: Metadata.t(),
           movement_30_sec: String.t() | nil,
           period: integer,
           readiness: PublicReadiness.t() | nil,
@@ -61,7 +59,6 @@ defmodule ExOura.Client.PublicModifiedSleepModel do
     :light_sleep_duration,
     :low_battery_alert,
     :lowest_heart_rate,
-    :meta,
     :movement_30_sec,
     :period,
     :readiness,
@@ -102,7 +99,6 @@ defmodule ExOura.Client.PublicModifiedSleepModel do
       light_sleep_duration: {:union, [:integer, :null]},
       low_battery_alert: :boolean,
       lowest_heart_rate: {:union, [:integer, :null]},
-      meta: {Metadata, :t},
       movement_30_sec: {:union, [:string, :null]},
       period: :integer,
       readiness: {:union, [{PublicReadiness, :t}, :null]},
@@ -111,7 +107,18 @@ defmodule ExOura.Client.PublicModifiedSleepModel do
       restless_periods: {:union, [:integer, :null]},
       ring_id: {:union, [:string, :null]},
       sleep_algorithm_version: {:union, [{:enum, ["v1", "v2"]}, :null]},
-      sleep_analysis_reason: {:union, [{:enum, ["foreground_sleep_analysis", "bedtime_edit"]}, :null]},
+      sleep_analysis_reason:
+        {:union,
+         [
+           {:enum,
+            [
+              "foreground_sleep_analysis",
+              "bedtime_edit",
+              "background_sleep_analysis",
+              "background_created_foreground_updated"
+            ]},
+           :null
+         ]},
       sleep_phase_30_sec: {:union, [:string, :null]},
       sleep_phase_5_min: {:union, [:string, :null]},
       sleep_score_delta: {:union, [:integer, :null]},

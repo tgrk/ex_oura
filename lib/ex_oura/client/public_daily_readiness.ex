@@ -3,14 +3,12 @@ defmodule ExOura.Client.PublicDailyReadiness do
   Provides struct and type for a PublicDailyReadiness
   """
 
-  alias ExOura.Client.Metadata
   alias ExOura.Client.PublicReadinessContributors
 
   @type t :: %__MODULE__{
           contributors: PublicReadinessContributors.t(),
           day: String.t(),
           id: String.t(),
-          meta: Metadata.t(),
           score: integer | nil,
           temperature_deviation: number | nil,
           temperature_trend_deviation: number | nil,
@@ -21,7 +19,6 @@ defmodule ExOura.Client.PublicDailyReadiness do
     :contributors,
     :day,
     :id,
-    :meta,
     :score,
     :temperature_deviation,
     :temperature_trend_deviation,
@@ -37,7 +34,6 @@ defmodule ExOura.Client.PublicDailyReadiness do
       contributors: {PublicReadinessContributors, :t},
       day: :string,
       id: :string,
-      meta: {Metadata, :t},
       score: {:union, [:integer, :null]},
       temperature_deviation: {:union, [:number, :null]},
       temperature_trend_deviation: {:union, [:number, :null]},

@@ -3,20 +3,17 @@ defmodule ExOura.Client.PublicRingConfiguration do
   Provides struct and type for a PublicRingConfiguration
   """
 
-  alias ExOura.Client.Metadata
-
   @type t :: %__MODULE__{
           color: String.t() | nil,
           design: String.t() | nil,
           firmware_version: String.t() | nil,
           hardware_type: String.t() | nil,
           id: String.t(),
-          meta: Metadata.t(),
           set_up_at: String.t() | nil,
           size: integer | nil
         }
 
-  defstruct [:color, :design, :firmware_version, :hardware_type, :id, :meta, :set_up_at, :size]
+  defstruct [:color, :design, :firmware_version, :hardware_type, :id, :set_up_at, :size]
 
   @doc false
   @spec __fields__(atom) :: keyword
@@ -43,15 +40,15 @@ defmodule ExOura.Client.PublicRingConfiguration do
               "cloud",
               "petal",
               "midnight",
-              "tide"
+              "tide",
+              "deep_rose"
             ]},
            :null
          ]},
       design: {:union, [{:enum, ["heritage", "balance", "balance_diamond", "horizon", "ceramic"]}, :null]},
       firmware_version: {:union, [:string, :null]},
-      hardware_type: {:union, [{:enum, ["gen1", "gen2", "gen2m", "gen3", "gen4"]}, :null]},
+      hardware_type: {:union, [{:enum, ["gen1", "gen2", "gen2m", "gen3", "gen4", "or5"]}, :null]},
       id: :string,
-      meta: {Metadata, :t},
       set_up_at: {:union, [:string, :null]},
       size: {:union, [:integer, :null]}
     ]

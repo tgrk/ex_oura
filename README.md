@@ -62,7 +62,7 @@ ExOura provides dedicated modules for each type of Oura data:
 
 ### Core Infrastructure Modules
 
-- **`ExOura.Client`** - Base HTTP client with authentication
+- **ExOura.Client** - Base HTTP client with authentication
 - **`ExOura.OAuth2`** - OAuth2 flow management
 - **`ExOura.Pagination`** - Automatic pagination handling
 - **`ExOura.RateLimiter`** - API rate limit management

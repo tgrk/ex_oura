@@ -73,11 +73,6 @@
           {CredoUnnecessaryReduce.Check, []},
 
           #
-          # ExSlop to detect common LLM generated code issues
-          #
-          {ExSlop, []},
-
-          #
           # ForgeCredoChecks to detect common code patterns that are often suboptimal
           #
           {ForgeCredoChecks.FilterMap, []},
@@ -190,7 +185,7 @@
           {Credo.Check.Warning.UnusedStringOperation, []},
           {Credo.Check.Warning.UnusedTupleOperation, []},
           {Credo.Check.Warning.WrongTestFileExtension, []}
-        ],
+        ] ++ Enum.map(ExSlop.recommended_checks(), &{&1, []}),
         disabled: [
           #
           # Checks scheduled for next check update (opt-in for now)

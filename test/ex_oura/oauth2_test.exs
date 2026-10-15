@@ -75,6 +75,13 @@ defmodule ExOura.OAuth2Test do
       assert query_params["scope"] == "daily heartrate"
     end
 
+    test "generates authorization URL with the heart health scope through the public facade" do
+      url = ExOura.authorization_url(scopes: ["daily", "heart_health"])
+      query_params = url |> URI.parse() |> Map.fetch!(:query) |> URI.decode_query()
+
+      assert query_params["scope"] == "daily heart_health"
+    end
+
     test "generates authorization URL with state parameter" do
       url = OAuth2.authorization_url(state: "random_state_123")
       uri = URI.parse(url)
@@ -266,7 +273,8 @@ defmodule ExOura.OAuth2Test do
         "workout",
         "tag",
         "session",
-        "spo2"
+        "spo2",
+        "heart_health"
       ]
 
       assert scopes == expected_scopes

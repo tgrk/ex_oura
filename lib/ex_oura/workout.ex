@@ -124,7 +124,8 @@ defmodule ExOura.Workout do
   Each workout record includes:
   - `id` - Unique workout identifier
   - `activity` - Type of activity (e.g., "walking", "running", "cycling")
-  - `source` - How the workout was detected ("autodetected", "manual", "confirmed")
+  - `source` - How the workout was recorded: "manual", "autodetected", "confirmed",
+    "workout_heart_rate", "live_third_party_heart_rate", or "live_oura_heart_rate"
   - `day` - Date of the workout (YYYY-MM-DD)
   - `start_datetime` - When the workout started
   - `end_datetime` - When the workout ended

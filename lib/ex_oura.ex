@@ -827,7 +827,7 @@ defmodule ExOura do
   ## Examples
 
       ExOura.available_scopes()
-      # => ["email", "personal", "daily", "heartrate", "workout", "tag", "session", "spo2"]
+      # => ["email", "personal", "daily", "heartrate", "workout", "tag", "session", "spo2", "heart_health"]
 
   """
   defdelegate available_scopes(), to: OAuth2

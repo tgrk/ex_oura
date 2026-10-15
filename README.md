@@ -8,16 +8,28 @@
 [![License](https://img.shields.io/hexpm/l/ex_oura.svg)](https://github.com/sticksnleaves/ex_oura/blob/master/LICENSE.md)
 
 
-**An Elixir client for the Oura API, leveraging the OpenAPI v1.37 specification.**
+**An Elixir client for the Oura API, leveraging the OpenAPI v1.42 specification.**
 
-An Elixir library for interacting with the [Oura API](https://cloud.ouraring.com/v2/docs) with a base client generated using [OpenAPI Code Generator](https://github.com/aj-foster/open-api-generator) from [Oura OpenAPI specs v1.37](https://cloud.ouraring.com/v2/static/json/openapi-1.37.json). It supports Oura collection APIs including activity, readiness, sleep, workouts, heart-rate time series, and webhook management.
+An Elixir library for interacting with the [Oura API](https://cloud.ouraring.com/v2/docs) with a base client generated using [OpenAPI Code Generator](https://github.com/aj-foster/open-api-generator) from [Oura OpenAPI specs v1.42](https://cloud.ouraring.com/v2/static/json/openapi-1.42.json). It supports Oura collection APIs including activity, readiness, sleep, workouts, heart-rate time series, and webhook management.
 
 ## Features
 
 - **OAuth2 authentication** support (recommended approach)
 - Fetch data such as activity, readiness, and sleep metrics 
 - Built on the robust Elixir ecosystem 
-- Compatible with OpenAPI v1.37
+- Compatible with OpenAPI v1.42
+
+## OpenAPI 1.42 compatibility
+
+The public `ExOura` functions and response structs remain compatible. This update adds
+`live_third_party_heart_rate` and `live_oura_heart_rate` workout sources and the optional
+`heart_health` OAuth2 scope. Request it explicitly with
+`ExOura.authorization_url(scopes: ["daily", "heart_health"])`; existing OAuth2 grants
+need new user consent to include it. Default scopes remain `personal` and `daily`.
+The SpO2 scope is `spo2`.
+
+Oura no longer lists `meal` as a supported webhook subscription data type. Sleep
+`ring_id` is deprecated and now returns `nil`; the field remains in the response struct.
 
 ## Installation
 
@@ -26,7 +38,7 @@ Add `ex_oura` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:ex_oura, "~> 3.0.0"}
+    {:ex_oura, "~> 4.0"}
   ]
 end
 ```
@@ -47,7 +59,7 @@ ExOura provides dedicated modules for each type of Oura data:
 
 ### Specialized Data Modules
 
-- **`ExOura.HeartRate`** - Time-series heart rate data (Gen 3+ only)
+- **`ExOura.HeartRate`** - Time-series heart rate data
 - **`ExOura.DailySp02`** - Blood oxygen saturation data during sleep
 - **`ExOura.DailyStress`** - Daily stress levels and patterns
 - **`ExOura.DailyResilience`** - Resilience scores and stress recovery
@@ -79,7 +91,7 @@ ExOura provides dedicated modules for each type of Oura data:
    # In mix.exs
    def deps do
      [
-       {:ex_oura, "~> 3.0.0"}
+       {:ex_oura, "~> 4.0"}
      ]
    end
    ```

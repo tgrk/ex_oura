@@ -334,7 +334,7 @@ defmodule ExOura.OAuth2 do
 
     case Req.post(@token_url,
            form: token_data,
-           decode_json: [keys: :atoms],
+           decoders: [json: &Jason.decode(&1, keys: :atoms)],
            retry: false,
            connect_options: [timeout: timeout]
          ) do

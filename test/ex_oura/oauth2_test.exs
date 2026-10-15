@@ -153,6 +153,27 @@ defmodule ExOura.OAuth2Test do
       :ok
     end
 
+    test "decodes token JSON without deprecated options" do
+      response = %Req.Response{
+        status: 200,
+        headers: %{"content-type" => ["application/json"]},
+        body: ~s({"access_token":"new_token","expires_in":3600})
+      }
+
+      with_mock Req, [:passthrough],
+        post: fn url, opts ->
+          {_request, decoded_response} = Req.Steps.decode_body({Req.new(url, opts), response})
+          {:ok, decoded_response}
+        end do
+        assert ExUnit.CaptureIO.capture_io(:stderr, fn ->
+                 assert {:ok, tokens} = OAuth2.refresh_token("refresh_token")
+                 assert tokens.access_token == "new_token"
+                 assert tokens.expires_in == 3600
+                 assert %DateTime{} = tokens.expires_at
+               end) == ""
+      end
+    end
+
     test "refreshes token successfully" do
       successful_response = %Req.Response{
         status: 200,

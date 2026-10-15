@@ -45,7 +45,7 @@ defmodule ExOura.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:req, "~> 0.5"},
+      {:req, "~> 0.7"},
       {:mock, "~> 0.3.8", only: :test},
       {:exvcr, "~> 0.16", only: :test},
       {:excoveralls, "~> 0.18", only: :test},

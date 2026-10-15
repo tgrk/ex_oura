@@ -50,11 +50,12 @@ defmodule ExOura.OAuth2 do
   - `email` - Email address of the user
   - `personal` - Personal information (gender, age, height, weight)
   - `daily` - Daily summaries of sleep, activity and readiness
-  - `heartrate` - Time series heart rate for Gen 3 users
+  - `heartrate` - Time series heart rate for users
   - `workout` - Summaries for auto-detected and user entered workouts
   - `tag` - User entered tags
   - `session` - Guided and unguided sessions in the Oura app
-  - `spo2` - SpO2 Average recorded during sleep (in doc mistakenly as spo2Daily!)
+  - `spo2` - SpO2 Average recorded during sleep
+  - `heart_health` - Heart health data
 
   ## Token Structure
 
@@ -83,7 +84,8 @@ defmodule ExOura.OAuth2 do
     "workout",
     "tag",
     "session",
-    "spo2"
+    "spo2",
+    "heart_health"
   ]
 
   @type scope :: String.t()
@@ -265,7 +267,7 @@ defmodule ExOura.OAuth2 do
   ## Examples
 
       ExOura.OAuth2.available_scopes()
-      # => ["email", "personal", "daily", "heartrate", "workout", "tag", "session", "spo2"]
+      # => ["email", "personal", "daily", "heartrate", "workout", "tag", "session", "spo2", "heart_health"]
 
   """
   @spec available_scopes() :: scopes()

@@ -37,8 +37,7 @@ defmodule ExOura.Client.CreateWebhookSubscriptionRequest do
            "daily_stress",
            "daily_cardiovascular_age",
            "daily_resilience",
-           "vo2_max",
-           "meal"
+           "vo2_max"
          ]},
       event_type: {:enum, ["create", "update", "delete"]},
       verification_token: :string

@@ -43,7 +43,16 @@ defmodule ExOura.Client.PublicWorkout do
       id: :string,
       intensity: {:enum, ["easy", "moderate", "hard"]},
       label: {:union, [:string, :null]},
-      source: {:enum, ["manual", "autodetected", "confirmed", "workout_heart_rate"]},
+      source:
+        {:enum,
+         [
+           "manual",
+           "autodetected",
+           "confirmed",
+           "workout_heart_rate",
+           "live_third_party_heart_rate",
+           "live_oura_heart_rate"
+         ]},
       start_datetime: :string
     ]
   end

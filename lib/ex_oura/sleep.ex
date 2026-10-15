@@ -1,6 +1,8 @@
 defmodule ExOura.Sleep do
   @moduledoc """
   Documentation for Oura API - Sleep
+
+  The `ring_id` response field is deprecated by Oura and returns `nil`.
   """
 
   alias ExOura.Client

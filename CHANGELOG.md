@@ -13,6 +13,18 @@
 * retain the deprecated sleep `ring_id` field, which Oura now returns as null
 * preserve existing public functions and response structs
 
+## [4.1.0](https://github.com/tgrk/ex_oura/compare/v4.0.0...v4.1.0) (2026-10-15)
+
+
+### Features
+
+* support Oura OpenAPI v1.42 ([#97](https://github.com/tgrk/ex_oura/issues/97)) ([019c0b6](https://github.com/tgrk/ex_oura/commit/019c0b6ace3038220cdd679f563d798361b2956c))
+
+
+### Bug Fixes
+
+* replace deprecated OAuth2 JSON decoding option ([#95](https://github.com/tgrk/ex_oura/issues/95)) ([446657b](https://github.com/tgrk/ex_oura/commit/446657b36ef52ded415de267575b8db2a35bb4e6))
+
 ## [4.0.0](https://github.com/tgrk/ex_oura/compare/v3.0.1...v4.0.0) (2026-08-03)
 
 

@@ -568,6 +568,19 @@ IO.puts "Daily remaining: #{status.remaining}"
 IO.puts "Per-minute remaining: #{status.per_minute_remaining}"
 ```
 
+## Releasing
+
+Merging a release-please PR into `master` creates the GitHub release and runs the
+`publish` job in [release-please.yml](.github/workflows/release-please.yml). The job
+checks out the released commit, compiles it, checks formatting, runs the
+cassette-backed tests, and publishes the package and HexDocs using
+[Hex Workload Identity](https://hex.pm/docs/workload-identity).
+
+If the publish job fails before submission, fix the cause and re-run **failed jobs**
+on the original workflow run. Re-running the entire workflow can cause release-please
+to find no new release and skip publishing. Check for an existing staged release
+before retrying if the upload may already have succeeded.
+
 ## License
 
 This project is licensed under the MIT License.

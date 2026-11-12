@@ -24,3 +24,7 @@ ex_oura-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# Local secrets and editor/LSP state
+.env
+/.elixir_ls/

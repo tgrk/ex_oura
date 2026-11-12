@@ -6,8 +6,11 @@ defmodule ExOura.RateLimiter do
   - Daily: 5000 requests per day
   - Per-minute: 300 requests per minute
 
-  This module tracks these limits and prevents requests when limits are exceeded.
-  It also provides functionality to parse rate limit headers from API responses.
+  Limits are learned from Oura's `x-ratelimit-*` response headers when present.
+  When a known limit is used up and its reset time is in the future, the client
+  returns `{:error, {:rate_limited, seconds}}` instead of sending the request.
+  Without those headers the limiter starts from the configured limits and only
+  adds a short throttle between rapid requests when few requests remain.
   """
 
   use GenServer
@@ -97,7 +100,8 @@ defmodule ExOura.RateLimiter do
   end
 
   @doc """
-  Records that a request was made (for internal tracking).
+  Records the time of the last request (used for throttling rapid requests).
+  Remaining counts come only from response headers.
   Does nothing if rate limiting is disabled.
   """
   @spec record_request() :: :ok
@@ -164,16 +168,8 @@ defmodule ExOura.RateLimiter do
 
   @impl true
   def handle_cast(:record_request, state) do
-    now = System.system_time(:second)
-
-    new_state = %{
-      state
-      | remaining: max(0, state.remaining - 1),
-        per_minute_remaining: max(0, state.per_minute_remaining - 1),
-        last_request_time: now
-    }
-
-    {:noreply, new_state}
+    # No local decrement: without a reset it would throttle forever after the limit.
+    {:noreply, %{state | last_request_time: System.system_time(:second)}}
   end
 
   ## Private Functions
@@ -210,38 +206,53 @@ defmodule ExOura.RateLimiter do
   end
 
   defp parse_rate_limit_headers(headers, state) do
-    # Parse standard rate limit headers
-    daily_remaining = parse_header_int(headers, "x-ratelimit-remaining")
-    daily_reset = parse_header_int(headers, "x-ratelimit-reset")
-    minute_remaining = parse_header_int(headers, "x-ratelimit-remaining-minute")
-    minute_reset = parse_header_int(headers, "x-ratelimit-reset-minute")
+    {remaining, reset_time} =
+      merge_window(
+        parse_header_int(headers, "x-ratelimit-remaining"),
+        parse_header_int(headers, "x-ratelimit-reset"),
+        state.remaining,
+        state.reset_time
+      )
 
-    # Also check for alternative header formats
-    daily_remaining =
-      daily_remaining || parse_header_int(headers, "x-daily-requests-remaining")
-
-    minute_remaining =
-      minute_remaining || parse_header_int(headers, "x-minute-requests-remaining")
+    {per_minute_remaining, per_minute_reset} =
+      merge_window(
+        parse_header_int(headers, "x-ratelimit-remaining-minute"),
+        parse_header_int(headers, "x-ratelimit-reset-minute"),
+        state.per_minute_remaining,
+        state.per_minute_reset
+      )
 
     %{
       state
-      | remaining: daily_remaining || state.remaining,
-        reset_time: daily_reset || state.reset_time,
-        per_minute_remaining: minute_remaining || state.per_minute_remaining,
-        per_minute_reset: minute_reset || state.per_minute_reset
+      | remaining: remaining,
+        reset_time: reset_time,
+        per_minute_remaining: per_minute_remaining,
+        per_minute_reset: per_minute_reset
     }
   end
 
-  defp parse_header_int(headers, key) do
-    case Map.get(headers, key) do
-      nil -> nil
-      value when is_binary(value) -> String.to_integer(value)
-      value when is_integer(value) -> value
+  # Concurrent responses can arrive out of order, so within one reset window keep the lowest count.
+  defp merge_window(nil, _new_reset, remaining, reset), do: {remaining, reset}
+  # With no known window there is nothing to protect, so the newest count wins (no stuck throttle).
+  defp merge_window(new, new_reset, remaining, reset) when not is_nil(reset) and new_reset in [nil, reset],
+    do: {min(new, remaining), reset}
+
+  defp merge_window(new, new_reset, _remaining, _reset), do: {new, new_reset}
+
+  # Req gives header values as lists: %{"x-ratelimit-remaining" => ["5"]}
+  defp parse_header_int(headers, key), do: headers |> Map.get(key) |> to_int()
+
+  defp to_int([value | _]), do: to_int(value)
+  defp to_int(value) when is_integer(value), do: value
+
+  defp to_int(value) when is_binary(value) do
+    case Integer.parse(value) do
+      {int, ""} -> int
       _ -> nil
     end
-  rescue
-    ArgumentError -> nil
   end
+
+  defp to_int(_value), do: nil
 
   defp default_daily_limit, do: Keyword.get(@rate_limiting_config, :daily_limit, 5000)
   defp default_per_minute_limit, do: Keyword.get(@rate_limiting_config, :per_minute_limit, 300)

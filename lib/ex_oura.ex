@@ -43,20 +43,29 @@ defmodule ExOura do
       # Step 2: After user authorizes, exchange code for tokens
       {:ok, tokens} = ExOura.OAuth2.get_token("authorization_code_from_callback")
 
-      # Step 3: Use tokens with the client
+      # Step 3: Use tokens with the client. It refreshes expiring tokens itself;
+      # Oura refresh tokens are single-use, so persist each new pair via on_refresh.
       {:ok, client} = ExOura.Client.start_link([
         access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token
+        refresh_token: tokens.refresh_token,
+        expires_at: tokens.expires_at,
+        on_refresh: &MyApp.Tokens.save/1
       ])
 
       # Step 4: Make API calls
       {:ok, activity_data} = ExOura.multiple_daily_activity(~D[2025-01-01], ~D[2025-01-31])
 
-      # Step 5: Refresh tokens when needed
-      if ExOura.OAuth2.token_expired?(tokens) do
-        {:ok, new_tokens} = ExOura.OAuth2.refresh_token(tokens.refresh_token)
-        # Update your stored tokens...
-      end
+  `on_refresh` runs inside the client process: keep it quick and do not call ExOura from
+  it. If it raises, a warning is logged and the client keeps the new tokens.
+
+  ### Multiple Users
+
+  The shared `ExOura.Client` process holds one account's token. For many users, pass
+  each user's token per call with the `:access_token` option; it is used instead of the
+  shared token and does not need `ExOura.Client` to be started. Refresh such tokens
+  yourself with `ExOura.refresh_token/1`.
+
+      ExOura.multiple_daily_activity(~D[2025-01-01], ~D[2025-01-31], nil, access_token: token)
 
   ### Rate Limiting
 
@@ -64,18 +73,22 @@ defmodule ExOura do
   - 5000 requests per day
   - 300 requests per minute
 
+  When `ExOura.RateLimiter` is running, it reads Oura's `x-ratelimit-*` response
+  headers when present. A call that would exceed a known, not-yet-reset limit returns
+  `{:error, {:rate_limited, seconds}}` without calling the API.
+
   You can disable rate limiting entirely by setting `enabled: false` in the configuration,
-  or adjust the limits if needed. When disabled, the client will not track or enforce
-  any rate limits, but will still handle rate limit responses from the API server
-  in the retry logic.
+  or adjust the starting limits. When disabled, the client does not track limits, but
+  GET requests are still retried on 429 responses (see Retry Logic).
 
   ### Retry Logic
 
-  ExOura uses Req's built-in retry mechanism with intelligent error handling:
-  - Automatically retries on server errors (5xx), timeouts (408), and rate limits (429)
-  - Exponential backoff with jitter to avoid thundering herd problems
-  - Configurable maximum retry attempts
-  - Does not retry on client errors (4xx except 408 and 429)
+  ExOura uses Req's built-in retry (`retry: :safe_transient`):
+  - GET requests are retried on 408, 429, 500, 502, 503 and 504 responses and on
+    transient network errors (timeout, connection refused, connection closed)
+  - The `Retry-After` header is honored on 429 and 503; otherwise exponential backoff with jitter
+  - POST, PUT and DELETE requests (webhook subscriptions) are never retried
+  - Maximum retry attempts are configurable with `retry: [max_retries: 3]`
   """
 
   alias ExOura.Client

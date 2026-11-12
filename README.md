@@ -141,13 +141,8 @@ defmodule MyApp.OuraController do
          {:ok, tokens} <- ExOura.get_token(code) do
       
       # Store tokens securely (database, encrypted session, etc.)
+      # and pass `access_token:` on each call for this user (see below)
       store_user_tokens(current_user(conn), tokens)
-      
-      # Start the ExOura client with tokens
-      {:ok, _client} = ExOura.Client.start_link([
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token
-      ])
 
       redirect(conn, to: "/dashboard")
     else
@@ -160,7 +155,37 @@ defmodule MyApp.OuraController do
 end
 ```
 
+#### Multiple Users
+
+The shared `ExOura.Client` process holds **one** account's token. For apps with many users,
+pass that user's token on each call with `access_token:`. It is used instead of the shared
+token, and works even when `ExOura.Client` is not started. Refresh it yourself with
+`ExOura.refresh_token/1` (see below).
+
+```elixir
+ExOura.multiple_daily_activity(~D[2025-01-01], ~D[2025-01-31], nil, access_token: tokens.access_token)
+ExOura.all_daily_sleep(~D[2025-01-01], ~D[2025-01-31], access_token: tokens.access_token)
+```
+
 #### Token Refresh Handling
+
+When you start the shared `ExOura.Client` with a refresh token and `expires_at`, it refreshes
+the access token on its own shortly before it expires. Oura refresh tokens are **single-use**,
+so pass `on_refresh:` to save every new token pair; otherwise the refresh token you stored
+stops working after the first refresh. The callback runs inside the client process: keep it
+quick and do not call ExOura from it. If it raises, a warning is logged and the client keeps
+the new tokens.
+
+```elixir
+ExOura.Client.start_link(
+  access_token: tokens.access_token,
+  refresh_token: tokens.refresh_token,
+  expires_at: tokens.expires_at,
+  on_refresh: fn new_tokens -> MyApp.Tokens.save(user, new_tokens) end
+)
+```
+
+With per-call `access_token:` (multiple users), refresh tokens yourself:
 
 ```elixir
 defmodule MyApp.OuraService do
@@ -172,7 +197,6 @@ defmodule MyApp.OuraService do
       case ExOura.refresh_token(tokens.refresh_token) do
         {:ok, new_tokens} = result ->
           update_user_tokens(user, new_tokens)
-          restart_client_with_tokens(new_tokens)
           result
         
         {:error, reason} ->
@@ -182,14 +206,6 @@ defmodule MyApp.OuraService do
     else
       {:ok, tokens}
     end
-  end
-  
-  defp restart_client_with_tokens(tokens) do
-    # Restart client with new tokens
-    ExOura.Client.start_link([
-      access_token: tokens.access_token,
-      refresh_token: tokens.refresh_token
-    ])
   end
 end
 ```
@@ -202,15 +218,16 @@ end
 defmodule MyApp.HealthDashboard do
   @doc "Fetches comprehensive health data for dashboard"
   def fetch_user_health_data(user, date_range) do
-    with {:ok, _tokens} <- MyApp.OuraService.ensure_valid_tokens(user) do
+    with {:ok, tokens} <- MyApp.OuraService.ensure_valid_tokens(user) do
       {start_date, end_date} = date_range
-      
+      opts = [access_token: tokens.access_token]
+
       # Fetch data in parallel using Task.async
       tasks = [
-        Task.async(fn -> ExOura.all_daily_activity(start_date, end_date) end),
-        Task.async(fn -> ExOura.all_daily_sleep(start_date, end_date) end),
-        Task.async(fn -> ExOura.all_workouts(start_date, end_date) end),
-        Task.async(fn -> ExOura.single_personal_info() end)
+        Task.async(fn -> ExOura.all_daily_activity(start_date, end_date, opts) end),
+        Task.async(fn -> ExOura.all_daily_sleep(start_date, end_date, opts) end),
+        Task.async(fn -> ExOura.all_workouts(start_date, end_date, opts) end),
+        Task.async(fn -> ExOura.single_personal_info(opts) end)
       ]
       
       # Wait for all tasks to complete
@@ -259,8 +276,8 @@ defmodule MyApp.DataAnalyzer do
     start_date = Date.new!(year, 1, 1)
     end_date = Date.new!(year, 12, 31)
     
-    with {:ok, _tokens} <- MyApp.OuraService.ensure_valid_tokens(user) do
-      results = ExOura.stream_daily_activity(start_date, end_date)
+    with {:ok, tokens} <- MyApp.OuraService.ensure_valid_tokens(user) do
+      results = ExOura.stream_daily_activity(start_date, end_date, access_token: tokens.access_token)
       |> Stream.filter(&(&1.score > 0))  # Valid scores only
       |> Stream.map(&extract_activity_metrics/1)
       |> Enum.reduce(%{total_steps: 0, active_days: 0, high_activity_days: 0}, &accumulate_metrics/2)
@@ -305,8 +322,8 @@ defmodule MyApp.OuraAPI do
   
   defp fetch_sleep_data(user, {start_date, end_date}) do
     case MyApp.OuraService.ensure_valid_tokens(user) do
-      {:ok, _tokens} ->
-        ExOura.multiple_daily_sleep(start_date, end_date)
+      {:ok, tokens} ->
+        ExOura.multiple_daily_sleep(start_date, end_date, nil, access_token: tokens.access_token)
       
       {:error, :reauthorization_required} ->
         {:error, :user_needs_reauth}
@@ -396,8 +413,8 @@ defmodule MyApp.OuraSync do
     user = MyApp.Accounts.get_user!(user_id)
     date = Date.from_iso8601!(sync_date)
     
-    with {:ok, _tokens} <- MyApp.OuraService.ensure_valid_tokens(user),
-         {:ok, data} <- sync_user_data_for_date(user, date) do
+    with {:ok, tokens} <- MyApp.OuraService.ensure_valid_tokens(user),
+         {:ok, data} <- sync_user_data_for_date(tokens, date) do
       
       MyApp.HealthData.store_user_data(user, date, data)
       :ok
@@ -413,11 +430,13 @@ defmodule MyApp.OuraSync do
     end
   end
   
-  defp sync_user_data_for_date(user, date) do
+  defp sync_user_data_for_date(tokens, date) do
+    opts = [access_token: tokens.access_token]
+
     # Fetch yesterday's data (typically available by 10 AM)
-    with {:ok, activity} <- ExOura.multiple_daily_activity(date, date),
-         {:ok, sleep} <- ExOura.multiple_daily_sleep(date, date),
-         {:ok, workouts} <- ExOura.multiple_workout(date, date) do
+    with {:ok, activity} <- ExOura.multiple_daily_activity(date, date, nil, opts),
+         {:ok, sleep} <- ExOura.multiple_daily_sleep(date, date, nil, opts),
+         {:ok, workouts} <- ExOura.multiple_workout(date, date, nil, opts) do
       
       {:ok, %{
         activity: List.first(activity.data),
@@ -510,58 +529,45 @@ config :ex_oura,
   ]
 ```
 
-**Behavior:**
-- When **enabled** (default): Tracks and enforces rate limits proactively
-- When **disabled**: No rate limit tracking, but still handles API rate limit responses
-- Automatic parsing of rate limit headers from API responses
-- Uses Req's built-in retry logic with exponential backoff and jitter
+**Behavior (when `ExOura.RateLimiter` is running and enabled):**
+- Remaining requests and reset times are read from Oura's `x-ratelimit-*` response headers when present
+- A call that would exceed a known, not-yet-reset limit returns `{:error, {:rate_limited, seconds}}`
+  without calling the API; retry after `seconds`
+- Rapid requests get a short (≤200 ms) delay when few per-minute requests remain
+- When **disabled** or not started: no tracking; 429 responses are still retried for GET requests
 
 **Usage:**
 
 ```elixir
-# Start the rate limiter (optional - provides better rate limit management)
+# Start the rate limiter (optional)
 {:ok, _pid} = ExOura.RateLimiter.start_link()
 
-# All API requests automatically:
-# - Respect rate limits (5000/day, 300/minute) if enabled
-# - Parse rate limit headers from responses
-# - Use Req's built-in retry with exponential backoff
-# - Handle network errors and server errors gracefully
-
-# Example: This will automatically retry on server errors and rate limits
-{:ok, activities} = ExOura.multiple_daily_activity(~D[2024-01-01], ~D[2024-01-31])
+case ExOura.multiple_daily_activity(~D[2024-01-01], ~D[2024-01-31]) do
+  {:ok, activities} -> activities
+  {:error, {:rate_limited, seconds}} -> {:retry_in, seconds}
+  {:error, reason} -> {:error, reason}
+end
 ```
-
-#### Rate Limiting Features
-
-- **Automatic Rate Limit Detection**: Parses `X-RateLimit-*` headers from API responses
-- **Proactive Throttling**: Prevents hitting rate limits before they occur
-- **Smart Delays**: Adds small delays when approaching rate limits
 
 #### Retry Logic Features  
 
-- **Exponential Backoff**: Automatically increases delay between retry attempts
-- **Smart Error Detection**: Only retries on appropriate errors (5xx, network issues, rate limits)
-- **Jitter**: Adds randomness to prevent thundering herd problems
-- **Configurable**: Customize max attempts, delays, and backoff factors
+ExOura uses Req's built-in retry (`retry: :safe_transient`):
+
+- **What is retried**: GET requests that get a 408, 429, 500, 502, 503 or 504 response,
+  or a transient network error (timeout, connection refused, connection closed)
+- **Delay**: Honors the `Retry-After` header on 429 and 503; otherwise exponential backoff with jitter
+- **Not retried**: POST, PUT and DELETE requests (webhook subscriptions), so a retry never
+  creates a duplicate subscription
+- **Configurable**: Set the maximum number of retries:
+
+```elixir
+config :ex_oura,
+  retry: [max_retries: 3]
+```
 
 #### Advanced Usage
 
 ```elixir
-# Custom retry configuration
-alias ExOura.Retry
-
-request_fn = fn ->
-  ExOura.multiple_daily_activity(~D[2024-01-01], ~D[2024-01-31]) 
-end
-
-{:ok, result} = Retry.with_retry(request_fn, [
-  max_attempts: 5,
-  base_delay: 2000,    # Start with 2 second delay
-  max_delay: 30_000,   # Cap at 30 seconds
-  backoff_factor: 2.5  # More aggressive backoff
-])
-
 # Monitor rate limit status
 status = ExOura.RateLimiter.get_status()
 IO.puts "Daily remaining: #{status.remaining}"

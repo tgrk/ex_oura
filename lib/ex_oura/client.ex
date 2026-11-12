@@ -20,6 +20,9 @@ defmodule ExOura.Client do
   # Refresh this early so a token cannot expire while its request is in flight.
   @refresh_buffer_seconds 60
 
+  # Token calls may run a refresh (10s connect + Req receive timeout), so allow longer than @timeout.
+  @token_call_timeout 30_000
+
   # Client API
 
   @doc """
@@ -43,7 +46,7 @@ defmodule ExOura.Client do
   """
   @spec refresh_oauth2_token() :: {:ok, map()} | {:error, term()}
   def refresh_oauth2_token do
-    GenServer.call(__MODULE__, :refresh_oauth2_token, @timeout)
+    GenServer.call(__MODULE__, :refresh_oauth2_token, @token_call_timeout)
   end
 
   @doc """
@@ -128,7 +131,7 @@ defmodule ExOura.Client do
   defp fetch_access_token(operation) do
     case operation |> Map.get(:opts, []) |> Keyword.get(:access_token) do
       token when is_binary(token) -> {:ok, token}
-      _ -> GenServer.call(__MODULE__, :access_token, @timeout)
+      _ -> GenServer.call(__MODULE__, :access_token, @token_call_timeout)
     end
   end
 
@@ -334,25 +337,18 @@ defmodule ExOura.Client do
   defp maybe_refresh_token(state), do: {:ok, state}
 
   defp refresh_state(%{refresh_token: refresh_token} = state) do
-    case OAuth2.refresh_token(refresh_token) do
-      {:ok, %{access_token: access_token} = tokens} when is_binary(access_token) ->
-        tokens = Map.put(tokens, :refresh_token, Map.get(tokens, :refresh_token) || refresh_token)
-        notify_refresh(Map.get(state, :on_refresh), tokens)
+    with {:ok, tokens} <- OAuth2.refresh_token(refresh_token) do
+      tokens = Map.put(tokens, :refresh_token, Map.get(tokens, :refresh_token) || refresh_token)
+      notify_refresh(Map.get(state, :on_refresh), tokens)
 
-        {:ok,
-         %{
-           state
-           | access_token: access_token,
-             refresh_token: tokens.refresh_token,
-             expires_at: Map.get(tokens, :expires_at),
-             expires_in: Map.get(tokens, :expires_in)
-         }}
-
-      {:ok, _tokens} ->
-        {:error, :invalid_token_response}
-
-      {:error, _reason} = error ->
-        error
+      {:ok,
+       %{
+         state
+         | access_token: tokens.access_token,
+           refresh_token: tokens.refresh_token,
+           expires_at: Map.get(tokens, :expires_at),
+           expires_in: Map.get(tokens, :expires_in)
+       }}
     end
   end
 

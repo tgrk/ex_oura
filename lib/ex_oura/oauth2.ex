@@ -248,7 +248,8 @@ defmodule ExOura.OAuth2 do
       # => true
 
   """
-  @spec token_expired?(token_response(), integer()) :: boolean()
+  @spec token_expired?(%{optional(:expires_at) => DateTime.t() | nil, optional(any()) => any()}, integer()) ::
+          boolean()
   def token_expired?(tokens, buffer_seconds \\ 300) do
     expires_at = Map.get(tokens, :expires_at)
 

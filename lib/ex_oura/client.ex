@@ -7,6 +7,8 @@ defmodule ExOura.Client do
   alias ExOura.RateLimiter
   alias ExOura.TypeDecoder
 
+  require Logger
+
   @base_url "https://api.ouraring.com"
 
   @timeout Application.compile_env(:ex_oura, :timeout, 5_000)
@@ -84,6 +86,22 @@ defmodule ExOura.Client do
       {:ok, client} = ExOura.Client.start_link([
         access_token: "oauth2_access_token",
         refresh_token: "oauth2_refresh_token"
+      ])
+
+  ## Persisting Refreshed Tokens
+
+  The client refreshes an expiring OAuth2 token on its own. Oura refresh tokens are
+  single-use, so pass `on_refresh:` to save each new token pair; otherwise the stored
+  refresh token stops working after the first refresh. The function receives the new
+  token map. It runs inside the client process: keep it quick and do not call
+  `ExOura.Client` or `ExOura` API functions from it (that would deadlock). If it raises,
+  a warning is logged and the client keeps the new tokens.
+
+      {:ok, client} = ExOura.Client.start_link([
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+        expires_at: tokens.expires_at,
+        on_refresh: &MyApp.Tokens.save/1
       ])
 
   """
@@ -316,16 +334,36 @@ defmodule ExOura.Client do
   defp maybe_refresh_token(state), do: {:ok, state}
 
   defp refresh_state(%{refresh_token: refresh_token} = state) do
-    with {:ok, tokens} <- OAuth2.refresh_token(refresh_token) do
-      {:ok,
-       %{
-         state
-         | access_token: tokens.access_token,
-           refresh_token: tokens.refresh_token || refresh_token,
-           expires_at: tokens.expires_at,
-           expires_in: tokens.expires_in
-       }}
+    case OAuth2.refresh_token(refresh_token) do
+      {:ok, %{access_token: access_token} = tokens} when is_binary(access_token) ->
+        tokens = Map.put(tokens, :refresh_token, Map.get(tokens, :refresh_token) || refresh_token)
+        notify_refresh(Map.get(state, :on_refresh), tokens)
+
+        {:ok,
+         %{
+           state
+           | access_token: access_token,
+             refresh_token: tokens.refresh_token,
+             expires_at: Map.get(tokens, :expires_at),
+             expires_in: Map.get(tokens, :expires_in)
+         }}
+
+      {:ok, _tokens} ->
+        {:error, :invalid_token_response}
+
+      {:error, _reason} = error ->
+        error
     end
+  end
+
+  # Oura refresh tokens are single-use, so the app must persist each rotated pair.
+  defp notify_refresh(nil, _tokens), do: :ok
+
+  defp notify_refresh(on_refresh, tokens) do
+    on_refresh.(tokens)
+  catch
+    # Reason is not logged: it may contain the tokens. New tokens stay in state either way.
+    kind, _reason -> Logger.warning("ExOura.Client on_refresh callback failed (#{kind}); tokens were still updated")
   end
 
   # OAuth2 configuration as keyword list
@@ -339,7 +377,8 @@ defmodule ExOura.Client do
           refresh_token: if(is_binary(refresh_token), do: refresh_token),
           expires_at: auth_config |> Keyword.get(:expires_at) |> to_utc_datetime(),
           expires_in: Keyword.get(auth_config, :expires_in),
-          auth_type: :oauth2
+          auth_type: :oauth2,
+          on_refresh: Keyword.get(auth_config, :on_refresh)
         }
 
       _ ->

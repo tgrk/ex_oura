@@ -169,6 +169,24 @@ ExOura.all_daily_sleep(~D[2025-01-01], ~D[2025-01-31], access_token: tokens.acce
 
 #### Token Refresh Handling
 
+When you start the shared `ExOura.Client` with a refresh token and `expires_at`, it refreshes
+the access token on its own shortly before it expires. Oura refresh tokens are **single-use**,
+so pass `on_refresh:` to save every new token pair; otherwise the refresh token you stored
+stops working after the first refresh. The callback runs inside the client process: keep it
+quick and do not call ExOura from it. If it raises, a warning is logged and the client keeps
+the new tokens.
+
+```elixir
+ExOura.Client.start_link(
+  access_token: tokens.access_token,
+  refresh_token: tokens.refresh_token,
+  expires_at: tokens.expires_at,
+  on_refresh: fn new_tokens -> MyApp.Tokens.save(user, new_tokens) end
+)
+```
+
+With per-call `access_token:` (multiple users), refresh tokens yourself:
+
 ```elixir
 defmodule MyApp.OuraService do
   @doc "Ensures we have valid tokens before making API calls"

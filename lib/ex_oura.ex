@@ -43,20 +43,20 @@ defmodule ExOura do
       # Step 2: After user authorizes, exchange code for tokens
       {:ok, tokens} = ExOura.OAuth2.get_token("authorization_code_from_callback")
 
-      # Step 3: Use tokens with the client
+      # Step 3: Use tokens with the client. It refreshes expiring tokens itself;
+      # Oura refresh tokens are single-use, so persist each new pair via on_refresh.
       {:ok, client} = ExOura.Client.start_link([
         access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token
+        refresh_token: tokens.refresh_token,
+        expires_at: tokens.expires_at,
+        on_refresh: &MyApp.Tokens.save/1
       ])
 
       # Step 4: Make API calls
       {:ok, activity_data} = ExOura.multiple_daily_activity(~D[2025-01-01], ~D[2025-01-31])
 
-      # Step 5: Refresh tokens when needed
-      if ExOura.OAuth2.token_expired?(tokens) do
-        {:ok, new_tokens} = ExOura.OAuth2.refresh_token(tokens.refresh_token)
-        # Update your stored tokens...
-      end
+  `on_refresh` runs inside the client process: keep it quick and do not call ExOura from
+  it. If it raises, a warning is logged and the client keeps the new tokens.
 
   ### Multiple Users
 

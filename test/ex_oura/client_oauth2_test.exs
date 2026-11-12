@@ -137,6 +137,43 @@ defmodule ExOura.ClientOAuth2Test do
       end
     end
 
+    test "calls on_refresh with the rotated tokens" do
+      test_pid = self()
+      # Response omits refresh_token: the old one is kept, and nothing raises
+      response = %Req.Response{status: 200, body: %{access_token: "new_access_token", expires_in: 86_400}}
+
+      with_mock Req, [:passthrough], post: fn _url, _opts -> {:ok, response} end do
+        :ok =
+          Client.set_auth_config(
+            access_token: "old_access_token",
+            refresh_token: "oauth2_refresh_token",
+            on_refresh: &send(test_pid, {:refreshed, &1})
+          )
+
+        assert {:ok, %{access_token: "new_access_token"}} = Client.refresh_oauth2_token()
+        assert_received {:refreshed, %{access_token: "new_access_token", refresh_token: "oauth2_refresh_token"}}
+      end
+    end
+
+    test "a raising on_refresh callback does not crash the client" do
+      response = %Req.Response{status: 200, body: %{access_token: "new_access_token", refresh_token: "new_refresh"}}
+      pid = Process.whereis(Client)
+
+      with_mock Req, [:passthrough], post: fn _url, _opts -> {:ok, response} end do
+        :ok =
+          Client.set_auth_config(
+            access_token: "old_access_token",
+            refresh_token: "oauth2_refresh_token",
+            on_refresh: fn _tokens -> raise "db down" end
+          )
+
+        ExUnit.CaptureLog.capture_log(fn -> assert {:ok, _} = Client.refresh_oauth2_token() end)
+
+        assert Process.whereis(Client) == pid
+        assert {:ok, %{access_token: "new_access_token", refresh_token: "new_refresh"}} = Client.get_token_info()
+      end
+    end
+
     test "handles token refresh error" do
       error_response = %Req.Response{
         status: 400,

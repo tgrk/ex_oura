@@ -58,6 +58,15 @@ defmodule ExOura do
         # Update your stored tokens...
       end
 
+  ### Multiple Users
+
+  The shared `ExOura.Client` process holds one account's token. For many users, pass
+  each user's token per call with the `:access_token` option; it is used instead of the
+  shared token and does not need `ExOura.Client` to be started. Refresh such tokens
+  yourself with `ExOura.refresh_token/1`.
+
+      ExOura.multiple_daily_activity(~D[2025-01-01], ~D[2025-01-31], nil, access_token: token)
+
   ### Rate Limiting
 
   Rate limiting is enabled by default and follows the Oura API limits:

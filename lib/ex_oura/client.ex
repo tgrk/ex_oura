@@ -94,10 +94,20 @@ defmodule ExOura.Client do
   Only the (refreshed) access token comes from the GenServer; the HTTP call and
   decoding run in the caller's process, so requests run concurrently and a slow
   or failing request cannot block or crash the shared client.
+
+  A per-call `access_token:` option skips the shared client token entirely,
+  so multi-user apps never send one user's request with another user's token.
   """
   def request(operation) do
-    with {:ok, access_token} <- GenServer.call(__MODULE__, :access_token, @timeout) do
+    with {:ok, access_token} <- fetch_access_token(operation) do
       make_request(operation, access_token)
+    end
+  end
+
+  defp fetch_access_token(operation) do
+    case operation |> Map.get(:opts, []) |> Keyword.get(:access_token) do
+      token when is_binary(token) -> {:ok, token}
+      _ -> GenServer.call(__MODULE__, :access_token, @timeout)
     end
   end
 
@@ -223,7 +233,7 @@ defmodule ExOura.Client do
   defp ensure_client_ready(opts) do
     pid = Process.whereis(__MODULE__)
 
-    if Keyword.has_key?(opts, :client) or (is_pid(pid) and Process.alive?(pid)) do
+    if Keyword.has_key?(opts, :client) or is_binary(opts[:access_token]) or (is_pid(pid) and Process.alive?(pid)) do
       :ok
     else
       {:error, :client_not_ready}

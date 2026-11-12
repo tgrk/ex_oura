@@ -141,13 +141,8 @@ defmodule MyApp.OuraController do
          {:ok, tokens} <- ExOura.get_token(code) do
       
       # Store tokens securely (database, encrypted session, etc.)
+      # and pass `access_token:` on each call for this user (see below)
       store_user_tokens(current_user(conn), tokens)
-      
-      # Start the ExOura client with tokens
-      {:ok, _client} = ExOura.Client.start_link([
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token
-      ])
 
       redirect(conn, to: "/dashboard")
     else
@@ -158,6 +153,18 @@ defmodule MyApp.OuraController do
     end
   end
 end
+```
+
+#### Multiple Users
+
+The shared `ExOura.Client` process holds **one** account's token. For apps with many users,
+pass that user's token on each call with `access_token:`. It is used instead of the shared
+token, and works even when `ExOura.Client` is not started. Refresh it yourself with
+`ExOura.refresh_token/1` (see below).
+
+```elixir
+ExOura.multiple_daily_activity(~D[2025-01-01], ~D[2025-01-31], nil, access_token: tokens.access_token)
+ExOura.all_daily_sleep(~D[2025-01-01], ~D[2025-01-31], access_token: tokens.access_token)
 ```
 
 #### Token Refresh Handling
@@ -172,7 +179,6 @@ defmodule MyApp.OuraService do
       case ExOura.refresh_token(tokens.refresh_token) do
         {:ok, new_tokens} = result ->
           update_user_tokens(user, new_tokens)
-          restart_client_with_tokens(new_tokens)
           result
         
         {:error, reason} ->
@@ -182,14 +188,6 @@ defmodule MyApp.OuraService do
     else
       {:ok, tokens}
     end
-  end
-  
-  defp restart_client_with_tokens(tokens) do
-    # Restart client with new tokens
-    ExOura.Client.start_link([
-      access_token: tokens.access_token,
-      refresh_token: tokens.refresh_token
-    ])
   end
 end
 ```
@@ -202,15 +200,16 @@ end
 defmodule MyApp.HealthDashboard do
   @doc "Fetches comprehensive health data for dashboard"
   def fetch_user_health_data(user, date_range) do
-    with {:ok, _tokens} <- MyApp.OuraService.ensure_valid_tokens(user) do
+    with {:ok, tokens} <- MyApp.OuraService.ensure_valid_tokens(user) do
       {start_date, end_date} = date_range
-      
+      opts = [access_token: tokens.access_token]
+
       # Fetch data in parallel using Task.async
       tasks = [
-        Task.async(fn -> ExOura.all_daily_activity(start_date, end_date) end),
-        Task.async(fn -> ExOura.all_daily_sleep(start_date, end_date) end),
-        Task.async(fn -> ExOura.all_workouts(start_date, end_date) end),
-        Task.async(fn -> ExOura.single_personal_info() end)
+        Task.async(fn -> ExOura.all_daily_activity(start_date, end_date, opts) end),
+        Task.async(fn -> ExOura.all_daily_sleep(start_date, end_date, opts) end),
+        Task.async(fn -> ExOura.all_workouts(start_date, end_date, opts) end),
+        Task.async(fn -> ExOura.single_personal_info(opts) end)
       ]
       
       # Wait for all tasks to complete

@@ -58,4 +58,19 @@ defmodule ExOura.ReqRetryIntegrationTest do
     assert_received {:adapter_ran, ^test_pid, 1234}
     assert Process.whereis(Client) == client_pid
   end
+
+  test "a per-call access_token is sent instead of the shared client token" do
+    test_pid = self()
+
+    adapter = fn request ->
+      send(test_pid, {:authorization, Req.Request.get_header(request, "authorization")})
+      {request, Req.Response.new(status: 404, body: "")}
+    end
+
+    with_mock ReqFinchAdapter, run: adapter do
+      assert {:error, _} = ExOura.single_personal_info(access_token: "user_b_token")
+    end
+
+    assert_received {:authorization, ["Bearer user_b_token"]}
+  end
 end

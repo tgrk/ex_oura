@@ -155,27 +155,30 @@ defmodule ExOura.Client do
 
   # RateLimiter no-ops when disabled; retries are handled by Req (see @max_retries)
   defp make_request(%{method: method, url: url} = operation, access_token) do
-    try do
-      case RateLimiter.check_rate_limit() do
-        {:ok, delay} when delay > 0 -> :timer.sleep(delay)
-        {:error, {:rate_limited, retry_after}} -> :timer.sleep(retry_after * 1000)
-        {:ok, 0} -> :ok
+    with :ok <- check_rate_limit() do
+      # method is one of :get | :post | :put | :delete, i.e. Req.get/2 etc.
+      result = apply(Req, method, [url, req_opts(operation, access_token)])
+
+      # Casts: safe even when the rate limiter is not running
+      with {:ok, %Req.Response{headers: headers}} <- result do
+        RateLimiter.update_rate_limit_headers(headers)
+        RateLimiter.record_request()
       end
-    catch
-      # Rate limiter not running
-      :exit, _ -> :ok
+
+      handle_response(result, operation)
     end
+  end
 
-    # method is one of :get | :post | :put | :delete, i.e. Req.get/2 etc.
-    result = apply(Req, method, [url, req_opts(operation, access_token)])
-
-    # Casts: safe even when the rate limiter is not running
-    with {:ok, %Req.Response{headers: headers}} <- result do
-      RateLimiter.update_rate_limit_headers(headers)
-      RateLimiter.record_request()
+  # A known exhausted limit can last up to a day, so return it instead of sleeping.
+  defp check_rate_limit do
+    case RateLimiter.check_rate_limit() do
+      {:ok, delay} when delay > 0 -> :timer.sleep(delay)
+      {:ok, 0} -> :ok
+      {:error, {:rate_limited, _retry_after}} = error -> error
     end
-
-    handle_response(result, operation)
+  catch
+    # Rate limiter not running
+    :exit, _ -> :ok
   end
 
   defp handle_response({:ok, %Req.Response{status: status, body: body}}, operation) when status in [200, 201] do

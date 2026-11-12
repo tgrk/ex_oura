@@ -509,32 +509,25 @@ config :ex_oura,
   ]
 ```
 
-**Behavior:**
-- When **enabled** (default): Tracks and enforces rate limits proactively
-- When **disabled**: No rate limit tracking, but still handles API rate limit responses
-- Automatic parsing of rate limit headers from API responses
-- Uses Req's built-in retry for GET requests (see Retry Logic Features below)
+**Behavior (when `ExOura.RateLimiter` is running and enabled):**
+- Remaining requests and reset times are read from Oura's `x-ratelimit-*` response headers when present
+- A call that would exceed a known, not-yet-reset limit returns `{:error, {:rate_limited, seconds}}`
+  without calling the API; retry after `seconds`
+- Rapid requests get a short (≤200 ms) delay when few per-minute requests remain
+- When **disabled** or not started: no tracking; 429 responses are still retried for GET requests
 
 **Usage:**
 
 ```elixir
-# Start the rate limiter (optional - provides better rate limit management)
+# Start the rate limiter (optional)
 {:ok, _pid} = ExOura.RateLimiter.start_link()
 
-# All API requests automatically:
-# - Respect rate limits (5000/day, 300/minute) if enabled
-# - Parse rate limit headers from responses
-# - Retry GET requests on server errors, rate limits and network errors
-
-# Example: This GET request is retried automatically on 5xx, 429 and network errors
-{:ok, activities} = ExOura.multiple_daily_activity(~D[2024-01-01], ~D[2024-01-31])
+case ExOura.multiple_daily_activity(~D[2024-01-01], ~D[2024-01-31]) do
+  {:ok, activities} -> activities
+  {:error, {:rate_limited, seconds}} -> {:retry_in, seconds}
+  {:error, reason} -> {:error, reason}
+end
 ```
-
-#### Rate Limiting Features
-
-- **Automatic Rate Limit Detection**: Parses `X-RateLimit-*` headers from API responses
-- **Proactive Throttling**: Prevents hitting rate limits before they occur
-- **Smart Delays**: Adds small delays when approaching rate limits
 
 #### Retry Logic Features  
 

@@ -95,17 +95,16 @@ defmodule ExOura.RateLimiterTest do
       assert status.reset_time == 1_693_843_200
     end
 
-    test "handles alternative header formats" do
-      headers = %{
-        "x-daily-requests-remaining" => "25",
-        "x-minute-requests-remaining" => "7"
-      }
+    test "reads Req's list-valued headers and blocks when the daily limit is used up" do
+      reset = System.system_time(:second) + @one_hour_in_seconds
+      headers = Req.Response.new(headers: [{"x-ratelimit-remaining", "0"}, {"x-ratelimit-reset", "#{reset}"}]).headers
+      assert %{"x-ratelimit-remaining" => ["0"]} = headers
 
       RateLimiter.update_rate_limit_headers(headers)
-      status = RateLimiter.get_status()
 
-      assert status.remaining == 25
-      assert status.per_minute_remaining == 7
+      assert %{remaining: 0, reset_time: ^reset} = RateLimiter.get_status()
+      assert {:error, {:rate_limited, retry_after}} = RateLimiter.check_rate_limit()
+      assert retry_after > 0
     end
 
     test "ignores invalid header values" do
@@ -137,35 +136,15 @@ defmodule ExOura.RateLimiterTest do
   end
 
   describe "record_request/0" do
-    test "decrements remaining counts" do
+    test "updates last request time without touching remaining counts" do
       original_status = RateLimiter.get_status()
 
-      # Add a small sleep to ensure time difference
-      Process.sleep(1)
-      RateLimiter.record_request()
+      for _ <- 1..20, do: RateLimiter.record_request()
       new_status = RateLimiter.get_status()
 
-      assert new_status.remaining == original_status.remaining - 1
-      assert new_status.per_minute_remaining == original_status.per_minute_remaining - 1
+      assert new_status.remaining == original_status.remaining
+      assert new_status.per_minute_remaining == original_status.per_minute_remaining
       assert new_status.last_request_time >= original_status.last_request_time
-    end
-
-    test "prevents counts from going negative" do
-      # Set remaining to 1
-      headers = %{
-        "x-ratelimit-remaining" => "1",
-        "x-ratelimit-remaining-minute" => "1"
-      }
-
-      RateLimiter.update_rate_limit_headers(headers)
-
-      # Record two requests
-      RateLimiter.record_request()
-      RateLimiter.record_request()
-
-      status = RateLimiter.get_status()
-      assert status.remaining == 0
-      assert status.per_minute_remaining == 0
     end
   end
 

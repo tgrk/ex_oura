@@ -73,4 +73,19 @@ defmodule ExOura.ReqRetryIntegrationTest do
 
     assert_received {:authorization, ["Bearer user_b_token"]}
   end
+
+  test "an exhausted known limit returns rate_limited without sleeping or calling the API" do
+    start_supervised!(ExOura.RateLimiter)
+    reset = System.system_time(:second) + 3600
+    ExOura.RateLimiter.update_rate_limit_headers(%{"x-ratelimit-remaining" => ["0"], "x-ratelimit-reset" => ["#{reset}"]})
+
+    adapter = fn _request -> flunk("API must not be called while rate limited") end
+
+    with_mock ReqFinchAdapter, run: adapter do
+      {micros, result} = :timer.tc(fn -> ExOura.single_personal_info() end)
+      assert {:error, {:rate_limited, retry_after}} = result
+      assert retry_after > 0
+      assert micros < 1_000_000
+    end
+  end
 end

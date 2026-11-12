@@ -73,10 +73,13 @@ defmodule ExOura do
   - 5000 requests per day
   - 300 requests per minute
 
+  When `ExOura.RateLimiter` is running, it reads Oura's `x-ratelimit-*` response
+  headers when present. A call that would exceed a known, not-yet-reset limit returns
+  `{:error, {:rate_limited, seconds}}` without calling the API.
+
   You can disable rate limiting entirely by setting `enabled: false` in the configuration,
-  or adjust the limits if needed. When disabled, the client will not track or enforce
-  any rate limits, but will still handle rate limit responses from the API server
-  in the retry logic.
+  or adjust the starting limits. When disabled, the client does not track limits, but
+  GET requests are still retried on 429 responses (see Retry Logic).
 
   ### Retry Logic
 

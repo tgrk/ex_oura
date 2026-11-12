@@ -114,6 +114,29 @@ defmodule ExOura.ClientOAuth2Test do
       end
     end
 
+    test "accepts a NaiveDateTime expiry and refreshes 60s before it" do
+      response = %Req.Response{
+        status: 200,
+        body: %{access_token: "new_access_token", refresh_token: "new_refresh_token", expires_in: 86_400}
+      }
+
+      with_mock Req, [:passthrough], post: fn _url, _opts -> {:ok, response} end do
+        # Far-future NaiveDateTime from setup: no crash, no refresh
+        assert {:ok, "old_access_token"} = GenServer.call(Client, :access_token)
+        assert_not_called(Req.post(:_, :_))
+
+        :ok =
+          Client.set_auth_config(
+            access_token: "old_access_token",
+            refresh_token: "oauth2_refresh_token",
+            expires_at: NaiveDateTime.add(NaiveDateTime.utc_now(), 30)
+          )
+
+        assert {:ok, "new_access_token"} = GenServer.call(Client, :access_token)
+        assert {:ok, %{expires_at: %DateTime{}}} = Client.get_token_info()
+      end
+    end
+
     test "handles token refresh error" do
       error_response = %Req.Response{
         status: 400,

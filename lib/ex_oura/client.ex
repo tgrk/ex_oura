@@ -15,6 +15,9 @@ defmodule ExOura.Client do
   # transient network errors, honoring Retry-After; only the attempt count is ours.
   @max_retries :ex_oura |> Application.compile_env(:retry, []) |> Keyword.get(:max_retries, 3)
 
+  # Refresh this early so a token cannot expire while its request is in flight.
+  @refresh_buffer_seconds 60
+
   # Client API
 
   @doc """
@@ -302,7 +305,7 @@ defmodule ExOura.Client do
 
   defp maybe_refresh_token(%{auth_type: :oauth2, expires_at: expires_at, refresh_token: refresh_token} = state)
        when is_binary(refresh_token) do
-    if expires_at && DateTime.after?(DateTime.utc_now(), expires_at) do
+    if expires_at && OAuth2.token_expired?(state, @refresh_buffer_seconds) do
       refresh_state(state)
     else
       {:ok, state}
@@ -334,7 +337,7 @@ defmodule ExOura.Client do
         %{
           access_token: access_token,
           refresh_token: if(is_binary(refresh_token), do: refresh_token),
-          expires_at: Keyword.get(auth_config, :expires_at),
+          expires_at: auth_config |> Keyword.get(:expires_at) |> to_utc_datetime(),
           expires_in: Keyword.get(auth_config, :expires_in),
           auth_type: :oauth2
         }
@@ -352,7 +355,7 @@ defmodule ExOura.Client do
   defp prepare_state(auth_config) when is_map(auth_config) do
     %{
       access_token: auth_config.access_token,
-      expires_at: auth_config.expires_at,
+      expires_at: to_utc_datetime(auth_config.expires_at),
       expires_in: auth_config.expires_in,
       refresh_token: auth_config.refresh_token,
       auth_type: :oauth2
@@ -369,4 +372,8 @@ defmodule ExOura.Client do
       auth_type: :bearer
     }
   end
+
+  # Expiry checks compare DateTimes; a NaiveDateTime (e.g. an Ecto :naive_datetime) is taken as UTC.
+  defp to_utc_datetime(%NaiveDateTime{} = expires_at), do: DateTime.from_naive!(expires_at, "Etc/UTC")
+  defp to_utc_datetime(expires_at), do: expires_at
 end

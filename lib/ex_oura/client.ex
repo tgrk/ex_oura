@@ -95,10 +95,11 @@ defmodule ExOura.Client do
 
   The client refreshes an expiring OAuth2 token on its own. Oura refresh tokens are
   single-use, so pass `on_refresh:` to save each new token pair; otherwise the stored
-  refresh token stops working after the first refresh. The function receives the new
-  token map. It runs inside the client process: keep it quick and do not call
-  `ExOura.Client` or `ExOura` API functions from it (that would deadlock). If it raises,
-  a warning is logged and the client keeps the new tokens.
+  refresh token stops working after the first refresh. It works with both keyword-list
+  and token-map configs. The function receives the new token map. It runs inside the
+  client process: keep it quick and do not call `ExOura.Client` or `ExOura` API
+  functions from it (that would deadlock). If it raises, a warning is logged and the
+  client keeps the new tokens.
 
       {:ok, client} = ExOura.Client.start_link([
         access_token: tokens.access_token,
@@ -155,7 +156,7 @@ defmodule ExOura.Client do
 
   @impl true
   def handle_call(:get_token_info, _from, state) do
-    {:reply, {:ok, state}, state}
+    {:reply, {:ok, token_info(state)}, state}
   end
 
   @impl true
@@ -167,7 +168,7 @@ defmodule ExOura.Client do
   def handle_call(:refresh_oauth2_token, _from, %{auth_type: :oauth2, refresh_token: refresh_token} = state)
       when is_binary(refresh_token) do
     case refresh_state(state) do
-      {:ok, new_state} -> {:reply, {:ok, new_state}, new_state}
+      {:ok, new_state} -> {:reply, {:ok, token_info(new_state)}, new_state}
       {:error, _reason} = error -> {:reply, error, state}
     end
   end
@@ -176,6 +177,9 @@ defmodule ExOura.Client do
   def handle_call(:refresh_oauth2_token, _from, state) do
     {:reply, {:error, :no_refresh_token}, state}
   end
+
+  # Replies carry token fields only; the callback stays in state (a function would break JSON encoding).
+  defp token_info(state), do: Map.delete(state, :on_refresh)
 
   # RateLimiter no-ops when disabled; retries are handled by Req (see @max_retries)
   defp make_request(%{method: method, url: url} = operation, access_token) do
@@ -393,7 +397,8 @@ defmodule ExOura.Client do
       expires_at: to_utc_datetime(auth_config.expires_at),
       expires_in: auth_config.expires_in,
       refresh_token: auth_config.refresh_token,
-      auth_type: :oauth2
+      auth_type: :oauth2,
+      on_refresh: Map.get(auth_config, :on_refresh)
     }
   end
 

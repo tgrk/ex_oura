@@ -155,6 +155,29 @@ defmodule ExOura.ClientOAuth2Test do
       end
     end
 
+    test "a map config keeps on_refresh, and token replies leave it out" do
+      test_pid = self()
+      response = %Req.Response{status: 200, body: %{access_token: "new_access_token", refresh_token: "new_refresh"}}
+
+      with_mock Req, [:passthrough], post: fn _url, _opts -> {:ok, response} end do
+        :ok =
+          Client.set_auth_config(%{
+            access_token: "old_access_token",
+            refresh_token: "oauth2_refresh_token",
+            expires_at: nil,
+            expires_in: nil,
+            on_refresh: &send(test_pid, {:refreshed, &1})
+          })
+
+        assert {:ok, refreshed} = Client.refresh_oauth2_token()
+        assert_received {:refreshed, %{access_token: "new_access_token"}}
+        refute Map.has_key?(refreshed, :on_refresh)
+
+        assert {:ok, info} = Client.get_token_info()
+        refute Map.has_key?(info, :on_refresh)
+      end
+    end
+
     test "a raising on_refresh callback does not crash the client" do
       response = %Req.Response{status: 200, body: %{access_token: "new_access_token", refresh_token: "new_refresh"}}
       pid = Process.whereis(Client)

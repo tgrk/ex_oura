@@ -276,8 +276,8 @@ defmodule MyApp.DataAnalyzer do
     start_date = Date.new!(year, 1, 1)
     end_date = Date.new!(year, 12, 31)
     
-    with {:ok, _tokens} <- MyApp.OuraService.ensure_valid_tokens(user) do
-      results = ExOura.stream_daily_activity(start_date, end_date)
+    with {:ok, tokens} <- MyApp.OuraService.ensure_valid_tokens(user) do
+      results = ExOura.stream_daily_activity(start_date, end_date, access_token: tokens.access_token)
       |> Stream.filter(&(&1.score > 0))  # Valid scores only
       |> Stream.map(&extract_activity_metrics/1)
       |> Enum.reduce(%{total_steps: 0, active_days: 0, high_activity_days: 0}, &accumulate_metrics/2)
@@ -322,8 +322,8 @@ defmodule MyApp.OuraAPI do
   
   defp fetch_sleep_data(user, {start_date, end_date}) do
     case MyApp.OuraService.ensure_valid_tokens(user) do
-      {:ok, _tokens} ->
-        ExOura.multiple_daily_sleep(start_date, end_date)
+      {:ok, tokens} ->
+        ExOura.multiple_daily_sleep(start_date, end_date, nil, access_token: tokens.access_token)
       
       {:error, :reauthorization_required} ->
         {:error, :user_needs_reauth}
@@ -413,8 +413,8 @@ defmodule MyApp.OuraSync do
     user = MyApp.Accounts.get_user!(user_id)
     date = Date.from_iso8601!(sync_date)
     
-    with {:ok, _tokens} <- MyApp.OuraService.ensure_valid_tokens(user),
-         {:ok, data} <- sync_user_data_for_date(user, date) do
+    with {:ok, tokens} <- MyApp.OuraService.ensure_valid_tokens(user),
+         {:ok, data} <- sync_user_data_for_date(tokens, date) do
       
       MyApp.HealthData.store_user_data(user, date, data)
       :ok
@@ -430,11 +430,13 @@ defmodule MyApp.OuraSync do
     end
   end
   
-  defp sync_user_data_for_date(user, date) do
+  defp sync_user_data_for_date(tokens, date) do
+    opts = [access_token: tokens.access_token]
+
     # Fetch yesterday's data (typically available by 10 AM)
-    with {:ok, activity} <- ExOura.multiple_daily_activity(date, date),
-         {:ok, sleep} <- ExOura.multiple_daily_sleep(date, date),
-         {:ok, workouts} <- ExOura.multiple_workout(date, date) do
+    with {:ok, activity} <- ExOura.multiple_daily_activity(date, date, nil, opts),
+         {:ok, sleep} <- ExOura.multiple_daily_sleep(date, date, nil, opts),
+         {:ok, workouts} <- ExOura.multiple_workout(date, date, nil, opts) do
       
       {:ok, %{
         activity: List.first(activity.data),

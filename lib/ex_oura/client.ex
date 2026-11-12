@@ -11,8 +11,6 @@ defmodule ExOura.Client do
 
   @timeout Application.compile_env(:ex_oura, :timeout, 5_000)
 
-  @rate_limiting_config Application.compile_env(:ex_oura, :rate_limiting, [])
-
   # Default retry configuration for Req
   @retry_config Application.compile_env(:ex_oura, :retry, [])
   @default_retry_opts [
@@ -58,39 +56,16 @@ defmodule ExOura.Client do
     end
   end
 
-  def date_range_args(start_date, end_date, next_token \\ nil)
-
-  def date_range_args(start_date, end_date, nil = _next_token) do
-    [
-      start_date: start_date,
-      end_date: end_date
-    ]
+  def date_range_args(start_date, end_date, next_token \\ nil) do
+    maybe_put_next_token([start_date: start_date, end_date: end_date], next_token)
   end
 
-  def date_range_args(start_date, end_date, next_token) do
-    [
-      start_date: start_date,
-      end_date: end_date,
-      next_token: next_token
-    ]
+  def datetime_range_args(start_datetime, end_datetime, next_token \\ nil) do
+    maybe_put_next_token([start_datetime: start_datetime, end_datetime: end_datetime], next_token)
   end
 
-  def datetime_range_args(start_datetime, end_datetime, next_token \\ nil)
-
-  def datetime_range_args(start_datetime, end_datetime, nil = _next_token) do
-    [
-      start_datetime: start_datetime,
-      end_datetime: end_datetime
-    ]
-  end
-
-  def datetime_range_args(start_datetime, end_datetime, next_token) do
-    [
-      start_datetime: start_datetime,
-      end_datetime: end_datetime,
-      next_token: next_token
-    ]
-  end
+  defp maybe_put_next_token(args, nil), do: args
+  defp maybe_put_next_token(args, next_token), do: args ++ [next_token: next_token]
 
   @doc """
   Starts the GenServer with authentication credentials.
@@ -132,83 +107,10 @@ defmodule ExOura.Client do
   end
 
   @impl true
-  def handle_call({:request, %{method: :get} = operation}, _from, state) do
+  def handle_call({:request, operation}, _from, state) do
     case maybe_refresh_token(state) do
       {:ok, new_state} ->
-        reply =
-          make_request_with_retry(
-            fn ->
-              operation
-              |> Map.get(:url)
-              |> Req.get(req_opts(operation, new_state))
-            end,
-            operation
-          )
-
-        {:reply, reply, new_state}
-
-      {:error, _reason} = error ->
-        {:reply, error, state}
-    end
-  end
-
-  @impl true
-  def handle_call({:request, %{method: :post} = operation}, _from, state) do
-    case maybe_refresh_token(state) do
-      {:ok, new_state} ->
-        reply =
-          make_request_with_retry(
-            fn ->
-              operation
-              |> Map.get(:url)
-              |> Req.post(req_opts(operation, new_state))
-            end,
-            operation
-          )
-
-        {:reply, reply, new_state}
-
-      {:error, _reason} = error ->
-        {:reply, error, state}
-    end
-  end
-
-  @impl true
-  def handle_call({:request, %{method: :put} = operation}, _from, state) do
-    case maybe_refresh_token(state) do
-      {:ok, new_state} ->
-        reply =
-          make_request_with_retry(
-            fn ->
-              operation
-              |> Map.get(:url)
-              |> Req.put(req_opts(operation, new_state))
-            end,
-            operation
-          )
-
-        {:reply, reply, new_state}
-
-      {:error, _reason} = error ->
-        {:reply, error, state}
-    end
-  end
-
-  @impl true
-  def handle_call({:request, %{method: :delete} = operation}, _from, state) do
-    case maybe_refresh_token(state) do
-      {:ok, new_state} ->
-        reply =
-          make_request_with_retry(
-            fn ->
-              operation
-              |> Map.get(:url)
-              |> Req.delete(req_opts(operation, new_state))
-            end,
-            operation
-          )
-
-        {:reply, reply, new_state}
+        {:reply, make_request(operation, new_state), new_state}
 
       {:error, _reason} = error ->
         {:reply, error, state}
@@ -217,15 +119,7 @@ defmodule ExOura.Client do
 
   @impl true
   def handle_call(:get_token_info, _from, state) do
-    token_info = %{
-      access_token: state.access_token,
-      refresh_token: state.refresh_token,
-      expires_at: state[:expires_at],
-      expires_in: state[:expires_in],
-      auth_type: state.auth_type
-    }
-
-    {:reply, {:ok, token_info}, state}
+    {:reply, {:ok, state}, state}
   end
 
   @impl true
@@ -236,35 +130,9 @@ defmodule ExOura.Client do
   @impl true
   def handle_call(:refresh_oauth2_token, _from, %{auth_type: :oauth2, refresh_token: refresh_token} = state)
       when is_binary(refresh_token) do
-    case OAuth2.refresh_token(refresh_token) do
-      {:ok, new_tokens} ->
-        updated_refresh_token =
-          case new_tokens.refresh_token do
-            nil -> refresh_token
-            token -> token
-          end
-
-        new_state = %{
-          state
-          | access_token: new_tokens.access_token,
-            refresh_token: updated_refresh_token,
-            expires_at: new_tokens.expires_at,
-            expires_in: new_tokens.expires_in,
-            auth_type: :oauth2
-        }
-
-        token_info = %{
-          access_token: new_tokens.access_token,
-          refresh_token: updated_refresh_token,
-          expires_at: new_tokens.expires_at,
-          expires_in: new_tokens.expires_in,
-          auth_type: :oauth2
-        }
-
-        {:reply, {:ok, token_info}, new_state}
-
-      {:error, reason} ->
-        {:reply, {:error, reason}, state}
+    case refresh_state(state) do
+      {:ok, new_state} -> {:reply, {:ok, new_state}, new_state}
+      {:error, _reason} = error -> {:reply, error, state}
     end
   end
 
@@ -273,68 +141,29 @@ defmodule ExOura.Client do
     {:reply, {:error, :no_refresh_token}, state}
   end
 
-  # Private helper for making requests with rate limiting and using Req's built-in retry
-  defp make_request_with_retry(request_fn, operation) do
-    check_rate_limits_before_request()
-    make_request_and_handle_response(request_fn, operation)
-  end
-
-  defp check_rate_limits_before_request do
-    if enabled?() do
-      try do
-        case RateLimiter.check_rate_limit() do
-          {:ok, delay} when delay > 0 ->
-            :timer.sleep(delay)
-
-          {:error, {:rate_limited, retry_after}} ->
-            :timer.sleep(retry_after * 1000)
-
-          {:ok, 0} ->
-            :ok
-        end
-      catch
-        :exit, _ -> :ok
+  # RateLimiter no-ops when disabled; retries are handled by Req via @default_retry_opts
+  defp make_request(%{method: method, url: url} = operation, state) do
+    try do
+      case RateLimiter.check_rate_limit() do
+        {:ok, delay} when delay > 0 -> :timer.sleep(delay)
+        {:error, {:rate_limited, retry_after}} -> :timer.sleep(retry_after * 1000)
+        {:ok, 0} -> :ok
       end
-    else
-      :ok
+    catch
+      # Rate limiter not running
+      :exit, _ -> :ok
     end
-  end
 
-  defp make_request_and_handle_response(request_fn, operation) do
-    case request_fn.() do
-      {:ok, %Req.Response{headers: headers} = response} ->
-        update_rate_limits_from_headers(headers)
-        record_request_for_rate_limiting()
-        handle_response({:ok, response}, operation)
+    # method is one of :get | :post | :put | :delete, i.e. Req.get/2 etc.
+    result = apply(Req, method, [url, req_opts(operation, state)])
 
-      error ->
-        handle_response(error, operation)
+    # Casts: safe even when the rate limiter is not running
+    with {:ok, %Req.Response{headers: headers}} <- result do
+      RateLimiter.update_rate_limit_headers(headers)
+      RateLimiter.record_request()
     end
-  end
 
-  defp record_request_for_rate_limiting do
-    if enabled?() do
-      try do
-        RateLimiter.record_request()
-      catch
-        :exit, _ -> :ok
-      end
-    else
-      :ok
-    end
-  end
-
-  defp update_rate_limits_from_headers(headers) do
-    if enabled?() do
-      try do
-        RateLimiter.update_rate_limit_headers(headers)
-      catch
-        # Rate limiter not running
-        :exit, _ -> :ok
-      end
-    else
-      :ok
-    end
+    handle_response(result, operation)
   end
 
   defp handle_response({:ok, %Req.Response{status: status, body: body}}, operation) when status in [200, 201] do
@@ -395,7 +224,7 @@ defmodule ExOura.Client do
   end
 
   defp maybe_include_client_credentials(operation, access_token) do
-    if webhook?(operation) do
+    if match?({ExOura.Client.WebhookSubscriptionRoutes, _}, Map.get(operation, :call)) do
       [
         {"x-client-id", System.get_env("OURA_CLIENT_ID")},
         {"x-client-secret", System.get_env("OURA_CLIENT_SECRET")}
@@ -411,34 +240,14 @@ defmodule ExOura.Client do
   defp apply(mod, fun, [_ | _] = args, opts), do: apply(mod, fun, args ++ opts)
   defp apply(mod, fun, args, opts), do: apply(mod, fun, [args] ++ opts)
 
-  defp client_ready?(opts) do
-    if Keyword.has_key?(opts, :client) do
-      true
-    else
-      case Process.whereis(ExOura.Client) do
-        nil -> false
-        client_pid -> Process.alive?(client_pid)
-      end
-    end
-  end
-
   defp ensure_client_ready(opts) do
-    if client_ready?(opts) do
+    pid = Process.whereis(__MODULE__)
+
+    if Keyword.has_key?(opts, :client) or (is_pid(pid) and Process.alive?(pid)) do
       :ok
     else
       {:error, :client_not_ready}
     end
-  end
-
-  defp webhook?(operation) do
-    case Map.get(operation, :call) do
-      {ExOura.Client.WebhookSubscriptionRoutes, _} -> true
-      _non_webhook_call -> false
-    end
-  end
-
-  defp get_access_token(access_token) do
-    Application.get_env(:ex_oura, :access_token, access_token)
   end
 
   defp validate_date_range_args(opts) do
@@ -487,8 +296,6 @@ defmodule ExOura.Client do
     end
   end
 
-  defp enabled?, do: Keyword.get(@rate_limiting_config, :enabled, true)
-
   defp valid_date?(%Date{} = _date), do: true
   defp valid_date?(_date), do: false
   defp valid_datetime?(%DateTime{} = _datetime), do: true
@@ -506,98 +313,70 @@ defmodule ExOura.Client do
   defp maybe_refresh_token(%{auth_type: :oauth2, expires_at: expires_at, refresh_token: refresh_token} = state)
        when is_binary(refresh_token) do
     if expires_at && DateTime.after?(DateTime.utc_now(), expires_at) do
-      case OAuth2.refresh_token(refresh_token) do
-        {:ok, new_token_info} ->
-          updated_state = %{
-            state
-            | access_token: new_token_info.access_token,
-              refresh_token: new_token_info.refresh_token || refresh_token,
-              expires_at: new_token_info.expires_at,
-              expires_in: new_token_info.expires_in
-          }
-
-          {:ok, updated_state}
-
-        {:error, _reason} = error ->
-          error
-      end
+      refresh_state(state)
     else
       {:ok, state}
     end
   end
 
-  defp maybe_refresh_token(state) do
-    # For bearer tokens or OAuth2 without refresh token, no refresh needed
-    {:ok, state}
+  # For bearer tokens or OAuth2 without refresh token, no refresh needed
+  defp maybe_refresh_token(state), do: {:ok, state}
+
+  defp refresh_state(%{refresh_token: refresh_token} = state) do
+    with {:ok, tokens} <- OAuth2.refresh_token(refresh_token) do
+      {:ok,
+       %{
+         state
+         | access_token: tokens.access_token,
+           refresh_token: tokens.refresh_token || refresh_token,
+           expires_at: tokens.expires_at,
+           expires_in: tokens.expires_in
+       }}
+    end
   end
 
-  defp prepare_state(auth_config) do
-    case auth_config do
-      # OAuth2 configuration with keyword list (full config)
-      auth_list when is_list(auth_list) ->
-        access_token = Keyword.get(auth_list, :access_token)
-        refresh_token = Keyword.get(auth_list, :refresh_token)
-        expires_at = Keyword.get(auth_list, :expires_at)
-        expires_in = Keyword.get(auth_list, :expires_in)
+  # OAuth2 configuration as keyword list
+  defp prepare_state(auth_config) when is_list(auth_config) do
+    refresh_token = Keyword.get(auth_config, :refresh_token)
 
-        cond do
-          # OAuth2 with refresh token
-          is_binary(access_token) and is_binary(refresh_token) ->
-            %{
-              access_token: access_token,
-              refresh_token: refresh_token,
-              expires_at: expires_at,
-              expires_in: expires_in,
-              auth_type: :oauth2
-            }
-
-          # OAuth2 access token only
-          is_binary(access_token) ->
-            %{
-              access_token: access_token,
-              refresh_token: nil,
-              expires_at: expires_at,
-              expires_in: expires_in,
-              auth_type: :oauth2
-            }
-
-          true ->
-            # Fallback to config
-            token = get_access_token(nil)
-
-            %{
-              access_token: token,
-              refresh_token: nil,
-              auth_type: :bearer
-            }
-        end
-
-      # Simple string token (Personal Access Token or OAuth2 access token)
+    case Keyword.get(auth_config, :access_token) do
       access_token when is_binary(access_token) ->
         %{
           access_token: access_token,
-          refresh_token: nil,
-          auth_type: :bearer
-        }
-
-      auth_config when is_map(auth_config) ->
-        %{
-          access_token: auth_config.access_token,
-          expires_at: auth_config.expires_at,
-          expires_in: auth_config.expires_in,
-          refresh_token: auth_config.refresh_token,
+          refresh_token: if(is_binary(refresh_token), do: refresh_token),
+          expires_at: Keyword.get(auth_config, :expires_at),
+          expires_in: Keyword.get(auth_config, :expires_in),
           auth_type: :oauth2
         }
 
-      # No token provided, try to get from config
       _ ->
-        token = get_access_token(nil)
-
-        %{
-          access_token: token,
-          refresh_token: nil,
-          auth_type: :bearer
-        }
+        prepare_state(nil)
     end
+  end
+
+  # Simple string token (Personal Access Token or OAuth2 access token)
+  defp prepare_state(auth_config) when is_binary(auth_config) do
+    %{access_token: auth_config, refresh_token: nil, expires_at: nil, expires_in: nil, auth_type: :bearer}
+  end
+
+  defp prepare_state(auth_config) when is_map(auth_config) do
+    %{
+      access_token: auth_config.access_token,
+      expires_at: auth_config.expires_at,
+      expires_in: auth_config.expires_in,
+      refresh_token: auth_config.refresh_token,
+      auth_type: :oauth2
+    }
+  end
+
+  # No usable token provided, fall back to config
+  defp prepare_state(_auth_config) do
+    %{
+      access_token: Application.get_env(:ex_oura, :access_token),
+      refresh_token: nil,
+      expires_at: nil,
+      expires_in: nil,
+      auth_type: :bearer
+    }
   end
 end

@@ -206,14 +206,38 @@ defmodule ExOura.RateLimiter do
   end
 
   defp parse_rate_limit_headers(headers, state) do
+    {remaining, reset_time} =
+      merge_window(
+        parse_header_int(headers, "x-ratelimit-remaining"),
+        parse_header_int(headers, "x-ratelimit-reset"),
+        state.remaining,
+        state.reset_time
+      )
+
+    {per_minute_remaining, per_minute_reset} =
+      merge_window(
+        parse_header_int(headers, "x-ratelimit-remaining-minute"),
+        parse_header_int(headers, "x-ratelimit-reset-minute"),
+        state.per_minute_remaining,
+        state.per_minute_reset
+      )
+
     %{
       state
-      | remaining: parse_header_int(headers, "x-ratelimit-remaining") || state.remaining,
-        reset_time: parse_header_int(headers, "x-ratelimit-reset") || state.reset_time,
-        per_minute_remaining: parse_header_int(headers, "x-ratelimit-remaining-minute") || state.per_minute_remaining,
-        per_minute_reset: parse_header_int(headers, "x-ratelimit-reset-minute") || state.per_minute_reset
+      | remaining: remaining,
+        reset_time: reset_time,
+        per_minute_remaining: per_minute_remaining,
+        per_minute_reset: per_minute_reset
     }
   end
+
+  # Concurrent responses can arrive out of order, so within one reset window keep the lowest count.
+  defp merge_window(nil, _new_reset, remaining, reset), do: {remaining, reset}
+  # With no known window there is nothing to protect, so the newest count wins (no stuck throttle).
+  defp merge_window(new, new_reset, remaining, reset) when not is_nil(reset) and new_reset in [nil, reset],
+    do: {min(new, remaining), reset}
+
+  defp merge_window(new, new_reset, _remaining, _reset), do: {new, new_reset}
 
   # Req gives header values as lists: %{"x-ratelimit-remaining" => ["5"]}
   defp parse_header_int(headers, key), do: headers |> Map.get(key) |> to_int()

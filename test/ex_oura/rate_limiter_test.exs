@@ -107,6 +107,29 @@ defmodule ExOura.RateLimiterTest do
       assert retry_after > 0
     end
 
+    test "keeps the lowest count within a reset window, even if replies arrive out of order" do
+      reset = System.system_time(:second) + @one_hour_in_seconds
+
+      RateLimiter.update_rate_limit_headers(%{"x-ratelimit-remaining" => "0", "x-ratelimit-reset" => "#{reset}"})
+      # An older reply from the same window arrives late
+      RateLimiter.update_rate_limit_headers(%{"x-ratelimit-remaining" => "5", "x-ratelimit-reset" => "#{reset}"})
+
+      assert %{remaining: 0} = RateLimiter.get_status()
+      assert {:error, {:rate_limited, _}} = RateLimiter.check_rate_limit()
+
+      # A new window may raise the count again
+      new_reset = reset + 86_400
+      RateLimiter.update_rate_limit_headers(%{"x-ratelimit-remaining" => "100", "x-ratelimit-reset" => "#{new_reset}"})
+      assert %{remaining: 100, reset_time: ^new_reset} = RateLimiter.get_status()
+    end
+
+    test "takes the newest count when no reset window is known" do
+      RateLimiter.update_rate_limit_headers(%{"x-ratelimit-remaining-minute" => "3"})
+      RateLimiter.update_rate_limit_headers(%{"x-ratelimit-remaining-minute" => "200"})
+
+      assert %{per_minute_remaining: 200, per_minute_reset: nil} = RateLimiter.get_status()
+    end
+
     test "ignores invalid header values" do
       original_status = RateLimiter.get_status()
 

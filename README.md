@@ -514,7 +514,7 @@ config :ex_oura,
 - When **enabled** (default): Tracks and enforces rate limits proactively
 - When **disabled**: No rate limit tracking, but still handles API rate limit responses
 - Automatic parsing of rate limit headers from API responses
-- Uses Req's built-in retry logic with exponential backoff and jitter
+- Uses Req's built-in retry for GET requests (see Retry Logic Features below)
 
 **Usage:**
 
@@ -525,10 +525,9 @@ config :ex_oura,
 # All API requests automatically:
 # - Respect rate limits (5000/day, 300/minute) if enabled
 # - Parse rate limit headers from responses
-# - Use Req's built-in retry with exponential backoff
-# - Handle network errors and server errors gracefully
+# - Retry GET requests on server errors, rate limits and network errors
 
-# Example: This will automatically retry on server errors and rate limits
+# Example: This GET request is retried automatically on 5xx, 429 and network errors
 {:ok, activities} = ExOura.multiple_daily_activity(~D[2024-01-01], ~D[2024-01-31])
 ```
 
@@ -540,28 +539,23 @@ config :ex_oura,
 
 #### Retry Logic Features  
 
-- **Exponential Backoff**: Automatically increases delay between retry attempts
-- **Smart Error Detection**: Only retries on appropriate errors (5xx, network issues, rate limits)
-- **Jitter**: Adds randomness to prevent thundering herd problems
-- **Configurable**: Customize max attempts, delays, and backoff factors
+ExOura uses Req's built-in retry (`retry: :safe_transient`):
+
+- **What is retried**: GET requests that get a 408, 429, 500, 502, 503 or 504 response,
+  or a transient network error (timeout, connection refused, connection closed)
+- **Delay**: Honors the `Retry-After` header on 429 and 503; otherwise exponential backoff with jitter
+- **Not retried**: POST, PUT and DELETE requests (webhook subscriptions), so a retry never
+  creates a duplicate subscription
+- **Configurable**: Set the maximum number of retries:
+
+```elixir
+config :ex_oura,
+  retry: [max_retries: 3]
+```
 
 #### Advanced Usage
 
 ```elixir
-# Custom retry configuration
-alias ExOura.Retry
-
-request_fn = fn ->
-  ExOura.multiple_daily_activity(~D[2024-01-01], ~D[2024-01-31]) 
-end
-
-{:ok, result} = Retry.with_retry(request_fn, [
-  max_attempts: 5,
-  base_delay: 2000,    # Start with 2 second delay
-  max_delay: 30_000,   # Cap at 30 seconds
-  backoff_factor: 2.5  # More aggressive backoff
-])
-
 # Monitor rate limit status
 status = ExOura.RateLimiter.get_status()
 IO.puts "Daily remaining: #{status.remaining}"

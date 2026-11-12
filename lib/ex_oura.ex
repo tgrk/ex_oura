@@ -71,11 +71,12 @@ defmodule ExOura do
 
   ### Retry Logic
 
-  ExOura uses Req's built-in retry mechanism with intelligent error handling:
-  - Automatically retries on server errors (5xx), timeouts (408), and rate limits (429)
-  - Exponential backoff with jitter to avoid thundering herd problems
-  - Configurable maximum retry attempts
-  - Does not retry on client errors (4xx except 408 and 429)
+  ExOura uses Req's built-in retry (`retry: :safe_transient`):
+  - GET requests are retried on 408, 429, 500, 502, 503 and 504 responses and on
+    transient network errors (timeout, connection refused, connection closed)
+  - The `Retry-After` header is honored on 429 and 503; otherwise exponential backoff with jitter
+  - POST, PUT and DELETE requests (webhook subscriptions) are never retried
+  - Maximum retry attempts are configurable with `retry: [max_retries: 3]`
   """
 
   alias ExOura.Client

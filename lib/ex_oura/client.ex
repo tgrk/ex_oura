@@ -11,13 +11,9 @@ defmodule ExOura.Client do
 
   @timeout Application.compile_env(:ex_oura, :timeout, 5_000)
 
-  # Default retry configuration for Req
-  @retry_config Application.compile_env(:ex_oura, :retry, [])
-  @default_retry_opts [
-    retry: &__MODULE__.should_retry?/2,
-    retry_delay: &__MODULE__.retry_delay/1,
-    max_retries: Keyword.get(@retry_config, :max_retries, 3)
-  ]
+  # Req's default `retry: :safe_transient` retries GET/HEAD on 408/429/5xx and
+  # transient network errors, honoring Retry-After; only the attempt count is ours.
+  @max_retries :ex_oura |> Application.compile_env(:retry, []) |> Keyword.get(:max_retries, 3)
 
   # Client API
 
@@ -141,7 +137,7 @@ defmodule ExOura.Client do
     {:reply, {:error, :no_refresh_token}, state}
   end
 
-  # RateLimiter no-ops when disabled; retries are handled by Req via @default_retry_opts
+  # RateLimiter no-ops when disabled; retries are handled by Req (see @max_retries)
   defp make_request(%{method: method, url: url} = operation, state) do
     try do
       case RateLimiter.check_rate_limit() do
@@ -187,40 +183,16 @@ defmodule ExOura.Client do
   defp handle_response({:error, _exception} = error, _operation), do: error
 
   defp req_opts(operation, %{access_token: access_token} = _state) do
-    base_opts = [
+    [
       base_url: @base_url,
       params: Map.get(operation, :query, []),
       auth: {:bearer, access_token},
       compressed: true,
       decoders: [json: &Jason.decode(&1, keys: :atoms)],
       body: Map.get(operation, :body),
-      headers: maybe_include_client_credentials(operation, access_token)
+      headers: maybe_include_client_credentials(operation, access_token),
+      max_retries: @max_retries
     ]
-
-    base_opts ++ @default_retry_opts
-  end
-
-  @doc false
-  def should_retry?({:error, %Req.Response{status: status}}, _) when status in [408, 429] or status >= 500 do
-    true
-  end
-
-  def should_retry?({:error, %Req.TransportError{}}, _), do: true
-  def should_retry?(_, _), do: false
-
-  @doc false
-  def retry_delay(attempt) do
-    # Exponential backoff: 1s, 2s, 4s, etc., with max of 30s
-    base_delay = 1000
-    max_delay = 30_000
-    delay = base_delay * :math.pow(2, attempt - 1)
-
-    # Add jitter (±10%)
-    jitter = delay * 0.1 * (:rand.uniform() - 0.5)
-
-    (delay + jitter)
-    |> min(max_delay)
-    |> round()
   end
 
   defp maybe_include_client_credentials(operation, access_token) do

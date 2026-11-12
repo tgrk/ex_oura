@@ -1,18 +1,5 @@
 # Changelog
 
-## Unreleased
-
-### Features
-
-* support Oura OpenAPI v1.42, including live third-party and Oura heart-rate workout sources
-* accept the optional `heart_health` OAuth2 scope; default scopes are unchanged
-
-### API compatibility
-
-* remove `meal` from generated webhook subscription data-type definitions to match Oura
-* retain the deprecated sleep `ring_id` field, which Oura now returns as null
-* preserve existing public functions and response structs
-
 ## [4.1.0](https://github.com/tgrk/ex_oura/compare/v4.0.0...v4.1.0) (2026-10-15)
 
 

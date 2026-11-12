@@ -209,25 +209,22 @@ defmodule ExOura.Client do
       compressed: true,
       decoders: [json: &Jason.decode(&1, keys: :atoms)],
       body: Map.get(operation, :body),
-      headers: maybe_include_client_credentials(operation, access_token),
+      headers: client_credential_headers(operation),
       max_retries: @max_retries,
       # Per-call `timeout:` option documented on the public wrappers, else the configured one
       receive_timeout: operation |> Map.get(:opts, []) |> Keyword.get(:timeout, @timeout)
     ]
   end
 
-  defp maybe_include_client_credentials(operation, access_token) do
-    if match?({ExOura.Client.WebhookSubscriptionRoutes, _}, Map.get(operation, :call)) do
-      [
-        {"x-client-id", System.get_env("OURA_CLIENT_ID")},
-        {"x-client-secret", System.get_env("OURA_CLIENT_SECRET")}
-      ]
-    else
-      [
-        {"Authorization", "Bearer #{access_token}"}
-      ]
-    end
+  # The bearer token comes from `auth:`; webhook routes also need the app's client credentials.
+  defp client_credential_headers(%{call: {ExOura.Client.WebhookSubscriptionRoutes, _}}) do
+    [
+      {"x-client-id", OAuth2.config_value(:client_id)},
+      {"x-client-secret", OAuth2.config_value(:client_secret)}
+    ]
   end
+
+  defp client_credential_headers(_operation), do: []
 
   defp apply(mod, fun, [] = _args, opts), do: apply(mod, fun, [opts])
   defp apply(mod, fun, [_ | _] = args, opts), do: apply(mod, fun, args ++ opts)

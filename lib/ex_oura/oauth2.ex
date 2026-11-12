@@ -287,12 +287,18 @@ defmodule ExOura.OAuth2 do
 
   # Private functions
 
-  defp get_config do
-    oauth2_config = Application.get_env(:ex_oura, :oauth2, [])
+  @doc false
+  # App config first, then env var. Shared with the webhook client-credential headers.
+  @spec config_value(:client_id | :client_secret | :redirect_uri) :: String.t() | nil
+  def config_value(key) do
+    Application.get_env(:ex_oura, :oauth2, [])[key] ||
+      System.get_env("OURA_#{key |> Atom.to_string() |> String.upcase()}")
+  end
 
-    client_id = oauth2_config[:client_id] || System.get_env("OURA_CLIENT_ID")
-    client_secret = oauth2_config[:client_secret] || System.get_env("OURA_CLIENT_SECRET")
-    redirect_uri = oauth2_config[:redirect_uri] || System.get_env("OURA_REDIRECT_URI")
+  defp get_config do
+    client_id = config_value(:client_id)
+    client_secret = config_value(:client_secret)
+    redirect_uri = config_value(:redirect_uri)
 
     if is_nil(client_id) or is_nil(client_secret) or is_nil(redirect_uri) do
       raise """

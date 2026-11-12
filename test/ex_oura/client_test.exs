@@ -9,15 +9,11 @@ defmodule ExOura.ClientTest do
   alias ExOura.Client.WebhookSubscriptionRoutes
 
   setup do
-    case Process.whereis(Client) do
-      pid when is_pid(pid) ->
-        GenServer.stop(pid, :normal, 1000)
-
-      nil ->
-        :ok
-    end
-
+    # The client may be linked to another module's setup_all process and die between whereis and stop.
+    if pid = Process.whereis(Client), do: GenServer.stop(pid, :normal, 1000)
     :ok
+  catch
+    :exit, _ -> :ok
   end
 
   setup do
@@ -175,7 +171,7 @@ defmodule ExOura.ClientTest do
 
         assert_received {:req_get_opts, opts}
         assert opts[:auth] == {:bearer, "access-token"}
-        assert {"Authorization", "Bearer access-token"} in opts[:headers]
+        assert opts[:headers] == []
       end
     end
 

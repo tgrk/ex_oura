@@ -61,6 +61,14 @@ defmodule ExOura.ClientOAuth2Test do
   describe "OAuth2 token refresh" do
     setup do
       # Mock OAuth2 configuration
+      original_config = Application.get_env(:ex_oura, :oauth2)
+
+      on_exit(fn ->
+        if original_config,
+          do: Application.put_env(:ex_oura, :oauth2, original_config),
+          else: Application.delete_env(:ex_oura, :oauth2)
+      end)
+
       Application.put_env(:ex_oura, :oauth2,
         client_id: "test_client_id",
         client_secret: "test_client_secret",

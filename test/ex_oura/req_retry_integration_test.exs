@@ -8,10 +8,17 @@ defmodule ExOura.ReqRetryIntegrationTest do
   alias ExOura.Test.Support.ReqFinchAdapter
 
   setup do
-    if pid = Process.whereis(Client), do: GenServer.stop(pid, :normal, 1000)
+    stop_client()
     {:ok, _pid} = Client.start_link("bearer_token")
-    on_exit(fn -> if pid = Process.whereis(Client), do: GenServer.stop(pid, :normal, 1000) end)
+    on_exit(&stop_client/0)
     :ok
+  end
+
+  # Other test modules link ExOura.Client to their setup_all process, so it may die between whereis and stop.
+  defp stop_client do
+    if pid = Process.whereis(Client), do: GenServer.stop(pid, :normal, 1000)
+  catch
+    :exit, _ -> :ok
   end
 
   test "retries a GET request that first gets a 503" do
@@ -72,6 +79,38 @@ defmodule ExOura.ReqRetryIntegrationTest do
     end
 
     assert_received {:authorization, ["Bearer user_b_token"]}
+  end
+
+  test "webhook calls send client credentials from app config when env vars are unset" do
+    test_pid = self()
+    saved_config = Application.get_env(:ex_oura, :oauth2)
+    saved_env = Map.new(["OURA_CLIENT_ID", "OURA_CLIENT_SECRET"], &{&1, System.get_env(&1)})
+
+    on_exit(fn ->
+      if saved_config,
+        do: Application.put_env(:ex_oura, :oauth2, saved_config),
+        else: Application.delete_env(:ex_oura, :oauth2)
+
+      Enum.each(saved_env, fn {k, v} -> if v, do: System.put_env(k, v) end)
+    end)
+
+    Enum.each(Map.keys(saved_env), &System.delete_env/1)
+    Application.put_env(:ex_oura, :oauth2, client_id: "config_id", client_secret: "config_secret")
+
+    adapter = fn request ->
+      send(
+        test_pid,
+        {:credentials, Req.Request.get_header(request, "x-client-id"), Req.Request.get_header(request, "x-client-secret")}
+      )
+
+      {request, Req.Response.new(status: 404, body: "")}
+    end
+
+    with_mock ReqFinchAdapter, run: adapter do
+      ExOura.list_webhook_subscriptions()
+    end
+
+    assert_received {:credentials, ["config_id"], ["config_secret"]}
   end
 
   test "an exhausted known limit returns rate_limited without sleeping or calling the API" do

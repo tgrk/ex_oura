@@ -89,10 +89,16 @@ defmodule ExOura.Client do
   end
 
   @doc """
-  HTTP request for generated OpenApi client
+  HTTP request for generated OpenApi client.
+
+  Only the (refreshed) access token comes from the GenServer; the HTTP call and
+  decoding run in the caller's process, so requests run concurrently and a slow
+  or failing request cannot block or crash the shared client.
   """
   def request(operation) do
-    GenServer.call(__MODULE__, {:request, operation}, @timeout)
+    with {:ok, access_token} <- GenServer.call(__MODULE__, :access_token, @timeout) do
+      make_request(operation, access_token)
+    end
   end
 
   # Server Callbacks
@@ -103,10 +109,10 @@ defmodule ExOura.Client do
   end
 
   @impl true
-  def handle_call({:request, operation}, _from, state) do
+  def handle_call(:access_token, _from, state) do
     case maybe_refresh_token(state) do
       {:ok, new_state} ->
-        {:reply, make_request(operation, new_state), new_state}
+        {:reply, {:ok, new_state.access_token}, new_state}
 
       {:error, _reason} = error ->
         {:reply, error, state}
@@ -138,7 +144,7 @@ defmodule ExOura.Client do
   end
 
   # RateLimiter no-ops when disabled; retries are handled by Req (see @max_retries)
-  defp make_request(%{method: method, url: url} = operation, state) do
+  defp make_request(%{method: method, url: url} = operation, access_token) do
     try do
       case RateLimiter.check_rate_limit() do
         {:ok, delay} when delay > 0 -> :timer.sleep(delay)
@@ -151,7 +157,7 @@ defmodule ExOura.Client do
     end
 
     # method is one of :get | :post | :put | :delete, i.e. Req.get/2 etc.
-    result = apply(Req, method, [url, req_opts(operation, state)])
+    result = apply(Req, method, [url, req_opts(operation, access_token)])
 
     # Casts: safe even when the rate limiter is not running
     with {:ok, %Req.Response{headers: headers}} <- result do
@@ -182,7 +188,7 @@ defmodule ExOura.Client do
 
   defp handle_response({:error, _exception} = error, _operation), do: error
 
-  defp req_opts(operation, %{access_token: access_token} = _state) do
+  defp req_opts(operation, access_token) do
     [
       base_url: @base_url,
       params: Map.get(operation, :query, []),
@@ -191,7 +197,9 @@ defmodule ExOura.Client do
       decoders: [json: &Jason.decode(&1, keys: :atoms)],
       body: Map.get(operation, :body),
       headers: maybe_include_client_credentials(operation, access_token),
-      max_retries: @max_retries
+      max_retries: @max_retries,
+      # Per-call `timeout:` option documented on the public wrappers, else the configured one
+      receive_timeout: operation |> Map.get(:opts, []) |> Keyword.get(:timeout, @timeout)
     ]
   end
 

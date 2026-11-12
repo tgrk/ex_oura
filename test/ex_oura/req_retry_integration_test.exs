@@ -40,4 +40,22 @@ defmodule ExOura.ReqRetryIntegrationTest do
 
     assert :counters.get(attempts, 1) == 2
   end
+
+  test "runs the HTTP call in the caller process with the per-call timeout" do
+    test_pid = self()
+    client_pid = Process.whereis(Client)
+
+    adapter = fn request ->
+      send(test_pid, {:adapter_ran, self(), request.options[:receive_timeout]})
+      # 404 is not retried, so the test stays fast
+      {request, Req.Response.new(status: 404, body: "")}
+    end
+
+    with_mock ReqFinchAdapter, run: adapter do
+      assert {:error, _} = ExOura.single_personal_info(timeout: 1234)
+    end
+
+    assert_received {:adapter_ran, ^test_pid, 1234}
+    assert Process.whereis(Client) == client_pid
+  end
 end

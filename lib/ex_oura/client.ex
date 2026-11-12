@@ -130,9 +130,12 @@ defmodule ExOura.Client do
   end
 
   defp fetch_access_token(operation) do
-    case operation |> Map.get(:opts, []) |> Keyword.get(:access_token) do
-      token when is_binary(token) -> {:ok, token}
-      _ -> GenServer.call(__MODULE__, :access_token, @token_call_timeout)
+    # Only an absent option falls back to the shared token: an explicit nil or "" (e.g. a user
+    # with no saved token) must fail, never silently send another account's token.
+    case operation |> Map.get(:opts, []) |> Keyword.fetch(:access_token) do
+      {:ok, token} when is_binary(token) and token != "" -> {:ok, token}
+      {:ok, _invalid} -> {:error, :invalid_access_token}
+      :error -> GenServer.call(__MODULE__, :access_token, @token_call_timeout)
     end
   end
 
@@ -255,13 +258,15 @@ defmodule ExOura.Client do
   defp client_credential_headers(_operation), do: []
 
   defp apply(mod, fun, [] = _args, opts), do: apply(mod, fun, [opts])
-  defp apply(mod, fun, [_ | _] = args, opts), do: apply(mod, fun, args ++ opts)
-  defp apply(mod, fun, args, opts), do: apply(mod, fun, [args] ++ opts)
+  # Routes take positional args, then `opts` as ONE keyword-list argument.
+  defp apply(mod, fun, [_ | _] = args, opts), do: apply(mod, fun, args ++ [opts])
+  defp apply(mod, fun, args, opts), do: apply(mod, fun, [args, opts])
 
   defp ensure_client_ready(opts) do
     pid = Process.whereis(__MODULE__)
 
-    if Keyword.has_key?(opts, :client) or is_binary(opts[:access_token]) or (is_pid(pid) and Process.alive?(pid)) do
+    # Any explicit access_token (even an invalid one) skips the shared client; request/1 validates it.
+    if Keyword.has_key?(opts, :client) or Keyword.has_key?(opts, :access_token) or (is_pid(pid) and Process.alive?(pid)) do
       :ok
     else
       {:error, :client_not_ready}

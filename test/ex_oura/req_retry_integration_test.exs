@@ -81,6 +81,39 @@ defmodule ExOura.ReqRetryIntegrationTest do
     assert_received {:authorization, ["Bearer user_b_token"]}
   end
 
+  test "an explicit nil or empty access_token fails instead of using the shared token" do
+    test_pid = self()
+
+    adapter = fn request ->
+      send(test_pid, :api_called)
+      {request, Req.Response.new(status: 404, body: "")}
+    end
+
+    with_mock ReqFinchAdapter, run: adapter do
+      assert {:error, :invalid_access_token} = ExOura.single_personal_info(access_token: nil)
+      assert {:error, :invalid_access_token} = ExOura.single_personal_info(access_token: "")
+    end
+
+    refute_received :api_called
+  end
+
+  test "options reach the route for wrappers that take a document id or a list of args" do
+    test_pid = self()
+
+    adapter = fn request ->
+      send(test_pid, {:request, request.url.path, Req.Request.get_header(request, "authorization")})
+      {request, Req.Response.new(status: 404, body: "")}
+    end
+
+    with_mock ReqFinchAdapter, run: adapter do
+      assert {:error, _} = ExOura.single_daily_activity("doc-1", access_token: "user_b_token")
+      assert {:error, _} = ExOura.get_webhook_subscription("hook-1", access_token: "user_b_token")
+    end
+
+    assert_received {:request, "/v2/usercollection/daily_activity/doc-1", ["Bearer user_b_token"]}
+    assert_received {:request, "/v2/webhook/subscription/hook-1", ["Bearer user_b_token"]}
+  end
+
   test "webhook calls send client credentials from app config when env vars are unset" do
     test_pid = self()
     saved_config = Application.get_env(:ex_oura, :oauth2)

@@ -7,6 +7,18 @@ defmodule ExOura.ClientTest do
   alias ExOura.Client.DailyActivityRoutes
   alias ExOura.Client.HeartRateRoutes
   alias ExOura.Client.WebhookSubscriptionRoutes
+  alias ExOura.RateLimiter
+
+  defmodule SequenceAdapter do
+    @moduledoc false
+
+    # Replies with the next {status, sleep_ms} from the agent; runs inside the client process.
+    def run(request) do
+      {status, sleep_ms} = Agent.get_and_update(__MODULE__, fn [next | rest] -> {next, rest} end)
+      Process.sleep(sleep_ms)
+      {request, Req.Response.new(status: status)}
+    end
+  end
 
   setup do
     case Process.whereis(Client) do
@@ -264,6 +276,52 @@ defmodule ExOura.ClientTest do
       ]) do
         assert {:error, %{detail: "raw error body"}} = Client.request(operation)
       end
+    end
+  end
+
+  describe "request/1 retries" do
+    @retry_operation %{
+      call: {ExOura.Client.PersonalInfoRoutes, :single_personal_info_document_v2_usercollection_personal_info_get},
+      method: :get,
+      response: %{},
+      url: "/v2/usercollection/personal_info"
+    }
+
+    setup do
+      start_supervised!({Client, "access-token"})
+      :ok
+    end
+
+    test "waits for the whole retry budget instead of exiting at the configured timeout" do
+      # Three 503s (about 7s of backoff) plus 1s per attempt exceeds the 10s configured timeout.
+      start_sequence([{503, 1000}, {503, 1000}, {503, 1000}, {204, 1000}])
+
+      with_sequence_adapter(fn -> assert :ok = Client.request(@retry_operation) end)
+      assert Client.call_timeout() > Application.fetch_env!(:ex_oura, :timeout)
+    end
+
+    test "counts every attempt against the rate limiter" do
+      start_supervised!({RateLimiter, [daily_limit: 100, per_minute_limit: 50]})
+      start_sequence([{503, 0}, {204, 0}])
+
+      with_sequence_adapter(fn -> assert :ok = Client.request(@retry_operation) end)
+
+      status = RateLimiter.get_status()
+      assert status.remaining == 98
+      assert status.per_minute_remaining == 48
+    end
+  end
+
+  defp start_sequence(responses) do
+    start_supervised!(%{id: SequenceAdapter, start: {Agent, :start_link, [fn -> responses end, [name: SequenceAdapter]]}})
+  end
+
+  defp with_sequence_adapter(fun) do
+    with_mock Req, [:passthrough],
+      get: fn url, opts ->
+        Req.request([method: :get, url: url, adapter: SequenceAdapter, retry_log_level: false] ++ opts)
+      end do
+      fun.()
     end
   end
 

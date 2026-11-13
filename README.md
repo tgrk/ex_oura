@@ -246,7 +246,9 @@ Rate limiting is enabled by default with the Oura API limits (5000 requests/day,
 300 requests/minute) and is configured under `rate_limiting` (see Getting Started).
 
 - When **enabled** and `ExOura.RateLimiter` is running, the client tracks limits,
-  parses `X-RateLimit-*` response headers, and delays requests before a limit is hit.
+  parses `X-RateLimit-*` response headers, and spaces out rapid requests. Each retry counts
+  as a request. Once a limit is used up, calls return `{:error, {:rate_limited, seconds}}`
+  right away instead of waiting for the reset.
 - When **disabled** or not running, nothing is tracked; `429` responses are still retried.
 
 ```elixir

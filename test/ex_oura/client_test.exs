@@ -12,11 +12,17 @@ defmodule ExOura.ClientTest do
   defmodule SequenceAdapter do
     @moduledoc false
 
-    # Replies with the next {status, sleep_ms} from the agent; runs inside the client process.
+    # Replies with the next {status, sleep_ms} or {status, sleep_ms, headers} from the agent;
+    # runs inside the client process and crashes it if no response is left.
     def run(request) do
-      {status, sleep_ms} = Agent.get_and_update(__MODULE__, fn [next | rest] -> {next, rest} end)
+      {status, sleep_ms, headers} =
+        case Agent.get_and_update(__MODULE__, fn [next | rest] -> {next, rest} end) do
+          {status, sleep_ms} -> {status, sleep_ms, []}
+          response -> response
+        end
+
       Process.sleep(sleep_ms)
-      {request, Req.Response.new(status: status)}
+      {request, Req.Response.new(status: status, headers: headers)}
     end
   end
 
@@ -309,6 +315,27 @@ defmodule ExOura.ClientTest do
       status = RateLimiter.get_status()
       assert status.remaining == 98
       assert status.per_minute_remaining == 48
+    end
+
+    test "returns rate_limited without waiting or calling the API when the limit is exhausted" do
+      start_supervised!({RateLimiter, [daily_limit: 100, per_minute_limit: 50]})
+      reset = System.system_time(:second) + 30
+
+      start_sequence([
+        {204, 0, [{"x-ratelimit-remaining-minute", "0"}, {"x-ratelimit-reset-minute", "#{reset}"}]}
+      ])
+
+      with_sequence_adapter(fn ->
+        assert :ok = Client.request(@retry_operation)
+
+        {elapsed_us, result} = :timer.tc(fn -> Client.request(@retry_operation) end)
+        assert {:error, {:rate_limited, retry_after}} = result
+        assert retry_after in 1..30
+        assert elapsed_us < 1_000_000
+      end)
+
+      # Only the first request was sent and counted
+      assert RateLimiter.get_status().remaining == 99
     end
   end
 

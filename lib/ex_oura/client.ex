@@ -20,11 +20,19 @@ defmodule ExOura.Client do
     max_retries: @max_retries
   ]
 
-  # Each attempt is bounded by connect + receive timeouts (both @timeout), and retry_delay/1
-  # adds at most 5% jitter. Waiting for the whole budget keeps callers from exiting mid-retry.
-  # Rate limiter waits are not included.
-  @call_timeout 2 * @timeout * (@max_retries + 1) +
+  # Each attempt is bounded by connect + receive timeouts (both @timeout) plus at most 200ms of
+  # rate limiter throttling, and retry_delay/1 adds at most 5% jitter. Waiting for the whole
+  # budget keeps callers from exiting mid-retry. Exhausted limits fail fast instead of waiting.
+  @call_timeout (2 * @timeout + 200) * (@max_retries + 1) +
                   Enum.sum(for n <- 0..(@max_retries - 1)//1, do: min(round(1000 * 2 ** n * 1.05), 30_000))
+
+  defmodule RateLimited do
+    @moduledoc false
+    defexception [:retry_after]
+
+    @impl true
+    def message(%{retry_after: retry_after}), do: "rate limited, retry after #{retry_after}s"
+  end
 
   @doc false
   def call_timeout, do: @call_timeout
@@ -167,20 +175,24 @@ defmodule ExOura.Client do
   end
 
   defp throttle_and_record(request) do
-    try do
-      case RateLimiter.check_rate_limit() do
-        {:ok, delay} when delay > 0 -> :timer.sleep(delay)
-        {:error, {:rate_limited, retry_after}} -> :timer.sleep(retry_after * 1000)
-        {:ok, 0} -> :ok
-      end
-    catch
-      # Rate limiter not running
-      :exit, _ -> :ok
-    end
+    case check_rate_limit() do
+      # Fail fast: waiting for the reset would block every caller of this named client
+      {:error, {:rate_limited, retry_after}} ->
+        Req.Request.halt(request, %RateLimited{retry_after: retry_after})
 
-    # Cast: safe even when the rate limiter is not running
-    RateLimiter.record_request()
-    request
+      {:ok, delay} ->
+        :timer.sleep(delay)
+        # Cast: safe even when the rate limiter is not running
+        RateLimiter.record_request()
+        request
+    end
+  end
+
+  defp check_rate_limit do
+    RateLimiter.check_rate_limit()
+  catch
+    # Rate limiter not running
+    :exit, _ -> {:ok, 0}
   end
 
   defp track_rate_limit_headers({request, %Req.Response{headers: headers} = response}) do
@@ -205,6 +217,9 @@ defmodule ExOura.Client do
         {:error, body}
     end
   end
+
+  defp handle_response({:error, %RateLimited{retry_after: retry_after}}, _operation),
+    do: {:error, {:rate_limited, retry_after}}
 
   defp handle_response({:error, _exception} = error, _operation), do: error
 

@@ -82,6 +82,17 @@ defmodule ExOura.RateLimiterTest do
       assert status.per_minute_reset == 1_693_839_660
     end
 
+    test "handles Req response headers with list values" do
+      %Req.Response{headers: headers} =
+        Req.Response.new(headers: [{"x-ratelimit-remaining", "45"}, {"x-ratelimit-remaining-minute", "8"}])
+
+      RateLimiter.update_rate_limit_headers(headers)
+      status = RateLimiter.get_status()
+
+      assert status.remaining == 45
+      assert status.per_minute_remaining == 8
+    end
+
     test "handles headers as list of tuples" do
       headers = [
         {"X-RateLimit-Remaining", "30"},

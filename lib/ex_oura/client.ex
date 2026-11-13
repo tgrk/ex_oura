@@ -201,19 +201,21 @@ defmodule ExOura.Client do
   end
 
   @doc false
-  def should_retry?({:error, %Req.Response{status: status}}, _) when status in [408, 429] or status >= 500 do
+  # Req calls this as fun.(request, response_or_exception)
+  def should_retry?(_request, %Req.Response{status: status}) when status in [408, 429] or status >= 500 do
     true
   end
 
-  def should_retry?({:error, %Req.TransportError{}}, _), do: true
-  def should_retry?(_, _), do: false
+  def should_retry?(_request, %Req.TransportError{}), do: true
+  def should_retry?(_request, _response_or_exception), do: false
 
   @doc false
-  def retry_delay(attempt) do
+  # Req passes the retry count starting at 0
+  def retry_delay(retry_count) do
     # Exponential backoff: 1s, 2s, 4s, etc., with max of 30s
     base_delay = 1000
     max_delay = 30_000
-    delay = base_delay * :math.pow(2, attempt - 1)
+    delay = base_delay * :math.pow(2, retry_count)
 
     # Add jitter (±10%)
     jitter = delay * 0.1 * (:rand.uniform() - 0.5)

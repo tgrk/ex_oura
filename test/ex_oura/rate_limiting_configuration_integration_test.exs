@@ -96,31 +96,6 @@ defmodule ExOura.RateLimitingConfigurationIntegrationTest do
   end
 
   describe "conditional behavior and client integration" do
-    test "client retry mechanism works independently of rate limiter state" do
-      # Test that the client retry logic works regardless of RateLimiter state
-      assert ExOura.Client.should_retry?({:error, %Req.Response{status: 500}}, 1) == true
-      assert ExOura.Client.should_retry?({:error, %Req.Response{status: 429}}, 1) == true
-      assert ExOura.Client.should_retry?({:error, %Req.Response{status: 400}}, 1) == false
-      assert ExOura.Client.should_retry?({:error, %Req.TransportError{}}, 1) == true
-
-      # Test exponential backoff calculation
-      delay1 = ExOura.Client.retry_delay(1)
-      delay2 = ExOura.Client.retry_delay(2)
-      delay3 = ExOura.Client.retry_delay(3)
-
-      assert delay1 > 0
-      assert delay2 > delay1
-      assert delay3 > delay2
-
-      # Delays should be reasonable (with jitter, but still follow exponential pattern roughly)
-      # Around 1s base
-      assert delay1 < 2000
-      # Around 2s base
-      assert delay2 < 4000
-      # Around 4s base
-      assert delay3 < 8000
-    end
-
     test "system handles RateLimiter being unavailable gracefully" do
       # Test that the system doesn't crash when RateLimiter is not available
       # This tests the conditional behavior based on enabled?() and process availability

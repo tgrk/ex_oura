@@ -235,6 +235,8 @@ defmodule ExOura.RateLimiter do
   defp parse_header_int(headers, key) do
     case Map.get(headers, key) do
       nil -> nil
+      # Req returns each header as a list of values
+      [value | _] when is_binary(value) -> String.to_integer(value)
       value when is_binary(value) -> String.to_integer(value)
       value when is_integer(value) -> value
       _ -> nil

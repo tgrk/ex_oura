@@ -13,11 +13,29 @@ defmodule ExOura.Client do
 
   # Default retry configuration for Req
   @retry_config Application.compile_env(:ex_oura, :retry, [])
+  @max_retries Keyword.get(@retry_config, :max_retries, 3)
   @default_retry_opts [
     retry: &__MODULE__.should_retry?/2,
     retry_delay: &__MODULE__.retry_delay/1,
-    max_retries: Keyword.get(@retry_config, :max_retries, 3)
+    max_retries: @max_retries
   ]
+
+  # Each attempt is bounded by connect + receive timeouts (both @timeout) plus at most 200ms of
+  # rate limiter throttling, and retry_delay/1 adds at most 5% jitter. Waiting for the whole
+  # budget keeps callers from exiting mid-retry. Exhausted limits fail fast instead of waiting.
+  @call_timeout (2 * @timeout + 200) * (@max_retries + 1) +
+                  Enum.sum(for n <- 0..(@max_retries - 1)//1, do: min(round(1000 * 2 ** n * 1.05), 30_000))
+
+  defmodule RateLimited do
+    @moduledoc false
+    defexception [:retry_after]
+
+    @impl true
+    def message(%{retry_after: retry_after}), do: "rate limited, retry after #{retry_after}s"
+  end
+
+  @doc false
+  def call_timeout, do: @call_timeout
 
   # Client API
 
@@ -96,7 +114,7 @@ defmodule ExOura.Client do
   HTTP request for generated OpenApi client
   """
   def request(operation) do
-    GenServer.call(__MODULE__, {:request, operation}, @timeout)
+    GenServer.call(__MODULE__, {:request, operation}, @call_timeout)
   end
 
   # Server Callbacks
@@ -143,27 +161,43 @@ defmodule ExOura.Client do
 
   # RateLimiter no-ops when disabled; retries are handled by Req via @default_retry_opts
   defp make_request(%{method: method, url: url} = operation, state) do
-    try do
-      case RateLimiter.check_rate_limit() do
-        {:ok, delay} when delay > 0 -> :timer.sleep(delay)
-        {:error, {:rate_limited, retry_after}} -> :timer.sleep(retry_after * 1000)
-        {:ok, 0} -> :ok
-      end
-    catch
-      # Rate limiter not running
-      :exit, _ -> :ok
-    end
-
     # method is one of :get | :post | :put | :delete, i.e. Req.get/2 etc.
     result = apply(Req, method, [url, req_opts(operation, state)])
-
-    # Casts: safe even when the rate limiter is not running
-    with {:ok, %Req.Response{headers: headers}} <- result do
-      RateLimiter.update_rate_limit_headers(headers)
-      RateLimiter.record_request()
-    end
-
     handle_response(result, operation)
+  end
+
+  # Req re-runs request and response steps on every retry, so each attempt is throttled and counted.
+  @doc false
+  def attach_rate_limiting(request) do
+    request
+    |> Req.Request.append_request_steps(ex_oura_rate_limit: &throttle_and_record/1)
+    |> Req.Request.prepend_response_steps(ex_oura_rate_limit_headers: &track_rate_limit_headers/1)
+  end
+
+  defp throttle_and_record(request) do
+    case check_rate_limit() do
+      # Fail fast: waiting for the reset would block every caller of this named client
+      {:error, {:rate_limited, retry_after}} ->
+        Req.Request.halt(request, %RateLimited{retry_after: retry_after})
+
+      {:ok, delay} ->
+        :timer.sleep(delay)
+        # Cast: safe even when the rate limiter is not running
+        RateLimiter.record_request()
+        request
+    end
+  end
+
+  defp check_rate_limit do
+    RateLimiter.check_rate_limit()
+  catch
+    # Rate limiter not running
+    :exit, _ -> {:ok, 0}
+  end
+
+  defp track_rate_limit_headers({request, %Req.Response{headers: headers} = response}) do
+    RateLimiter.update_rate_limit_headers(headers)
+    {request, response}
   end
 
   defp handle_response({:ok, %Req.Response{status: status, body: body}}, operation) when status in [200, 201] do
@@ -184,6 +218,9 @@ defmodule ExOura.Client do
     end
   end
 
+  defp handle_response({:error, %RateLimited{retry_after: retry_after}}, _operation),
+    do: {:error, {:rate_limited, retry_after}}
+
   defp handle_response({:error, _exception} = error, _operation), do: error
 
   defp req_opts(operation, %{access_token: access_token} = _state) do
@@ -194,28 +231,33 @@ defmodule ExOura.Client do
       compressed: true,
       decoders: [json: &Jason.decode(&1, keys: :atoms)],
       body: Map.get(operation, :body),
-      headers: maybe_include_client_credentials(operation, access_token)
+      headers: maybe_include_client_credentials(operation, access_token),
+      connect_options: [timeout: @timeout],
+      receive_timeout: @timeout,
+      plugins: [&__MODULE__.attach_rate_limiting/1]
     ]
 
     base_opts ++ @default_retry_opts
   end
 
   @doc false
-  def should_retry?({:error, %Req.Response{status: status}}, _) when status in [408, 429] or status >= 500 do
+  # Req calls this as fun.(request, response_or_exception)
+  def should_retry?(_request, %Req.Response{status: status}) when status in [408, 429] or status >= 500 do
     true
   end
 
-  def should_retry?({:error, %Req.TransportError{}}, _), do: true
-  def should_retry?(_, _), do: false
+  def should_retry?(_request, %Req.TransportError{}), do: true
+  def should_retry?(_request, _response_or_exception), do: false
 
   @doc false
-  def retry_delay(attempt) do
+  # Req passes the retry count starting at 0
+  def retry_delay(retry_count) do
     # Exponential backoff: 1s, 2s, 4s, etc., with max of 30s
     base_delay = 1000
     max_delay = 30_000
-    delay = base_delay * :math.pow(2, attempt - 1)
+    delay = base_delay * :math.pow(2, retry_count)
 
-    # Add jitter (±10%)
+    # Add jitter (±5%)
     jitter = delay * 0.1 * (:rand.uniform() - 0.5)
 
     (delay + jitter)

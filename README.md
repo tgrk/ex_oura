@@ -109,9 +109,11 @@ ExOura provides dedicated modules for each type of Oura data. Every function is 
    ExOura has no application callback, so add both to your own supervisor:
 
    ```elixir
+   # tokens is the map returned by ExOura.get_token/2; it includes expires_at,
+   # which the client needs to refresh the access token automatically
    children = [
      ExOura.RateLimiter,
-     {ExOura.Client, access_token: tokens.access_token, refresh_token: tokens.refresh_token}
+     {ExOura.Client, tokens}
    ]
    ```
 

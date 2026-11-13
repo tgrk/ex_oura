@@ -43,11 +43,8 @@ defmodule ExOura do
       # Step 2: After user authorizes, exchange code for tokens
       {:ok, tokens} = ExOura.OAuth2.get_token("authorization_code_from_callback")
 
-      # Step 3: Use tokens with the client
-      {:ok, client} = ExOura.Client.start_link([
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token
-      ])
+      # Step 3: Use tokens with the client (the full map keeps expires_at for automatic refresh)
+      {:ok, client} = ExOura.Client.start_link(tokens)
 
       # Step 4: Make API calls
       {:ok, activity_data} = ExOura.multiple_daily_activity(~D[2025-01-01], ~D[2025-01-31])

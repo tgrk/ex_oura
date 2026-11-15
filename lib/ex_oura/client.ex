@@ -7,17 +7,21 @@ defmodule ExOura.Client do
   alias ExOura.RateLimiter
   alias ExOura.TypeDecoder
 
+  require Logger
+
   @base_url "https://api.ouraring.com"
 
   @timeout Application.compile_env(:ex_oura, :timeout, 5_000)
 
-  # Default retry configuration for Req
-  @retry_config Application.compile_env(:ex_oura, :retry, [])
-  @default_retry_opts [
-    retry: &__MODULE__.should_retry?/2,
-    retry_delay: &__MODULE__.retry_delay/1,
-    max_retries: Keyword.get(@retry_config, :max_retries, 3)
-  ]
+  # Req's default `retry: :safe_transient` retries GET/HEAD on 408/429/5xx and
+  # transient network errors, honoring Retry-After; only the attempt count is ours.
+  @max_retries :ex_oura |> Application.compile_env(:retry, []) |> Keyword.get(:max_retries, 3)
+
+  # Refresh this early so a token cannot expire while its request is in flight.
+  @refresh_buffer_seconds 60
+
+  # Token calls may run a refresh (10s connect + Req receive timeout), so allow longer than @timeout.
+  @token_call_timeout 30_000
 
   # Client API
 
@@ -42,7 +46,7 @@ defmodule ExOura.Client do
   """
   @spec refresh_oauth2_token() :: {:ok, map()} | {:error, term()}
   def refresh_oauth2_token do
-    GenServer.call(__MODULE__, :refresh_oauth2_token, @timeout)
+    GenServer.call(__MODULE__, :refresh_oauth2_token, @token_call_timeout)
   end
 
   @doc """
@@ -87,16 +91,52 @@ defmodule ExOura.Client do
         refresh_token: "oauth2_refresh_token"
       ])
 
+  ## Persisting Refreshed Tokens
+
+  The client refreshes an expiring OAuth2 token on its own. Oura refresh tokens are
+  single-use, so pass `on_refresh:` to save each new token pair; otherwise the stored
+  refresh token stops working after the first refresh. It works with both keyword-list
+  and token-map configs. The function receives the new token map. It runs inside the
+  client process: keep it quick and do not call `ExOura.Client` or `ExOura` API
+  functions from it (that would deadlock). If it raises, a warning is logged and the
+  client keeps the new tokens.
+
+      {:ok, client} = ExOura.Client.start_link([
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+        expires_at: tokens.expires_at,
+        on_refresh: &MyApp.Tokens.save/1
+      ])
+
   """
   def start_link(auth_config \\ nil) do
     GenServer.start_link(__MODULE__, auth_config, name: __MODULE__)
   end
 
   @doc """
-  HTTP request for generated OpenApi client
+  HTTP request for generated OpenApi client.
+
+  Only the (refreshed) access token comes from the GenServer; the HTTP call and
+  decoding run in the caller's process, so requests run concurrently and a slow
+  or failing request cannot block or crash the shared client.
+
+  A per-call `access_token:` option skips the shared client token entirely,
+  so multi-user apps never send one user's request with another user's token.
   """
   def request(operation) do
-    GenServer.call(__MODULE__, {:request, operation}, @timeout)
+    with {:ok, access_token} <- fetch_access_token(operation) do
+      make_request(operation, access_token)
+    end
+  end
+
+  defp fetch_access_token(operation) do
+    # Only an absent option falls back to the shared token: an explicit nil or "" (e.g. a user
+    # with no saved token) must fail, never silently send another account's token.
+    case operation |> Map.get(:opts, []) |> Keyword.fetch(:access_token) do
+      {:ok, token} when is_binary(token) and token != "" -> {:ok, token}
+      {:ok, _invalid} -> {:error, :invalid_access_token}
+      :error -> GenServer.call(__MODULE__, :access_token, @token_call_timeout)
+    end
   end
 
   # Server Callbacks
@@ -107,10 +147,10 @@ defmodule ExOura.Client do
   end
 
   @impl true
-  def handle_call({:request, operation}, _from, state) do
+  def handle_call(:access_token, _from, state) do
     case maybe_refresh_token(state) do
       {:ok, new_state} ->
-        {:reply, make_request(operation, new_state), new_state}
+        {:reply, {:ok, new_state.access_token}, new_state}
 
       {:error, _reason} = error ->
         {:reply, error, state}
@@ -119,7 +159,7 @@ defmodule ExOura.Client do
 
   @impl true
   def handle_call(:get_token_info, _from, state) do
-    {:reply, {:ok, state}, state}
+    {:reply, {:ok, token_info(state)}, state}
   end
 
   @impl true
@@ -131,7 +171,7 @@ defmodule ExOura.Client do
   def handle_call(:refresh_oauth2_token, _from, %{auth_type: :oauth2, refresh_token: refresh_token} = state)
       when is_binary(refresh_token) do
     case refresh_state(state) do
-      {:ok, new_state} -> {:reply, {:ok, new_state}, new_state}
+      {:ok, new_state} -> {:reply, {:ok, token_info(new_state)}, new_state}
       {:error, _reason} = error -> {:reply, error, state}
     end
   end
@@ -141,29 +181,35 @@ defmodule ExOura.Client do
     {:reply, {:error, :no_refresh_token}, state}
   end
 
-  # RateLimiter no-ops when disabled; retries are handled by Req via @default_retry_opts
-  defp make_request(%{method: method, url: url} = operation, state) do
-    try do
-      case RateLimiter.check_rate_limit() do
-        {:ok, delay} when delay > 0 -> :timer.sleep(delay)
-        {:error, {:rate_limited, retry_after}} -> :timer.sleep(retry_after * 1000)
-        {:ok, 0} -> :ok
+  # Replies carry token fields only; the callback stays in state (a function would break JSON encoding).
+  defp token_info(state), do: Map.delete(state, :on_refresh)
+
+  # RateLimiter no-ops when disabled; retries are handled by Req (see @max_retries)
+  defp make_request(%{method: method, url: url} = operation, access_token) do
+    with :ok <- check_rate_limit() do
+      # method is one of :get | :post | :put | :delete, i.e. Req.get/2 etc.
+      result = apply(Req, method, [url, req_opts(operation, access_token)])
+
+      # Casts: safe even when the rate limiter is not running
+      with {:ok, %Req.Response{headers: headers}} <- result do
+        RateLimiter.update_rate_limit_headers(headers)
+        RateLimiter.record_request()
       end
-    catch
-      # Rate limiter not running
-      :exit, _ -> :ok
+
+      handle_response(result, operation)
     end
+  end
 
-    # method is one of :get | :post | :put | :delete, i.e. Req.get/2 etc.
-    result = apply(Req, method, [url, req_opts(operation, state)])
-
-    # Casts: safe even when the rate limiter is not running
-    with {:ok, %Req.Response{headers: headers}} <- result do
-      RateLimiter.update_rate_limit_headers(headers)
-      RateLimiter.record_request()
+  # A known exhausted limit can last up to a day, so return it instead of sleeping.
+  defp check_rate_limit do
+    case RateLimiter.check_rate_limit() do
+      {:ok, delay} when delay > 0 -> :timer.sleep(delay)
+      {:ok, 0} -> :ok
+      {:error, {:rate_limited, _retry_after}} = error -> error
     end
-
-    handle_response(result, operation)
+  catch
+    # Rate limiter not running
+    :exit, _ -> :ok
   end
 
   defp handle_response({:ok, %Req.Response{status: status, body: body}}, operation) when status in [200, 201] do
@@ -186,64 +232,41 @@ defmodule ExOura.Client do
 
   defp handle_response({:error, _exception} = error, _operation), do: error
 
-  defp req_opts(operation, %{access_token: access_token} = _state) do
-    base_opts = [
+  defp req_opts(operation, access_token) do
+    [
       base_url: @base_url,
       params: Map.get(operation, :query, []),
       auth: {:bearer, access_token},
       compressed: true,
       decoders: [json: &Jason.decode(&1, keys: :atoms)],
       body: Map.get(operation, :body),
-      headers: maybe_include_client_credentials(operation, access_token)
+      headers: client_credential_headers(operation),
+      max_retries: @max_retries,
+      # Per-call `timeout:` option documented on the public wrappers, else the configured one
+      receive_timeout: operation |> Map.get(:opts, []) |> Keyword.get(:timeout, @timeout)
     ]
-
-    base_opts ++ @default_retry_opts
   end
 
-  @doc false
-  def should_retry?({:error, %Req.Response{status: status}}, _) when status in [408, 429] or status >= 500 do
-    true
+  # The bearer token comes from `auth:`; webhook routes also need the app's client credentials.
+  defp client_credential_headers(%{call: {ExOura.Client.WebhookSubscriptionRoutes, _}}) do
+    [
+      {"x-client-id", OAuth2.config_value(:client_id)},
+      {"x-client-secret", OAuth2.config_value(:client_secret)}
+    ]
   end
 
-  def should_retry?({:error, %Req.TransportError{}}, _), do: true
-  def should_retry?(_, _), do: false
-
-  @doc false
-  def retry_delay(attempt) do
-    # Exponential backoff: 1s, 2s, 4s, etc., with max of 30s
-    base_delay = 1000
-    max_delay = 30_000
-    delay = base_delay * :math.pow(2, attempt - 1)
-
-    # Add jitter (±10%)
-    jitter = delay * 0.1 * (:rand.uniform() - 0.5)
-
-    (delay + jitter)
-    |> min(max_delay)
-    |> round()
-  end
-
-  defp maybe_include_client_credentials(operation, access_token) do
-    if match?({ExOura.Client.WebhookSubscriptionRoutes, _}, Map.get(operation, :call)) do
-      [
-        {"x-client-id", System.get_env("OURA_CLIENT_ID")},
-        {"x-client-secret", System.get_env("OURA_CLIENT_SECRET")}
-      ]
-    else
-      [
-        {"Authorization", "Bearer #{access_token}"}
-      ]
-    end
-  end
+  defp client_credential_headers(_operation), do: []
 
   defp apply(mod, fun, [] = _args, opts), do: apply(mod, fun, [opts])
-  defp apply(mod, fun, [_ | _] = args, opts), do: apply(mod, fun, args ++ opts)
-  defp apply(mod, fun, args, opts), do: apply(mod, fun, [args] ++ opts)
+  # Routes take positional args, then `opts` as ONE keyword-list argument.
+  defp apply(mod, fun, [_ | _] = args, opts), do: apply(mod, fun, args ++ [opts])
+  defp apply(mod, fun, args, opts), do: apply(mod, fun, [args, opts])
 
   defp ensure_client_ready(opts) do
     pid = Process.whereis(__MODULE__)
 
-    if Keyword.has_key?(opts, :client) or (is_pid(pid) and Process.alive?(pid)) do
+    # Any explicit access_token (even an invalid one) skips the shared client; request/1 validates it.
+    if Keyword.has_key?(opts, :client) or Keyword.has_key?(opts, :access_token) or (is_pid(pid) and Process.alive?(pid)) do
       :ok
     else
       {:error, :client_not_ready}
@@ -312,7 +335,7 @@ defmodule ExOura.Client do
 
   defp maybe_refresh_token(%{auth_type: :oauth2, expires_at: expires_at, refresh_token: refresh_token} = state)
        when is_binary(refresh_token) do
-    if expires_at && DateTime.after?(DateTime.utc_now(), expires_at) do
+    if expires_at && OAuth2.token_expired?(state, @refresh_buffer_seconds) do
       refresh_state(state)
     else
       {:ok, state}
@@ -324,15 +347,28 @@ defmodule ExOura.Client do
 
   defp refresh_state(%{refresh_token: refresh_token} = state) do
     with {:ok, tokens} <- OAuth2.refresh_token(refresh_token) do
+      tokens = Map.put(tokens, :refresh_token, Map.get(tokens, :refresh_token) || refresh_token)
+      notify_refresh(Map.get(state, :on_refresh), tokens)
+
       {:ok,
        %{
          state
          | access_token: tokens.access_token,
-           refresh_token: tokens.refresh_token || refresh_token,
-           expires_at: tokens.expires_at,
-           expires_in: tokens.expires_in
+           refresh_token: tokens.refresh_token,
+           expires_at: Map.get(tokens, :expires_at),
+           expires_in: Map.get(tokens, :expires_in)
        }}
     end
+  end
+
+  # Oura refresh tokens are single-use, so the app must persist each rotated pair.
+  defp notify_refresh(nil, _tokens), do: :ok
+
+  defp notify_refresh(on_refresh, tokens) do
+    on_refresh.(tokens)
+  catch
+    # Reason is not logged: it may contain the tokens. New tokens stay in state either way.
+    kind, _reason -> Logger.warning("ExOura.Client on_refresh callback failed (#{kind}); tokens were still updated")
   end
 
   # OAuth2 configuration as keyword list
@@ -344,9 +380,10 @@ defmodule ExOura.Client do
         %{
           access_token: access_token,
           refresh_token: if(is_binary(refresh_token), do: refresh_token),
-          expires_at: Keyword.get(auth_config, :expires_at),
+          expires_at: auth_config |> Keyword.get(:expires_at) |> to_utc_datetime(),
           expires_in: Keyword.get(auth_config, :expires_in),
-          auth_type: :oauth2
+          auth_type: :oauth2,
+          on_refresh: Keyword.get(auth_config, :on_refresh)
         }
 
       _ ->
@@ -362,10 +399,11 @@ defmodule ExOura.Client do
   defp prepare_state(auth_config) when is_map(auth_config) do
     %{
       access_token: auth_config.access_token,
-      expires_at: auth_config.expires_at,
+      expires_at: to_utc_datetime(auth_config.expires_at),
       expires_in: auth_config.expires_in,
       refresh_token: auth_config.refresh_token,
-      auth_type: :oauth2
+      auth_type: :oauth2,
+      on_refresh: Map.get(auth_config, :on_refresh)
     }
   end
 
@@ -379,4 +417,8 @@ defmodule ExOura.Client do
       auth_type: :bearer
     }
   end
+
+  # Expiry checks compare DateTimes; a NaiveDateTime (e.g. an Ecto :naive_datetime) is taken as UTC.
+  defp to_utc_datetime(%NaiveDateTime{} = expires_at), do: DateTime.from_naive!(expires_at, "Etc/UTC")
+  defp to_utc_datetime(expires_at), do: expires_at
 end

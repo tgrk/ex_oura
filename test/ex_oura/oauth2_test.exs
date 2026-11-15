@@ -5,6 +5,17 @@ defmodule ExOura.OAuth2Test do
 
   alias ExOura.OAuth2
 
+  # Tests below put :oauth2 app config; restore it so it can't leak into other modules.
+  setup do
+    original_config = Application.get_env(:ex_oura, :oauth2)
+
+    on_exit(fn ->
+      if original_config,
+        do: Application.put_env(:ex_oura, :oauth2, original_config),
+        else: Application.delete_env(:ex_oura, :oauth2)
+    end)
+  end
+
   describe "configuration" do
     test "raises error when OAuth2 configuration is missing" do
       # Clear configuration temporarily

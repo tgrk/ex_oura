@@ -1,7 +1,7 @@
 defmodule ExOura.MixProject do
   use Mix.Project
 
-  @version "4.1.0"
+  @version "4.1.1"
   @github_url "https://github.com/tgrk/ex_oura"
 
   def project do

@@ -13,6 +13,13 @@
 * retain the deprecated sleep `ring_id` field, which Oura now returns as null
 * preserve existing public functions and response structs
 
+## [4.1.1](https://github.com/tgrk/ex_oura/compare/v4.1.0...v4.1.1) (2026-11-15)
+
+
+### Bug Fixes
+
+* client retries, concurrency, multi-user auth, rate limits and token refresh ([#100](https://github.com/tgrk/ex_oura/issues/100)) ([78c8428](https://github.com/tgrk/ex_oura/commit/78c84289eb687b2eff20d76334a21e6be6666fe6))
+
 ## [4.1.0](https://github.com/tgrk/ex_oura/compare/v4.0.0...v4.1.0) (2026-10-15)
 
 

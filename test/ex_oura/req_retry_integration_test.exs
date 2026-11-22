@@ -21,6 +21,31 @@ defmodule ExOura.ReqRetryIntegrationTest do
     :exit, _ -> :ok
   end
 
+  test "sends the configured user agent with API requests" do
+    on_exit(fn -> Application.delete_env(:ex_oura, :user_agent) end)
+    test_pid = self()
+
+    adapter = fn request ->
+      send(test_pid, {:user_agent, Req.Request.get_header(request, "user-agent")})
+
+      {request,
+       Req.Response.new(
+         status: 200,
+         headers: %{"content-type" => ["application/json"]},
+         body: ~s({"id": "user-1"})
+       )}
+    end
+
+    with_mock ReqFinchAdapter, run: adapter do
+      assert {:ok, _personal_info} = ExOura.single_personal_info()
+      assert_received {:user_agent, ["ex_oura/" <> _version]}
+
+      Application.put_env(:ex_oura, :user_agent, "MyApp/1.0")
+      assert {:ok, _personal_info} = ExOura.single_personal_info()
+      assert_received {:user_agent, ["MyApp/1.0"]}
+    end
+  end
+
   test "retries a GET request that first gets a 503" do
     attempts = :counters.new(1, [])
 

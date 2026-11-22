@@ -74,6 +74,7 @@ defmodule ExOura.OAuth2 do
 
   @base_auth_url "https://cloud.ouraring.com/oauth/authorize"
   @token_url "https://api.ouraring.com/oauth/token"
+  @default_user_agent "ex_oura/#{Mix.Project.config()[:version]}"
 
   @default_scopes ["personal", "daily"]
   @all_scopes [
@@ -296,6 +297,11 @@ defmodule ExOura.OAuth2 do
       System.get_env("OURA_#{key |> Atom.to_string() |> String.upcase()}")
   end
 
+  @doc false
+  # Oura requires every request to identify the calling application.
+  @spec user_agent() :: String.t()
+  def user_agent, do: Application.get_env(:ex_oura, :user_agent) || @default_user_agent
+
   defp get_config do
     client_id = config_value(:client_id)
     client_secret = config_value(:client_secret)
@@ -343,6 +349,7 @@ defmodule ExOura.OAuth2 do
 
     case Req.post(@token_url,
            form: token_data,
+           user_agent: user_agent(),
            decoders: [json: &Jason.decode(&1, keys: :atoms)],
            retry: false,
            connect_options: [timeout: timeout]

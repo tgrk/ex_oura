@@ -237,6 +237,7 @@ defmodule ExOura.Client do
       base_url: @base_url,
       params: Map.get(operation, :query, []),
       auth: {:bearer, access_token},
+      user_agent: OAuth2.user_agent(),
       compressed: true,
       decoders: [json: &Jason.decode(&1, keys: :atoms)],
       body: Map.get(operation, :body),

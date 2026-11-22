@@ -4,6 +4,7 @@
 
 ### Features
 
+* support Oura OpenAPI v1.43: send an identifying `User-Agent` (default `ex_oura/<version>`) on all API and OAuth2 token requests, configurable with `config :ex_oura, user_agent: "YourAppName/1.0"`
 * support Oura OpenAPI v1.42, including live third-party and Oura heart-rate workout sources
 * accept the optional `heart_health` OAuth2 scope; default scopes are unchanged
 

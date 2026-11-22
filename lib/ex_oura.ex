@@ -8,6 +8,7 @@ defmodule ExOura do
 
       config :ex_oura,
         timeout: 10_000,
+        user_agent: "YourAppName/1.0", # Identifies your app to Oura (default: "ex_oura/<version>")
         rate_limiting: [
           enabled: true,          # Enable/disable rate limiting (default: true)
           daily_limit: 5000,      # Daily request limit (default: 5000)

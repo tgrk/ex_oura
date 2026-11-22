@@ -22,7 +22,9 @@ defmodule ExOura.ReqRetryIntegrationTest do
   end
 
   test "sends the configured user agent with API requests" do
-    on_exit(fn -> Application.delete_env(:ex_oura, :user_agent) end)
+    original_user_agent = Application.get_env(:ex_oura, :user_agent)
+    on_exit(fn -> Application.put_env(:ex_oura, :user_agent, original_user_agent) end)
+    Application.delete_env(:ex_oura, :user_agent)
     test_pid = self()
 
     adapter = fn request ->

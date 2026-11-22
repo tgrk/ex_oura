@@ -8,20 +8,25 @@
 [![License](https://img.shields.io/hexpm/l/ex_oura.svg)](https://github.com/sticksnleaves/ex_oura/blob/master/LICENSE.md)
 
 
-**An Elixir client for the Oura API, leveraging the OpenAPI v1.42 specification.**
+**An Elixir client for the Oura API, leveraging the OpenAPI v1.43 specification.**
 
-An Elixir library for interacting with the [Oura API](https://cloud.ouraring.com/v2/docs) with a base client generated using [OpenAPI Code Generator](https://github.com/aj-foster/open-api-generator) from [Oura OpenAPI specs v1.42](https://cloud.ouraring.com/v2/static/json/openapi-1.42.json). It supports Oura collection APIs including activity, readiness, sleep, workouts, heart-rate time series, and webhook management.
+An Elixir library for interacting with the [Oura API](https://cloud.ouraring.com/v2/docs) with a base client generated using [OpenAPI Code Generator](https://github.com/aj-foster/open-api-generator) from [Oura OpenAPI specs v1.43](https://cloud.ouraring.com/v2/static/json/openapi-1.43.json). It supports Oura collection APIs including activity, readiness, sleep, workouts, heart-rate time series, and webhook management.
 
 ## Features
 
 - **OAuth2 authentication** support (recommended approach)
 - Fetch data such as activity, readiness, and sleep metrics 
 - Built on the robust Elixir ecosystem 
-- Compatible with OpenAPI v1.42
+- Compatible with OpenAPI v1.43
 
-## OpenAPI 1.42 compatibility
+## OpenAPI 1.43 compatibility
 
-The public `ExOura` functions and response structs remain compatible. This update adds
+The public `ExOura` functions and response structs remain compatible. Oura now requires a
+`User-Agent` header identifying your application on every request and may reject requests
+without one. ExOura sends `ex_oura/<version>` by default; set your own with
+`config :ex_oura, user_agent: "YourAppName/1.0"`.
+
+OpenAPI 1.42 added
 `live_third_party_heart_rate` and `live_oura_heart_rate` workout sources and the optional
 `heart_health` OAuth2 scope. Request it explicitly with
 `ExOura.authorization_url(scopes: ["daily", "heart_health"])`; existing OAuth2 grants
@@ -101,6 +106,7 @@ ExOura provides dedicated modules for each type of Oura data:
    # In config/config.exs
    config :ex_oura,
      timeout: 10_000,
+     user_agent: "YourAppName/1.0",
      oauth2: [
        client_id: "your_client_id",
        client_secret: "your_client_secret",

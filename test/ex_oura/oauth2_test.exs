@@ -192,6 +192,26 @@ defmodule ExOura.OAuth2Test do
       end
     end
 
+    test "sends the configured user agent with token requests" do
+      original_user_agent = Application.get_env(:ex_oura, :user_agent)
+      on_exit(fn -> Application.put_env(:ex_oura, :user_agent, original_user_agent) end)
+      Application.delete_env(:ex_oura, :user_agent)
+      test_pid = self()
+
+      with_mock Req, [:passthrough],
+        post: fn _url, opts ->
+          send(test_pid, {:user_agent, opts[:user_agent]})
+          {:ok, %Req.Response{status: 200, body: %{access_token: "new_token", expires_in: 3600}}}
+        end do
+        assert {:ok, _tokens} = OAuth2.refresh_token("refresh_token")
+        assert_received {:user_agent, "ex_oura/" <> _version}
+
+        Application.put_env(:ex_oura, :user_agent, "MyApp/1.0")
+        assert {:ok, _tokens} = OAuth2.refresh_token("refresh_token")
+        assert_received {:user_agent, "MyApp/1.0"}
+      end
+    end
+
     test "refreshes token successfully" do
       successful_response = %Req.Response{
         status: 200,

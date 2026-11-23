@@ -5,6 +5,17 @@ defmodule ExOura.OAuth2Test do
 
   alias ExOura.OAuth2
 
+  # Tests below put :oauth2 app config; restore it so it can't leak into other modules.
+  setup do
+    original_config = Application.get_env(:ex_oura, :oauth2)
+
+    on_exit(fn ->
+      if original_config,
+        do: Application.put_env(:ex_oura, :oauth2, original_config),
+        else: Application.delete_env(:ex_oura, :oauth2)
+    end)
+  end
+
   describe "configuration" do
     test "raises error when OAuth2 configuration is missing" do
       # Clear configuration temporarily
@@ -178,6 +189,26 @@ defmodule ExOura.OAuth2Test do
                  assert tokens.expires_in == 3600
                  assert %DateTime{} = tokens.expires_at
                end) == ""
+      end
+    end
+
+    test "sends the configured user agent with token requests" do
+      original_user_agent = Application.get_env(:ex_oura, :user_agent)
+      on_exit(fn -> Application.put_env(:ex_oura, :user_agent, original_user_agent) end)
+      Application.delete_env(:ex_oura, :user_agent)
+      test_pid = self()
+
+      with_mock Req, [:passthrough],
+        post: fn _url, opts ->
+          send(test_pid, {:user_agent, opts[:user_agent]})
+          {:ok, %Req.Response{status: 200, body: %{access_token: "new_token", expires_in: 3600}}}
+        end do
+        assert {:ok, _tokens} = OAuth2.refresh_token("refresh_token")
+        assert_received {:user_agent, "ex_oura/" <> _version}
+
+        Application.put_env(:ex_oura, :user_agent, "MyApp/1.0")
+        assert {:ok, _tokens} = OAuth2.refresh_token("refresh_token")
+        assert_received {:user_agent, "MyApp/1.0"}
       end
     end
 

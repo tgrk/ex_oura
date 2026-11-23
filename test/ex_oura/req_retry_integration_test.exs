@@ -1,81 +1,190 @@
 defmodule ExOura.ReqRetryIntegrationTest do
   use ExUnit.Case, async: false
 
-  defmodule FlakyAdapter do
-    @moduledoc false
+  import Mock
 
-    # Fails the first request with 503, then succeeds.
-    def run(request) do
-      calls = Process.get(:flaky_adapter_calls, 0) + 1
-      Process.put(:flaky_adapter_calls, calls)
-      status = if calls == 1, do: 503, else: 200
-      {request, Req.Response.new(status: status)}
+  alias ExOura.Client
+  alias ExOura.Client.PersonalInfoResponse
+  alias ExOura.Test.Support.ReqFinchAdapter
+
+  setup do
+    stop_client()
+    {:ok, _pid} = Client.start_link("bearer_token")
+    on_exit(&stop_client/0)
+    :ok
+  end
+
+  # Other test modules link ExOura.Client to their setup_all process, so it may die between whereis and stop.
+  defp stop_client do
+    if pid = Process.whereis(Client), do: GenServer.stop(pid, :normal, 1000)
+  catch
+    :exit, _ -> :ok
+  end
+
+  test "sends the configured user agent with API requests" do
+    original_user_agent = Application.get_env(:ex_oura, :user_agent)
+    on_exit(fn -> Application.put_env(:ex_oura, :user_agent, original_user_agent) end)
+    Application.delete_env(:ex_oura, :user_agent)
+    test_pid = self()
+
+    adapter = fn request ->
+      send(test_pid, {:user_agent, Req.Request.get_header(request, "user-agent")})
+
+      {request,
+       Req.Response.new(
+         status: 200,
+         headers: %{"content-type" => ["application/json"]},
+         body: ~s({"id": "user-1"})
+       )}
+    end
+
+    with_mock ReqFinchAdapter, run: adapter do
+      assert {:ok, _personal_info} = ExOura.single_personal_info()
+      assert_received {:user_agent, ["ex_oura/" <> _version]}
+
+      Application.put_env(:ex_oura, :user_agent, "MyApp/1.0")
+      assert {:ok, _personal_info} = ExOura.single_personal_info()
+      assert_received {:user_agent, ["MyApp/1.0"]}
     end
   end
 
-  describe "Req built-in retry functionality" do
-    test "Client.should_retry?/2 correctly identifies retryable errors" do
-      # Server errors should be retryable
-      assert ExOura.Client.should_retry?(%Req.Request{}, %Req.Response{status: 500}) == true
-      assert ExOura.Client.should_retry?(%Req.Request{}, %Req.Response{status: 502}) == true
-      assert ExOura.Client.should_retry?(%Req.Request{}, %Req.Response{status: 503}) == true
-      assert ExOura.Client.should_retry?(%Req.Request{}, %Req.Response{status: 504}) == true
+  test "retries a GET request that first gets a 503" do
+    attempts = :counters.new(1, [])
 
-      # Rate limiting should be retryable
-      assert ExOura.Client.should_retry?(%Req.Request{}, %Req.Response{status: 429}) == true
+    adapter = fn request ->
+      :counters.add(attempts, 1, 1)
 
-      # Timeout should be retryable
-      assert ExOura.Client.should_retry?(%Req.Request{}, %Req.Response{status: 408}) == true
-
-      # Transport errors should be retryable
-      assert ExOura.Client.should_retry?(%Req.Request{}, %Req.TransportError{reason: :econnrefused}) == true
-    end
-
-    test "Client.should_retry?/2 correctly identifies non-retryable errors" do
-      # Client errors (except 408 and 429) should not be retryable
-      assert ExOura.Client.should_retry?(%Req.Request{}, %Req.Response{status: 400}) == false
-      assert ExOura.Client.should_retry?(%Req.Request{}, %Req.Response{status: 401}) == false
-      assert ExOura.Client.should_retry?(%Req.Request{}, %Req.Response{status: 403}) == false
-      assert ExOura.Client.should_retry?(%Req.Request{}, %Req.Response{status: 404}) == false
-      assert ExOura.Client.should_retry?(%Req.Request{}, %Req.Response{status: 422}) == false
-
-      # Successful responses should not be retryable
-      assert ExOura.Client.should_retry?(%Req.Request{}, %Req.Response{status: 200}) == false
-      assert ExOura.Client.should_retry?(%Req.Request{}, %Req.Response{status: 201}) == false
-
-      # Other exceptions should not be retryable
-      assert ExOura.Client.should_retry?(%Req.Request{}, %RuntimeError{message: "boom"}) == false
-    end
-
-    test "Client.retry_delay/1 calculates exponential backoff with jitter" do
-      # Req passes the retry count starting at 0; first retry should be around 1 second
-      delay1 = ExOura.Client.retry_delay(0)
-      assert delay1 >= 900 and delay1 <= 1100
-
-      # Second retry should be around 2 seconds
-      delay2 = ExOura.Client.retry_delay(1)
-      assert delay2 >= 1800 and delay2 <= 2200
-
-      # Third retry should be around 4 seconds
-      delay3 = ExOura.Client.retry_delay(2)
-      assert delay3 >= 3600 and delay3 <= 4400
-
-      # Large attempts should be capped at 30 seconds
-      delay_large = ExOura.Client.retry_delay(10)
-      assert delay_large <= 30_000
-    end
-
-    test "Req retries a 503 response using Client.should_retry?/2" do
       response =
-        Req.get!("http://example.test",
-          adapter: FlakyAdapter,
-          retry: &ExOura.Client.should_retry?/2,
-          retry_delay: fn _ -> 0 end,
-          retry_log_level: false
-        )
+        if :counters.get(attempts, 1) == 1 do
+          Req.Response.new(status: 503, body: "")
+        else
+          Req.Response.new(
+            status: 200,
+            headers: %{"content-type" => ["application/json"]},
+            body: ~s({"id": "user-1", "age": 30})
+          )
+        end
 
-      assert response.status == 200
-      assert Process.get(:flaky_adapter_calls) == 2
+      {request, response}
+    end
+
+    with_mock ReqFinchAdapter, run: adapter do
+      assert {:ok, %PersonalInfoResponse{id: "user-1", age: 30}} = ExOura.single_personal_info()
+    end
+
+    assert :counters.get(attempts, 1) == 2
+  end
+
+  test "runs the HTTP call in the caller process with the per-call timeout" do
+    test_pid = self()
+    client_pid = Process.whereis(Client)
+
+    adapter = fn request ->
+      send(test_pid, {:adapter_ran, self(), request.options[:receive_timeout]})
+      # 404 is not retried, so the test stays fast
+      {request, Req.Response.new(status: 404, body: "")}
+    end
+
+    with_mock ReqFinchAdapter, run: adapter do
+      assert {:error, _} = ExOura.single_personal_info(timeout: 1234)
+    end
+
+    assert_received {:adapter_ran, ^test_pid, 1234}
+    assert Process.whereis(Client) == client_pid
+  end
+
+  test "a per-call access_token is sent instead of the shared client token" do
+    test_pid = self()
+
+    adapter = fn request ->
+      send(test_pid, {:authorization, Req.Request.get_header(request, "authorization")})
+      {request, Req.Response.new(status: 404, body: "")}
+    end
+
+    with_mock ReqFinchAdapter, run: adapter do
+      assert {:error, _} = ExOura.single_personal_info(access_token: "user_b_token")
+    end
+
+    assert_received {:authorization, ["Bearer user_b_token"]}
+  end
+
+  test "an explicit nil or empty access_token fails instead of using the shared token" do
+    test_pid = self()
+
+    adapter = fn request ->
+      send(test_pid, :api_called)
+      {request, Req.Response.new(status: 404, body: "")}
+    end
+
+    with_mock ReqFinchAdapter, run: adapter do
+      assert {:error, :invalid_access_token} = ExOura.single_personal_info(access_token: nil)
+      assert {:error, :invalid_access_token} = ExOura.single_personal_info(access_token: "")
+    end
+
+    refute_received :api_called
+  end
+
+  test "options reach the route for wrappers that take a document id or a list of args" do
+    test_pid = self()
+
+    adapter = fn request ->
+      send(test_pid, {:request, request.url.path, Req.Request.get_header(request, "authorization")})
+      {request, Req.Response.new(status: 404, body: "")}
+    end
+
+    with_mock ReqFinchAdapter, run: adapter do
+      assert {:error, _} = ExOura.single_daily_activity("doc-1", access_token: "user_b_token")
+      assert {:error, _} = ExOura.get_webhook_subscription("hook-1", access_token: "user_b_token")
+    end
+
+    assert_received {:request, "/v2/usercollection/daily_activity/doc-1", ["Bearer user_b_token"]}
+    assert_received {:request, "/v2/webhook/subscription/hook-1", ["Bearer user_b_token"]}
+  end
+
+  test "webhook calls send client credentials from app config when env vars are unset" do
+    test_pid = self()
+    saved_config = Application.get_env(:ex_oura, :oauth2)
+    saved_env = Map.new(["OURA_CLIENT_ID", "OURA_CLIENT_SECRET"], &{&1, System.get_env(&1)})
+
+    on_exit(fn ->
+      if saved_config,
+        do: Application.put_env(:ex_oura, :oauth2, saved_config),
+        else: Application.delete_env(:ex_oura, :oauth2)
+
+      Enum.each(saved_env, fn {k, v} -> if v, do: System.put_env(k, v) end)
+    end)
+
+    Enum.each(Map.keys(saved_env), &System.delete_env/1)
+    Application.put_env(:ex_oura, :oauth2, client_id: "config_id", client_secret: "config_secret")
+
+    adapter = fn request ->
+      send(
+        test_pid,
+        {:credentials, Req.Request.get_header(request, "x-client-id"), Req.Request.get_header(request, "x-client-secret")}
+      )
+
+      {request, Req.Response.new(status: 404, body: "")}
+    end
+
+    with_mock ReqFinchAdapter, run: adapter do
+      ExOura.list_webhook_subscriptions()
+    end
+
+    assert_received {:credentials, ["config_id"], ["config_secret"]}
+  end
+
+  test "an exhausted known limit returns rate_limited without sleeping or calling the API" do
+    start_supervised!(ExOura.RateLimiter)
+    reset = System.system_time(:second) + 3600
+    ExOura.RateLimiter.update_rate_limit_headers(%{"x-ratelimit-remaining" => ["0"], "x-ratelimit-reset" => ["#{reset}"]})
+
+    adapter = fn _request -> flunk("API must not be called while rate limited") end
+
+    with_mock ReqFinchAdapter, run: adapter do
+      {micros, result} = :timer.tc(fn -> ExOura.single_personal_info() end)
+      assert {:error, {:rate_limited, retry_after}} = result
+      assert retry_after > 0
+      assert micros < 1_000_000
     end
   end
 end

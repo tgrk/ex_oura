@@ -108,10 +108,6 @@ defmodule ExOura.RateLimitingConfigurationIntegrationTest do
       end
 
       try do
-        # Client retry should still work without RateLimiter
-        delay = ExOura.Client.retry_delay(1)
-        assert delay > 0
-
         # Functions that check enabled?() should still work
         enabled = RateLimiter.enabled?()
         assert is_boolean(enabled)
@@ -176,12 +172,12 @@ defmodule ExOura.RateLimitingConfigurationIntegrationTest do
       end
 
       # Test that they work independently
-      GenServer.cast(:high_volume_limiter, :record_request)
+      GenServer.cast(:high_volume_limiter, {:update_headers, %{"x-ratelimit-remaining" => ["999"]}})
 
       high_status = GenServer.call(:high_volume_limiter, :get_status)
       low_status = GenServer.call(:low_volume_limiter, :get_status)
 
-      # Decremented
+      # Updated from headers
       assert high_status.remaining == 999
       # Unchanged
       assert low_status.remaining == 100

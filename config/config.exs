@@ -8,7 +8,7 @@ config :ex_oura,
     daily_limit: 5000,
     per_minute_limit: 300
   ],
-  # Retry configuration (uses Req's built-in retry mechanism)
+  # Retry configuration: Req's built-in retry for GET requests (408/429/5xx, network errors)
   retry: [
     max_retries: 3
   ]

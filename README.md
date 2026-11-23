@@ -8,16 +8,29 @@
 [![License](https://img.shields.io/hexpm/l/ex_oura.svg)](https://github.com/tgrk/ex_oura/blob/master/LICENSE)
 
 
-**An Elixir client for the Oura API, leveraging the OpenAPI v1.42 specification.**
+**An Elixir client for the Oura API, leveraging the OpenAPI v1.43 specification.**
 
-An Elixir library for interacting with the [Oura API](https://cloud.ouraring.com/v2/docs) with a base client generated using [OpenAPI Code Generator](https://github.com/aj-foster/open-api-generator) from [Oura OpenAPI specs v1.42](https://cloud.ouraring.com/v2/static/json/openapi-1.42.json). It supports Oura collection APIs including activity, readiness, sleep, workouts, heart-rate time series, and webhook management.
+An Elixir library for interacting with the [Oura API](https://cloud.ouraring.com/v2/docs) with a base client generated using [OpenAPI Code Generator](https://github.com/aj-foster/open-api-generator) from [Oura OpenAPI specs v1.43](https://cloud.ouraring.com/v2/static/json/openapi-1.43.json). It supports Oura collection APIs including activity, readiness, sleep, workouts, heart-rate time series, and webhook management.
 
 ## Features
 
 - **OAuth2 authentication** support (recommended approach), with automatic token refresh
 - Fetch data such as activity, readiness, and sleep metrics
 - Pagination helpers that fetch or stream every page
-- Client-side rate limiting and automatic retries
+- Client-side rate limiting and automatic retries for GET requests
+
+## OpenAPI 1.43 compatibility
+
+The public `ExOura` functions and response structs remain compatible. Oura now requires a
+`User-Agent` header identifying your application on every request and may reject requests
+without one. ExOura sends `ex_oura/<version>` by default; set your own with
+`config :ex_oura, user_agent: "YourAppName/1.0"`.
+
+OpenAPI 1.42 added `live_third_party_heart_rate` and `live_oura_heart_rate` workout sources
+and the optional `heart_health` OAuth2 scope (see [OAuth2 Integration](#oauth2-integration)).
+
+Oura no longer lists `meal` as a supported webhook subscription data type. Sleep
+`ring_id` is deprecated and now returns `nil`; the field remains in the response struct.
 
 ## Installation
 
@@ -80,6 +93,7 @@ ExOura provides dedicated modules for each type of Oura data. Every function is 
    # In config/config.exs
    config :ex_oura,
      timeout: 10_000,
+     user_agent: "YourAppName/1.0",
      oauth2: [
        client_id: "your_client_id",
        client_secret: "your_client_secret",
@@ -97,23 +111,25 @@ ExOura provides dedicated modules for each type of Oura data. Every function is 
 
    - Any missing `oauth2` key falls back to the `OURA_CLIENT_ID`, `OURA_CLIENT_SECRET`
      and `OURA_REDIRECT_URI` environment variables.
-   - Webhook subscription calls always read `OURA_CLIENT_ID` and `OURA_CLIENT_SECRET`
-     from the environment, so set them when you manage webhooks.
+   - Webhook subscription calls send the same `client_id` and `client_secret`, so set them
+     when you manage webhooks.
    - `timeout`, `rate_limiting` and `retry` are read at compile time. After changing them,
      run `mix deps.compile ex_oura --force`.
 
 3. **Start the processes**
 
-   ExOura.Client is a named process and must be running before any API call;
-   otherwise calls return `{:error, :client_not_ready}`. `ExOura.RateLimiter` is optional.
+   `ExOura.Client` is a named process and must be running before any API call that does not
+   pass `access_token:` (see [Multiple Users](#multiple-users)); otherwise calls return
+   `{:error, :client_not_ready}`. `ExOura.RateLimiter` is optional.
    ExOura has no application callback, so add both to your own supervisor:
 
    ```elixir
    # tokens is the map returned by ExOura.get_token/2; it includes expires_at,
-   # which the client needs to refresh the access token automatically
+   # which the client needs to refresh the access token automatically.
+   # on_refresh persists each rotated (single-use) refresh token.
    children = [
      ExOura.RateLimiter,
-     {ExOura.Client, tokens}
+     {ExOura.Client, Map.put(tokens, :on_refresh, &MyApp.Tokens.save/1)}
    ]
    ```
 
@@ -148,10 +164,8 @@ defmodule MyApp.OuraController do
          true <- secure_compare(state, stored_state),
          {:ok, tokens} <- ExOura.get_token(code) do
       # Store tokens securely (database, encrypted session, etc.)
+      # and pass `access_token:` on each call for this user (see below)
       store_user_tokens(current_user(conn), tokens)
-
-      # Point the running client at the new tokens
-      :ok = ExOura.set_auth_config(tokens)
 
       redirect(conn, to: "/dashboard")
     else
@@ -164,11 +178,37 @@ defmodule MyApp.OuraController do
 end
 ```
 
+### Multiple Users
+
+The shared `ExOura.Client` process holds **one** account's token. For apps with many users,
+pass that user's token on each call with `access_token:`. It is used instead of the shared
+token, and works even when `ExOura.Client` is not started. Refresh it yourself with
+`ExOura.refresh_token/1` (see below).
+
+```elixir
+ExOura.multiple_daily_activity(~D[2025-01-01], ~D[2025-01-31], nil, access_token: tokens.access_token)
+ExOura.all_daily_sleep(~D[2025-01-01], ~D[2025-01-31], access_token: tokens.access_token)
+```
+
 ### Token Refresh Handling
 
-When the client is given a token map with `expires_at` (as returned by `ExOura.get_token/2`),
-it refreshes an expired access token itself. To refresh explicitly and keep your stored
-tokens current:
+When you start the shared `ExOura.Client` with a refresh token and `expires_at`, it refreshes
+the access token on its own shortly before it expires. Oura refresh tokens are **single-use**,
+so pass `on_refresh:` to save every new token pair; otherwise the refresh token you stored
+stops working after the first refresh. The callback runs inside the client process: keep it
+quick and do not call ExOura from it. If it raises, a warning is logged and the client keeps
+the new tokens.
+
+```elixir
+ExOura.Client.start_link(
+  access_token: tokens.access_token,
+  refresh_token: tokens.refresh_token,
+  expires_at: tokens.expires_at,
+  on_refresh: fn new_tokens -> MyApp.Tokens.save(user, new_tokens) end
+)
+```
+
+With per-call `access_token:` (multiple users), refresh tokens yourself:
 
 ```elixir
 defmodule MyApp.OuraService do
@@ -179,7 +219,6 @@ defmodule MyApp.OuraService do
       case ExOura.refresh_token(tokens.refresh_token) do
         {:ok, new_tokens} ->
           update_user_tokens(user, new_tokens)
-          :ok = ExOura.set_auth_config(new_tokens)
           {:ok, new_tokens}
 
         {:error, _reason} ->
@@ -245,11 +284,12 @@ ExOura.stream_workouts/3        # Stream workout data
 Rate limiting is enabled by default with the Oura API limits (5000 requests/day,
 300 requests/minute) and is configured under `rate_limiting` (see Getting Started).
 
-- When **enabled** and `ExOura.RateLimiter` is running, the client tracks limits,
-  parses `X-RateLimit-*` response headers, and spaces out rapid requests. Each retry counts
-  as a request. Once a limit is used up, calls return `{:error, {:rate_limited, seconds}}`
-  right away instead of waiting for the reset.
-- When **disabled** or not running, nothing is tracked; `429` responses are still retried.
+- When **enabled** and `ExOura.RateLimiter` is running, the client tracks limits, reads
+  `x-ratelimit-*` response headers when present, and adds a short (≤200 ms) delay when few
+  per-minute requests remain. Once a known limit is used up, calls return
+  `{:error, {:rate_limited, seconds}}` right away without calling the API.
+- When **disabled** or not running, nothing is tracked; `429` responses to GET requests are
+  still retried.
 
 ```elixir
 status = ExOura.RateLimiter.get_status()
@@ -257,9 +297,10 @@ IO.puts("Daily remaining: #{status.remaining}")
 IO.puts("Per-minute remaining: #{status.per_minute_remaining}")
 ```
 
-Retries use Req's built-in retry with exponential backoff and jitter. Server errors (5xx),
-timeouts (408), rate limits (429) and network errors are retried; other 4xx errors are not.
-Only `retry: [max_retries: n]` is configurable (default 3).
+Retries use Req's built-in `retry: :safe_transient`: GET requests are retried on 408, 429
+and 5xx responses and on transient network errors, honoring `Retry-After`, otherwise with
+exponential backoff and jitter. POST, PUT and DELETE (webhook subscriptions) are never
+retried. Only `retry: [max_retries: n]` is configurable (default 3).
 
 ## License
 

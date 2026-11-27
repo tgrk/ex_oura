@@ -24,7 +24,7 @@ Use Mix for normal development:
 - `mix coverage` or `MIX_ENV=test mix coveralls` runs coverage locally; CI uses `mix coveralls.github`.
 - `mix format` formats code with `Styler`; `mix format --check-formatted` verifies formatting.
 - `mix credo --strict` runs the lint rules used by the repo.
-- `mix dialyzer --format github` runs static analysis; `mix quality` runs format, Credo, and Dialyzer.
+- `mix dialyzer --format github` runs static analysis; `mix quality` runs format, ExDNA, Credo, and Dialyzer.
 - `mix docs` rebuilds HexDocs output.
 
 ## Coding Style & Public API Discipline
@@ -71,3 +71,8 @@ Verification expectations:
 
 ## Commit & Pull Request Guidelines
 Recent history uses Conventional Commit-style subjects such as `feat:`, `fix:`, `docs:`, and `chore(deps-dev):`. Keep subjects imperative and scoped when useful. Pull requests should describe behavior changes, call out public API changes, generated-client updates, cassette or fixture changes, and any configuration or authentication implications. Update README or docs when public usage changes.
+
+## Releasing
+Releases are driven by release-please; do not edit `CHANGELOG.md` by hand. Merging a release-please PR into `master` creates the GitHub release and runs the `publish` job in `.github/workflows/release-please.yml`, which compiles, checks formatting, runs the cassette-backed tests, and publishes the package and HexDocs using Hex Workload Identity.
+
+If the publish job fails before submission, fix the cause and re-run **failed jobs** on the original workflow run. Re-running the entire workflow can cause release-please to find no new release and skip publishing. Check for an existing staged release before retrying if the upload may already have succeeded.

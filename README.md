@@ -5,7 +5,7 @@
 [![Build Status](https://github.com/tgrk/ex_oura/actions/workflows/elixir.yaml/badge.svg)](https://github.com/tgrk/ex_oura/actions)
 [![Coverage Status](https://coveralls.io/repos/github/tgrk/ex_oura/badge.svg)](https://coveralls.io/github/tgrk/ex_oura)
 [![Last Updated](https://img.shields.io/github/last-commit/tgrk/ex_oura.svg)](https://github.com/tgrk/ex_oura/commits/master)
-[![License](https://img.shields.io/hexpm/l/ex_oura.svg)](https://github.com/sticksnleaves/ex_oura/blob/master/LICENSE.md)
+[![License](https://img.shields.io/hexpm/l/ex_oura.svg)](https://github.com/tgrk/ex_oura/blob/master/LICENSE)
 
 
 **An Elixir client for the Oura API, leveraging the OpenAPI v1.43 specification.**
@@ -14,10 +14,10 @@ An Elixir library for interacting with the [Oura API](https://cloud.ouraring.com
 
 ## Features
 
-- **OAuth2 authentication** support (recommended approach)
-- Fetch data such as activity, readiness, and sleep metrics 
-- Built on the robust Elixir ecosystem 
-- Compatible with OpenAPI v1.43
+- **OAuth2 authentication** support (recommended approach), with automatic token refresh
+- Fetch data such as activity, readiness, and sleep metrics
+- Pagination helpers that fetch or stream every page
+- Client-side rate limiting and automatic retries for GET requests
 
 ## OpenAPI 1.43 compatibility
 
@@ -26,12 +26,8 @@ The public `ExOura` functions and response structs remain compatible. Oura now r
 without one. ExOura sends `ex_oura/<version>` by default; set your own with
 `config :ex_oura, user_agent: "YourAppName/1.0"`.
 
-OpenAPI 1.42 added
-`live_third_party_heart_rate` and `live_oura_heart_rate` workout sources and the optional
-`heart_health` OAuth2 scope. Request it explicitly with
-`ExOura.authorization_url(scopes: ["daily", "heart_health"])`; existing OAuth2 grants
-need new user consent to include it. Default scopes remain `personal` and `daily`.
-The SpO2 scope is `spo2`.
+OpenAPI 1.42 added `live_third_party_heart_rate` and `live_oura_heart_rate` workout sources
+and the optional `heart_health` OAuth2 scope (see [OAuth2 Integration](#oauth2-integration)).
 
 Oura no longer lists `meal` as a supported webhook subscription data type. Sleep
 `ring_id` is deprecated and now returns `nil`; the field remains in the response struct.
@@ -48,11 +44,9 @@ def deps do
 end
 ```
 
-## Developer Integration Guide
-
 ## API Module Reference
 
-ExOura provides dedicated modules for each type of Oura data:
+ExOura provides dedicated modules for each type of Oura data. Every function is also available on the `ExOura` facade (for example `ExOura.multiple_daily_sleep/4`).
 
 ### Core Data Modules
 
@@ -68,11 +62,14 @@ ExOura provides dedicated modules for each type of Oura data:
 - **`ExOura.DailySp02`** - Blood oxygen saturation data during sleep
 - **`ExOura.DailyStress`** - Daily stress levels and patterns
 - **`ExOura.DailyResilience`** - Resilience scores and stress recovery
+- **`ExOura.DailyCardiovascularAge`** - Cardiovascular age estimates
 - **`ExOura.EnhancedTag`** - User tags and annotations (recommended)
 - **`ExOura.Tag`** - Legacy tag system (deprecated by Oura)
 - **`ExOura.Session`** - Guided sessions and breathing exercises
 - **`ExOura.Sleep`** - Detailed sleep session data
 - **`ExOura.SleepTime`** - Sleep timing preferences
+- **`ExOura.RestModePeriod`** - Rest mode periods
+- **`ExOura.RingConfiguration`** - Ring hardware and firmware details
 - **`ExOura.RingBatteryLevel`** - Time-series ring battery level events
 - **`ExOura.Vo2Max`** - VO2 Max measurements
 - **`ExOura.WebhookSubscription`** - Webhook management
@@ -84,24 +81,14 @@ ExOura provides dedicated modules for each type of Oura data:
 - **`ExOura.Pagination`** - Automatic pagination handling
 - **`ExOura.RateLimiter`** - API rate limit management
 
-### Getting Started
+## Getting Started
 
 1. **Register Your Application** (OAuth2 - Recommended)
    - Visit [Oura OAuth Applications](https://cloud.ouraring.com/oauth/applications)
    - Create a new application and note your client credentials
    - Configure your redirect URI (it has to be a valid one not `http://localhost` as you will get 403 error)
 
-2. **Install ExOura**
-   ```elixir
-   # In mix.exs
-   def deps do
-     [
-       {:ex_oura, "~> 4.0"}
-     ]
-   end
-   ```
-
-3. **Configure Your Application**
+2. **Configure Your Application**
    ```elixir
    # In config/config.exs
    config :ex_oura,
@@ -116,12 +103,43 @@ ExOura provides dedicated modules for each type of Oura data:
        enabled: true,
        daily_limit: 5_000,
        per_minute_limit: 300
+     ],
+     retry: [
+       max_retries: 3
      ]
    ```
 
-### OAuth2 Integration Examples
+   - Any missing `oauth2` key falls back to the `OURA_CLIENT_ID`, `OURA_CLIENT_SECRET`
+     and `OURA_REDIRECT_URI` environment variables.
+   - Webhook subscription calls send the same `client_id` and `client_secret`, so set them
+     when you manage webhooks.
+   - `timeout`, `rate_limiting` and `retry` are read at compile time. After changing them,
+     run `mix deps.compile ex_oura --force`.
 
-#### Basic OAuth2 Flow
+3. **Start the processes**
+
+   `ExOura.Client` is a named process and must be running before any API call that does not
+   pass `access_token:` (see [Multiple Users](#multiple-users)); otherwise calls return
+   `{:error, :client_not_ready}`. `ExOura.RateLimiter` is optional.
+   ExOura has no application callback, so add both to your own supervisor:
+
+   ```elixir
+   # tokens is the map returned by ExOura.get_token/2; it includes expires_at,
+   # which the client needs to refresh the access token automatically.
+   # on_refresh persists each rotated (single-use) refresh token.
+   children = [
+     ExOura.RateLimiter,
+     {ExOura.Client, Map.put(tokens, :on_refresh, &MyApp.Tokens.save/1)}
+   ]
+   ```
+
+## OAuth2 Integration
+
+Default scopes are `personal` and `daily`; `ExOura.available_scopes/0` lists them all.
+Request other scopes explicitly, e.g. `ExOura.authorization_url(scopes: ["daily", "heart_health"])`.
+Existing grants need new user consent to gain a scope.
+
+### Basic OAuth2 Flow
 
 ```elixir
 defmodule MyApp.OuraController do
@@ -145,23 +163,22 @@ defmodule MyApp.OuraController do
     with {:ok, stored_state} <- get_state_from_session(conn),
          true <- secure_compare(state, stored_state),
          {:ok, tokens} <- ExOura.get_token(code) do
-      
       # Store tokens securely (database, encrypted session, etc.)
       # and pass `access_token:` on each call for this user (see below)
       store_user_tokens(current_user(conn), tokens)
 
       redirect(conn, to: "/dashboard")
     else
-      {:error, reason} ->
+      _ ->
         conn
-        |> put_flash(:error, "OAuth authorization failed: #{inspect(reason)}")
+        |> put_flash(:error, "OAuth authorization failed")
         |> redirect(to: "/")
     end
   end
 end
 ```
 
-#### Multiple Users
+### Multiple Users
 
 The shared `ExOura.Client` process holds **one** account's token. For apps with many users,
 pass that user's token on each call with `access_token:`. It is used instead of the shared
@@ -173,7 +190,7 @@ ExOura.multiple_daily_activity(~D[2025-01-01], ~D[2025-01-31], nil, access_token
 ExOura.all_daily_sleep(~D[2025-01-01], ~D[2025-01-31], access_token: tokens.access_token)
 ```
 
-#### Token Refresh Handling
+### Token Refresh Handling
 
 When you start the shared `ExOura.Client` with a refresh token and `expires_at`, it refreshes
 the access token on its own shortly before it expires. Oura refresh tokens are **single-use**,
@@ -195,17 +212,16 @@ With per-call `access_token:` (multiple users), refresh tokens yourself:
 
 ```elixir
 defmodule MyApp.OuraService do
-  @doc "Ensures we have valid tokens before making API calls"
   def ensure_valid_tokens(user) do
     tokens = get_user_tokens(user)
-    
+
     if ExOura.token_expired?(tokens) do
       case ExOura.refresh_token(tokens.refresh_token) do
-        {:ok, new_tokens} = result ->
+        {:ok, new_tokens} ->
           update_user_tokens(user, new_tokens)
-          result
-        
-        {:error, reason} ->
+          {:ok, new_tokens}
+
+        {:error, _reason} ->
           # Token refresh failed - user needs to re-authorize
           {:error, :reauthorization_required}
       end
@@ -216,261 +232,15 @@ defmodule MyApp.OuraService do
 end
 ```
 
-### Data Retrieval Examples
-
-#### Comprehensive Health Dashboard
+## Quick Reference
 
 ```elixir
-defmodule MyApp.HealthDashboard do
-  @doc "Fetches comprehensive health data for dashboard"
-  def fetch_user_health_data(user, date_range) do
-    with {:ok, tokens} <- MyApp.OuraService.ensure_valid_tokens(user) do
-      {start_date, end_date} = date_range
-      opts = [access_token: tokens.access_token]
-
-      # Fetch data in parallel using Task.async
-      tasks = [
-        Task.async(fn -> ExOura.all_daily_activity(start_date, end_date, opts) end),
-        Task.async(fn -> ExOura.all_daily_sleep(start_date, end_date, opts) end),
-        Task.async(fn -> ExOura.all_workouts(start_date, end_date, opts) end),
-        Task.async(fn -> ExOura.single_personal_info(opts) end)
-      ]
-      
-      # Wait for all tasks to complete
-      [activity_result, sleep_result, workout_result, personal_result] = 
-        Task.await_many(tasks, 30_000)
-      
-      case {activity_result, sleep_result, workout_result, personal_result} do
-        {{:ok, activities}, {:ok, sleep_data}, {:ok, workouts}, {:ok, personal_info}} ->
-          {:ok, %{
-            activities: activities,
-            sleep: sleep_data,
-            workouts: workouts,
-            personal_info: personal_info,
-            summary: generate_health_summary(activities, sleep_data, workouts)
-          }}
-        
-        _ ->
-          {:error, :data_fetch_failed}
-      end
-    end
-  end
-  
-  defp generate_health_summary(activities, sleep_data, workouts) do
-    %{
-      avg_steps: avg_field(activities, :steps),
-      avg_sleep_score: avg_field(sleep_data, :score),
-      total_workouts: length(workouts),
-      avg_workout_duration: avg_field(workouts, :duration)
-    }
-  end
-  
-  defp avg_field([] =_ data, _field), do: 0
-  defp avg_field(data, field) when is_list(data) do
-    sum = data |> Enum.map(&Map.get(&1, field, 0)) |> Enum.sum()
-    sum / length(data)
-  end
-end
-```
-
-#### Streaming Large Datasets
-
-```elixir
-defmodule MyApp.DataAnalyzer do
-  @doc "Analyzes large datasets using streaming for memory efficiency"
-  def analyze_yearly_activity(user, year) do
-    start_date = Date.new!(year, 1, 1)
-    end_date = Date.new!(year, 12, 31)
-    
-    with {:ok, tokens} <- MyApp.OuraService.ensure_valid_tokens(user) do
-      results = ExOura.stream_daily_activity(start_date, end_date, access_token: tokens.access_token)
-      |> Stream.filter(&(&1.score > 0))  # Valid scores only
-      |> Stream.map(&extract_activity_metrics/1)
-      |> Enum.reduce(%{total_steps: 0, active_days: 0, high_activity_days: 0}, &accumulate_metrics/2)
-      
-      {:ok, %{
-        year: year,
-        total_steps: results.total_steps,
-        active_days: results.active_days,
-        high_activity_days: results.high_activity_days,
-        avg_daily_steps: results.total_steps / max(results.active_days, 1)
-      }}
-    end
-  end
-  
-  defp extract_activity_metrics(activity) do
-    %{
-      steps: activity.steps || 0,
-      high_activity: (activity.score || 0) >= 80
-    }
-  end
-  
-  defp accumulate_metrics(day_metrics, acc) do
-    %{
-      total_steps: acc.total_steps + day_metrics.steps,
-      active_days: acc.active_days + 1,
-      high_activity_days: acc.high_activity_days + if(day_metrics.high_activity, do: 1, else: 0)
-    }
-  end
-end
-```
-
-#### Error Handling Best Practices
-
-```elixir
-defmodule MyApp.OuraAPI do
-  @doc "Robust API call with comprehensive error handling"
-  def safe_fetch_sleep_data(user, date_range, opts \\ []) do
-    max_retries = Keyword.get(opts, :max_retries, 3)
-    
-    with_retry(fn -> fetch_sleep_data(user, date_range) end, max_retries)
-  end
-  
-  defp fetch_sleep_data(user, {start_date, end_date}) do
-    case MyApp.OuraService.ensure_valid_tokens(user) do
-      {:ok, tokens} ->
-        ExOura.multiple_daily_sleep(start_date, end_date, nil, access_token: tokens.access_token)
-      
-      {:error, :reauthorization_required} ->
-        {:error, :user_needs_reauth}
-        
-      {:error, _reason} = error ->
-        error
-    end
-  end
-  
-  defp with_retry(func, retries_left) when retries_left > 0 do
-    case func.() do
-      {:ok, _result} = result -> 
-        result
-      
-      {:error, %{status: status}} when status in [429, 500, 502, 503, 504] ->
-        # Retryable errors
-        :timer.sleep(exponential_backoff(3 - retries_left))
-        with_retry(func, retries_left - 1)
-      
-      {:error, _reason} = error ->
-        # Non-retryable error
-        error
-    end
-  end
-  
-  defp with_retry(func, 0), do: func.()
-  
-  defp exponential_backoff(attempt) do
-    base_delay = 1000  # 1 second
-    :rand.uniform(base_delay * :math.pow(2, attempt)) |> round()
-  end
-end
-```
-
-### Production Considerations
-
-#### Rate Limiting Management
-
-```elixir
-# Start rate limiter in your application supervisor
-children = [
-  {ExOura.RateLimiter, []},
-  # ... other children
-]
-
-# Monitor rate limit status
-defmodule MyApp.RateLimitMonitor do
-  use GenServer
-  
-  def start_link(_) do
-    GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
-  end
-  
-  def init(state) do
-    # Check rate limits every minute
-    :timer.send_interval(60_000, :check_rate_limits)
-    {:ok, state}
-  end
-  
-  def handle_info(:check_rate_limits, state) do
-    case ExOura.RateLimiter.get_status() do
-      %{remaining: remaining} when remaining < 100 ->
-        # Alert when approaching daily limit
-        Logger.warning("Oura API daily limit approaching: #{remaining} requests remaining")
-      
-      %{per_minute_remaining: per_min} when per_min < 10 ->
-        # Alert when approaching per-minute limit  
-        Logger.warning("Oura API per-minute limit approaching: #{per_min} requests remaining")
-      
-      _ ->
-        :ok
-    end
-    
-    {:noreply, state}
-  end
-end
-```
-
-#### Background Data Sync
-
-```elixir
-defmodule MyApp.OuraSync do
-  use Oban.Worker, queue: :oura_sync, max_attempts: 3
-  
-  @doc "Background job to sync user's Oura data"
-  def perform(%Oban.Job{args: %{"user_id" => user_id, "sync_date" => sync_date}}) do
-    user = MyApp.Accounts.get_user!(user_id)
-    date = Date.from_iso8601!(sync_date)
-    
-    with {:ok, tokens} <- MyApp.OuraService.ensure_valid_tokens(user),
-         {:ok, data} <- sync_user_data_for_date(tokens, date) do
-      
-      MyApp.HealthData.store_user_data(user, date, data)
-      :ok
-    else
-      {:error, :user_needs_reauth} ->
-        # Schedule notification to user
-        MyApp.Notifications.schedule_reauth_reminder(user)
-        {:snooze, 3600}  # Retry in 1 hour
-      
-      {:error, reason} ->
-        Logger.error("Failed to sync Oura data for user #{user_id}: #{inspect(reason)}")
-        {:error, reason}
-    end
-  end
-  
-  defp sync_user_data_for_date(tokens, date) do
-    opts = [access_token: tokens.access_token]
-
-    # Fetch yesterday's data (typically available by 10 AM)
-    with {:ok, activity} <- ExOura.multiple_daily_activity(date, date, nil, opts),
-         {:ok, sleep} <- ExOura.multiple_daily_sleep(date, date, nil, opts),
-         {:ok, workouts} <- ExOura.multiple_workout(date, date, nil, opts) do
-      
-      {:ok, %{
-        activity: List.first(activity.data),
-        sleep: List.first(sleep.data), 
-        workouts: workouts.data
-      }}
-    end
-  end
-end
-```
-
-### Quick Reference
-
-```elixir
-# Most common operations
 {:ok, activities} = ExOura.multiple_daily_activity(~D[2025-01-01], ~D[2025-01-31])
 {:ok, sleep_data} = ExOura.multiple_daily_sleep(~D[2025-01-01], ~D[2025-01-31])
 {:ok, workouts} = ExOura.multiple_workout(~D[2025-01-01], ~D[2025-01-31])
 {:ok, personal_info} = ExOura.single_personal_info()
 
-# Pagination helpers (automatically handles multiple pages)
-{:ok, all_activities} = ExOura.all_daily_activity(~D[2024-01-01], ~D[2024-12-31])
-{:ok, all_sleep} = ExOura.all_daily_sleep(~D[2024-01-01], ~D[2024-12-31])
-
-# Memory-efficient streaming for large datasets
-ExOura.stream_daily_activity(~D[2024-01-01], ~D[2024-12-31])
-|> Stream.filter(&(&1.score > 80))
-|> Enum.take(100)
+activities.data |> Enum.each(&IO.inspect/1)
 ```
 
 ## Pagination Support
@@ -480,16 +250,11 @@ For large date ranges, the API returns paginated results. ExOura provides conven
 ```elixir
 # Fetch ALL daily activity data across multiple pages
 {:ok, all_activities} = ExOura.all_daily_activity(~D[2024-01-01], ~D[2024-12-31])
-IO.inspect(length(all_activities))  # All activities for the year
-
-# Fetch ALL workouts across multiple pages  
-{:ok, all_workouts} = ExOura.all_workouts(~D[2024-01-01], ~D[2024-12-31])
 
 # Stream data for memory-efficient processing of large datasets
 ExOura.stream_daily_activity(~D[2024-01-01], ~D[2024-12-31])
 |> Stream.filter(& &1.score > 80)
-|> Stream.take(10)
-|> Enum.to_list()
+|> Enum.take(10)
 
 # Available pagination helpers
 ExOura.all_daily_activity/3     # All daily activity data
@@ -503,95 +268,39 @@ ExOura.stream_workouts/3        # Stream workout data
 
 ### Pagination Options
 
-You can control pagination behavior with options:
+`all_*` helpers stop after `max_pages` (default 100) and return
+`{:error, {:max_pages_exceeded, max_pages}}`:
 
 ```elixir
-# Limit maximum pages to prevent runaway requests
-{:ok, activities} = ExOura.all_daily_activity(
-  ~D[2024-01-01], 
-  ~D[2024-12-31], 
-  [max_pages: 10]
-)
+{:ok, activities} = ExOura.all_daily_activity(~D[2024-01-01], ~D[2024-12-31], max_pages: 10)
 
 # Manual pagination if you need more control
 {:ok, page1} = ExOura.multiple_daily_activity(~D[2024-01-01], ~D[2024-01-31])
 {:ok, page2} = ExOura.multiple_daily_activity(~D[2024-01-01], ~D[2024-01-31], page1.next_token)
 ```
 
-### Rate Limiting and Retry Logic
+## Rate Limiting and Retries
 
-ExOura automatically handles Oura API rate limits and implements intelligent retry logic:
+Rate limiting is enabled by default with the Oura API limits (5000 requests/day,
+300 requests/minute) and is configured under `rate_limiting` (see Getting Started).
 
-**Configuration Options:**
-
-Rate limiting is enabled by default with the standard Oura API limits. You can customize or disable it:
-
-```elixir
-config :ex_oura,
-  rate_limiting: [
-    enabled: true,          # Set to false to disable rate limiting entirely
-    daily_limit: 5000,      # Customize daily limit (default: 5000)
-    per_minute_limit: 300   # Customize per-minute limit (default: 300)
-  ]
-```
-
-**Behavior (when `ExOura.RateLimiter` is running and enabled):**
-- Remaining requests and reset times are read from Oura's `x-ratelimit-*` response headers when present
-- A call that would exceed a known, not-yet-reset limit returns `{:error, {:rate_limited, seconds}}`
-  without calling the API; retry after `seconds`
-- Rapid requests get a short (≤200 ms) delay when few per-minute requests remain
-- When **disabled** or not started: no tracking; 429 responses are still retried for GET requests
-
-**Usage:**
+- When **enabled** and `ExOura.RateLimiter` is running, the client tracks limits, reads
+  `x-ratelimit-*` response headers when present, and adds a short (≤200 ms) delay when few
+  per-minute requests remain. Once a known limit is used up, calls return
+  `{:error, {:rate_limited, seconds}}` right away without calling the API.
+- When **disabled** or not running, nothing is tracked; `429` responses to GET requests are
+  still retried.
 
 ```elixir
-# Start the rate limiter (optional)
-{:ok, _pid} = ExOura.RateLimiter.start_link()
-
-case ExOura.multiple_daily_activity(~D[2024-01-01], ~D[2024-01-31]) do
-  {:ok, activities} -> activities
-  {:error, {:rate_limited, seconds}} -> {:retry_in, seconds}
-  {:error, reason} -> {:error, reason}
-end
-```
-
-#### Retry Logic Features  
-
-ExOura uses Req's built-in retry (`retry: :safe_transient`):
-
-- **What is retried**: GET requests that get a 408, 429, 500, 502, 503 or 504 response,
-  or a transient network error (timeout, connection refused, connection closed)
-- **Delay**: Honors the `Retry-After` header on 429 and 503; otherwise exponential backoff with jitter
-- **Not retried**: POST, PUT and DELETE requests (webhook subscriptions), so a retry never
-  creates a duplicate subscription
-- **Configurable**: Set the maximum number of retries:
-
-```elixir
-config :ex_oura,
-  retry: [max_retries: 3]
-```
-
-#### Advanced Usage
-
-```elixir
-# Monitor rate limit status
 status = ExOura.RateLimiter.get_status()
-IO.puts "Daily remaining: #{status.remaining}"
-IO.puts "Per-minute remaining: #{status.per_minute_remaining}"
+IO.puts("Daily remaining: #{status.remaining}")
+IO.puts("Per-minute remaining: #{status.per_minute_remaining}")
 ```
 
-## Releasing
-
-Merging a release-please PR into `master` creates the GitHub release and runs the
-`publish` job in [release-please.yml](.github/workflows/release-please.yml). The job
-checks out the released commit, compiles it, checks formatting, runs the
-cassette-backed tests, and publishes the package and HexDocs using
-[Hex Workload Identity](https://hex.pm/docs/workload-identity).
-
-If the publish job fails before submission, fix the cause and re-run **failed jobs**
-on the original workflow run. Re-running the entire workflow can cause release-please
-to find no new release and skip publishing. Check for an existing staged release
-before retrying if the upload may already have succeeded.
+Retries use Req's built-in `retry: :safe_transient`: GET requests are retried on 408, 429
+and 5xx responses and on transient network errors, honoring `Retry-After`, otherwise with
+exponential backoff and jitter. POST, PUT and DELETE (webhook subscriptions) are never
+retried. Only `retry: [max_retries: n]` is configurable (default 3).
 
 ## License
 
